@@ -1,3 +1,5 @@
+"use client";
+
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 
