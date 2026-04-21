@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding"];
+const ADMIN_EMAIL = "johnmedeiros30@gmail.com";
 const SUPABASE_CONFIGURED =
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== "your_supabase_url";
@@ -37,6 +38,11 @@ export async function middleware(request: NextRequest) {
 
   if (!isPublic && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Protege /admin — só o e-mail do administrador pode acessar
+  if (path.startsWith("/admin") && user?.email !== ADMIN_EMAIL) {
+    return NextResponse.redirect(new URL("/feed", request.url));
   }
 
   if (user && (path === "/login" || path === "/cadastro")) {
