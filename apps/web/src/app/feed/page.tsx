@@ -2,6 +2,7 @@ import PostCard from "@/components/ui/PostCard";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
 import Notificacoes from "@/components/ui/Notificacoes";
+import BotaoConvite from "@/components/ui/BotaoConvite";
 
 const ME = { name: "Você", score: 320, city: "São Paulo" };
 
@@ -114,6 +115,7 @@ export default function Feed() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <BotaoConvite variant="light" />
             <Notificacoes />
             <ScoreBadge score={ME.score} compact />
             <a href="/urban-pay" style={{ textDecoration: "none" }}>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
+import BotaoConvite from "@/components/ui/BotaoConvite";
 
 // ─── Dados mock — substituir por queries Supabase ───────────────────────────
 
@@ -119,6 +120,7 @@ export default function Admin() {
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <BotaoConvite variant="dark" />
           <span style={{ fontSize: "12px", color: "#A3A3A3" }}>johnmedeiros30@gmail.com</span>
           <Avatar name="John Medeiros" size={32} />
         </div>

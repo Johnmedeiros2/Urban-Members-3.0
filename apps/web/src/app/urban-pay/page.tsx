@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
+import BotaoConvite from "@/components/ui/BotaoConvite";
 
 const HISTORICO = [
   { id: 1, tipo: "recebido",  nome: "Juliana Ramos", desc: "Pack de Templates",    valor: 42.30,  data: "Hoje, 14h32",      status: "concluído" },
@@ -44,7 +45,10 @@ export default function UrbanPay() {
             <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
             <span style={{ fontSize: "15px", fontWeight: 800, letterSpacing: "-0.03em", color: "#111111" }}>Urban Pay</span>
           </div>
-          <ScoreBadge score={320} compact />
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <BotaoConvite variant="ghost" />
+            <ScoreBadge score={320} compact />
+          </div>
         </div>
       </header>
 

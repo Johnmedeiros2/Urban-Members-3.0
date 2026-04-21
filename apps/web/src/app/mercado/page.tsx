@@ -2,6 +2,7 @@
 
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
+import BotaoConvite from "@/components/ui/BotaoConvite";
 
 const categorias = [
   { label: "Todos",       active: true  },
@@ -118,6 +119,7 @@ export default function Mercado() {
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#525252" }}>Mercado Urbano</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <BotaoConvite variant="ghost" />
             <button style={{ height: "36px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
               + Vender
             </button>

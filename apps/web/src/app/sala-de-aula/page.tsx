@@ -2,6 +2,7 @@
 
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
+import BotaoConvite from "@/components/ui/BotaoConvite";
 
 const courses = [
   {
@@ -92,6 +93,7 @@ export default function SalaDeAula() {
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#525252" }}>Sala de Aula</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <BotaoConvite variant="ghost" />
             <ScoreBadge score={320} compact />
             <Avatar name="Você" size={36} />
           </div>

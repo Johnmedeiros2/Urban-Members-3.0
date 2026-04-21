@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import PostCard from "@/components/ui/PostCard";
+import BotaoConvite from "@/components/ui/BotaoConvite";
 
 const BAIRROS_DATA: Record<string, {
   descricao: string;
@@ -68,7 +69,10 @@ export default function BairroPage() {
             <span style={{ fontSize: "14px", color: "#A3A3A3" }}>/</span>
             <span style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{nomeDisplay}</span>
           </div>
-          <ScoreBadge score={320} compact />
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <BotaoConvite variant="ghost" />
+            <ScoreBadge score={320} compact />
+          </div>
         </div>
       </header>
 

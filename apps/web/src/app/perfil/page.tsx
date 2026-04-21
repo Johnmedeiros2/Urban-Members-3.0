@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
+import BotaoConvite from "@/components/ui/BotaoConvite";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
 
 interface Perfil {
@@ -128,7 +129,10 @@ export default function Perfil() {
             <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
             <span style={{ fontSize: "15px", fontWeight: 800, letterSpacing: "-0.03em", color: "#111111" }}>Urban Members</span>
           </div>
-          <ScoreBadge score={perfil.urban_score} compact />
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <BotaoConvite variant="ghost" />
+            <ScoreBadge score={perfil.urban_score} compact />
+          </div>
         </div>
       </header>
 
