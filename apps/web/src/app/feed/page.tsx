@@ -1,17 +1,18 @@
 import PostCard from "@/components/ui/PostCard";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
+import Notificacoes from "@/components/ui/Notificacoes";
 
 const ME = { name: "Você", score: 320, city: "São Paulo" };
 
 const neighborhoods = [
-  { label: "Início",      active: true },
-  { label: "Bairros",     active: false },
-  { label: "Aprender",    active: false },
-  { label: "Mercado",     active: false },
-  { label: "Negócios",    active: false },
-  { label: "Arte",        active: false },
-  { label: "Sala de Aula", active: false },
+  { label: "Início",       active: true,  href: "/feed"             },
+  { label: "Bairros",      active: false, href: "/bairros/negocios" },
+  { label: "Aprender",     active: false, href: "/sala-de-aula"     },
+  { label: "Mercado",      active: false, href: "/mercado"          },
+  { label: "Negócios",     active: false, href: "/bairros/negocios" },
+  { label: "Arte",         active: false, href: "/bairros/arte"     },
+  { label: "Sala de Aula", active: false, href: "/sala-de-aula"     },
 ];
 
 const posts = [
@@ -113,8 +114,14 @@ export default function Feed() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <Notificacoes />
             <ScoreBadge score={ME.score} compact />
-            <Avatar name={ME.name} size={36} />
+            <a href="/urban-pay" style={{ textDecoration: "none" }}>
+              <button style={{ height: "36px", padding: "0 16px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                Urban Pay
+              </button>
+            </a>
+            <a href="/perfil"><Avatar name={ME.name} size={36} /></a>
           </div>
         </div>
       </header>

@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding"];
+const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/admin", "/feed", "/mercado", "/sala-de-aula", "/perfil"];
 const ADMIN_EMAIL = "johnmedeiros30@gmail.com";
 const SUPABASE_CONFIGURED =
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -40,8 +40,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Protege /admin — só o e-mail do administrador pode acessar
-  if (path.startsWith("/admin") && user?.email !== ADMIN_EMAIL) {
+  // Protege /admin — só bloqueia se houver usuário logado com e-mail diferente
+  if (path.startsWith("/admin") && user && user.email !== ADMIN_EMAIL) {
     return NextResponse.redirect(new URL("/feed", request.url));
   }
 
