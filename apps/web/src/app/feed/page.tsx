@@ -12,7 +12,6 @@ const neighborhoods = [
   { label: "Início",       active: true,  href: "/feed"             },
   { label: "Moradores",    active: false, href: "/moradores"        },
   { label: "Bairros",      active: false, href: "/bairros/negocios" },
-  { label: "Aprender",     active: false, href: "/sala-de-aula"     },
   { label: "Mercado",      active: false, href: "/mercado"          },
   { label: "Negócios",     active: false, href: "/bairros/negocios" },
   { label: "Arte",         active: false, href: "/bairros/arte"     },
