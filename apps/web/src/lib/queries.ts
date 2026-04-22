@@ -417,6 +417,75 @@ export async function saldoAtual() {
 
 // ── ADMIN (estatísticas completas) ──────────────────────────────────
 
+// ── CONEXÕES ────────────────────────────────────────────────────────
+
+export async function todosMoradores(busca = "") {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let query = supabase
+    .from("perfis")
+    .select("id, nome, cidade, estado, pais, urban_score, ocupacao, foto_url");
+  if (user) query = query.neq("id", user.id);
+  if (busca.trim()) {
+    query = query.or(`nome.ilike.%${busca}%,cidade.ilike.%${busca}%`);
+  }
+  const { data } = await query.order("urban_score", { ascending: false }).limit(100);
+  return data ?? [];
+}
+
+export async function minhasConexoesIds(): Promise<Set<string>> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return new Set();
+  const { data } = await supabase
+    .from("conexoes")
+    .select("seguido_id")
+    .eq("seguidor_id", user.id);
+  return new Set((data ?? []).map((r: { seguido_id: string }) => r.seguido_id));
+}
+
+export async function conectarCom(morador_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  if (user.id === morador_id) throw new Error("Você não pode conectar com si mesmo");
+  const { error } = await supabase
+    .from("conexoes")
+    .insert({ seguidor_id: user.id, seguido_id: morador_id });
+  if (error && !error.message.includes("duplicate")) throw new Error(error.message);
+}
+
+export async function desconectarDe(morador_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  const { error } = await supabase
+    .from("conexoes")
+    .delete()
+    .eq("seguidor_id", user.id)
+    .eq("seguido_id", morador_id);
+  if (error) throw new Error(error.message);
+}
+
+export async function buscarMorador(id: string) {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("perfis")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  return data;
+}
+
+export async function contagemConexoes(morador_id: string) {
+  const supabase = createClient();
+  const [seguidores, seguindo] = await Promise.all([
+    supabase.from("conexoes").select("*", { count: "exact", head: true }).eq("seguido_id", morador_id),
+    supabase.from("conexoes").select("*", { count: "exact", head: true }).eq("seguidor_id", morador_id),
+  ]);
+  return { seguidores: seguidores.count ?? 0, seguindo: seguindo.count ?? 0 };
+}
+
 // ── UPLOAD DE FOTO DE PERFIL ────────────────────────────────────────
 
 export async function uploadFotoPerfil(arquivo: File): Promise<string> {

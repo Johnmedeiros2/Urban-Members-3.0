@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase";
 
 const neighborhoods = [
   { label: "Início",       active: true,  href: "/feed"             },
+  { label: "Moradores",    active: false, href: "/moradores"        },
   { label: "Bairros",      active: false, href: "/bairros/negocios" },
   { label: "Aprender",     active: false, href: "/sala-de-aula"     },
   { label: "Mercado",      active: false, href: "/mercado"          },
@@ -228,7 +229,7 @@ export default function Feed() {
             return (
               <article key={post.id} style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <a href={`/morador/${post.autor_id}`} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
                     <Avatar name={nome} size={44} />
                     <div>
                       <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{nome}</p>
@@ -240,7 +241,7 @@ export default function Feed() {
                         <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{tempoRelativo(post.criado_em)}</span>
                       </div>
                     </div>
-                  </div>
+                  </a>
                   <ScoreBadge score={post.autor?.urban_score ?? 10} compact />
                 </div>
 
