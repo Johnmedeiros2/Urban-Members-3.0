@@ -28,6 +28,12 @@ interface PostPublico {
   bairro_id: string;
 }
 
+interface Loja {
+  id: string;
+  nome: string;
+  total_vendas: number;
+}
+
 export default function PerfilPublico() {
   const params = useParams();
   const id = params.id as string;
@@ -39,23 +45,29 @@ export default function PerfilPublico() {
   const [acao, setAcao] = useState(false);
   const [posts, setPosts] = useState<PostPublico[]>([]);
   const [souEu, setSouEu] = useState(false);
+  const [loja, setLoja] = useState<Loja | null>(null);
+  const [temCursos, setTemCursos] = useState(false);
 
   const carregar = useCallback(async () => {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [m, c, conn, userData, postsRes] = await Promise.all([
+    const [m, c, conn, userData, postsRes, lojaRes, cursosRes] = await Promise.all([
       buscarMorador(id),
       contagemConexoes(id),
       minhasConexoesIds(),
       supabase.auth.getUser(),
       supabase.from("posts").select("*").eq("autor_id", id).order("criado_em", { ascending: false }).limit(10),
+      supabase.from("lojas").select("id, nome, total_vendas").eq("dono_id", id).maybeSingle(),
+      supabase.from("cursos").select("id", { count: "exact", head: true }).eq("instrutor_id", id),
     ]);
     setPerfil(m as Perfil | null);
     setContagem(c);
     setConectado(conn.has(id));
     setSouEu(userData.data.user?.id === id);
     setPosts((postsRes.data as PostPublico[]) ?? []);
+    setLoja(lojaRes.data as Loja | null);
+    setTemCursos((cursosRes.count ?? 0) > 0);
     setCarregando(false);
   }, [id]);
 
@@ -136,11 +148,6 @@ export default function PerfilPublico() {
 
               {!souEu && (
                 <div style={{ display: "flex", gap: "8px", marginTop: "56px" }}>
-                  <a href="/urban-pay" style={{ textDecoration: "none" }}>
-                    <button style={{ height: "38px", padding: "0 16px", background: "#F5F5F5", color: "#111111", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                      Pagar
-                    </button>
-                  </a>
                   <button onClick={toggleConexao} disabled={acao} style={{
                     height: "38px", padding: "0 20px",
                     background: conectado ? "#F5F5F5" : "#111111",
@@ -184,6 +191,60 @@ export default function PerfilPublico() {
                 Morador desde {anoEntrada}
               </span>
             </div>
+
+            {/* CTAs contextuais — só aparecem se tem loja ou cursos */}
+            {!souEu && (loja || temCursos) && (
+              <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
+                {loja && (
+                  <a href="/mercado" style={{ textDecoration: "none", flex: 1, minWidth: "200px" }}>
+                    <div style={{
+                      background: "#F7F7F8", borderRadius: "14px",
+                      padding: "12px 16px",
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      cursor: "pointer", transition: "background 0.15s",
+                      border: "1px solid transparent",
+                    }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "#F0F0F0"; e.currentTarget.style.borderColor = "#E5E5E5"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "#F7F7F8"; e.currentTarget.style.borderColor = "transparent"; }}
+                    >
+                      <div>
+                        <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          Loja no Mercado
+                        </p>
+                        <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111", marginTop: "2px" }}>
+                          {loja.nome}
+                        </p>
+                      </div>
+                      <span style={{ fontSize: "14px", color: "#A3A3A3" }}>→</span>
+                    </div>
+                  </a>
+                )}
+                {temCursos && (
+                  <a href="/sala-de-aula" style={{ textDecoration: "none", flex: 1, minWidth: "200px" }}>
+                    <div style={{
+                      background: "#F7F7F8", borderRadius: "14px",
+                      padding: "12px 16px",
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      cursor: "pointer", transition: "background 0.15s",
+                      border: "1px solid transparent",
+                    }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "#F0F0F0"; e.currentTarget.style.borderColor = "#E5E5E5"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "#F7F7F8"; e.currentTarget.style.borderColor = "transparent"; }}
+                    >
+                      <div>
+                        <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          Ensina na cidade
+                        </p>
+                        <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111", marginTop: "2px" }}>
+                          Ver cursos
+                        </p>
+                      </div>
+                      <span style={{ fontSize: "14px", color: "#A3A3A3" }}>→</span>
+                    </div>
+                  </a>
+                )}
+              </div>
+            )}
 
             {/* Stats */}
             <div style={{ display: "flex", marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #F5F5F5" }}>
