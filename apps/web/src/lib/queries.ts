@@ -417,6 +417,28 @@ export async function saldoAtual() {
 
 // ── ADMIN (estatísticas completas) ──────────────────────────────────
 
+// ── UPLOAD DE FOTO DE PERFIL ────────────────────────────────────────
+
+export async function uploadFotoPerfil(arquivo: File): Promise<string> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+
+  const ext = arquivo.name.split(".").pop() ?? "jpg";
+  const path = `${user.id}/perfil.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("avatars")
+    .upload(path, arquivo, { upsert: true, cacheControl: "3600" });
+  if (error) throw new Error(error.message);
+
+  const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+  const foto_url = `${publicUrl}?t=${Date.now()}`;
+
+  await supabase.from("perfis").update({ foto_url }).eq("id", user.id);
+  return foto_url;
+}
+
 // ── MEU COMÉRCIO (perfil) ───────────────────────────────────────────
 
 export async function meusProdutos() {

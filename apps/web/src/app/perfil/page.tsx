@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
-import { meusProdutos, meusCursos, minhasVendasResumo } from "@/lib/queries";
+import { meusProdutos, meusCursos, minhasVendasResumo, uploadFotoPerfil } from "@/lib/queries";
 
 interface ProdutoMeu {
   id: string; nome: string; preco: number; categoria: string; total_vendas: number;
@@ -32,6 +32,7 @@ interface Perfil {
   ocupacao?: string;
   urban_score: number;
   criado_em?: string;
+  foto_url?: string | null;
 }
 
 const MOCK: Perfil = {
@@ -66,6 +67,25 @@ export default function Perfil() {
   const [produtos, setProdutos] = useState<ProdutoMeu[]>([]);
   const [cursos, setCursos] = useState<CursoMeu[]>([]);
   const [resumo, setResumo] = useState<Resumo>({ total_recebido: 0, total_vendas: 0, ticket_medio: 0, taxa_paga: 0 });
+
+  // Upload foto
+  const inputFotoRef = useRef<HTMLInputElement>(null);
+  const [subindoFoto, setSubindoFoto] = useState(false);
+
+  async function handleUploadFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = e.target.files?.[0];
+    if (!arquivo) return;
+    if (arquivo.size > 5 * 1024 * 1024) { alert("Arquivo muito grande (máx 5MB)"); return; }
+    setSubindoFoto(true);
+    try {
+      const url = await uploadFotoPerfil(arquivo);
+      setPerfil((p) => ({ ...p, foto_url: url }));
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erro ao enviar foto");
+    } finally {
+      setSubindoFoto(false);
+    }
+  }
 
   useEffect(() => {
     async function carregar() {
@@ -171,18 +191,47 @@ export default function Perfil() {
       <div style={{ maxWidth: "720px", margin: "0 auto", padding: "0 24px 80px" }}>
 
         {/* Cartão de perfil */}
-        <div style={{ background: "#FFFFFF", borderRadius: "20px", overflow: "hidden", marginTop: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)" }}>
-          <div style={{ height: "120px", background: "#111111", position: "relative" }}>
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 20% 60%, rgba(255,92,46,0.25) 0%, transparent 60%)" }} />
+        <div style={{ background: "#FFFFFF", borderRadius: "20px", marginTop: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", position: "relative" }}>
+          {/* Capa com cantos arredondados só no topo */}
+          <div style={{ height: "100px", background: "#111111", position: "relative", borderRadius: "20px 20px 0 0", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 20% 60%, rgba(255,92,46,0.3) 0%, transparent 60%)" }} />
           </div>
+
+          {/* Conteúdo */}
           <div style={{ padding: "0 24px 24px" }}>
-            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: "-36px", marginBottom: "16px" }}>
-              <div style={{ width: "72px", height: "72px", borderRadius: "50%", background: "linear-gradient(135deg, #FF5C2E, #FF8C5A)", border: "3px solid #FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
-                <span style={{ color: "#FFFFFF", fontSize: "26px", fontWeight: 800 }}>{perfil.nome.charAt(0).toUpperCase()}</span>
+            {/* Avatar posicionado sobre a capa + botões */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginTop: "-48px", marginBottom: "20px" }}>
+              <div style={{ position: "relative", width: "96px", height: "96px" }}>
+                {perfil.foto_url ? (
+                  <img src={perfil.foto_url} alt={perfil.nome}
+                    style={{ width: "96px", height: "96px", borderRadius: "50%", border: "4px solid #FFFFFF", objectFit: "cover", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", display: "block" }} />
+                ) : (
+                  <div style={{ width: "96px", height: "96px", borderRadius: "50%", background: "linear-gradient(135deg, #FF5C2E, #FF8C5A)", border: "4px solid #FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+                    <span style={{ color: "#FFFFFF", fontSize: "34px", fontWeight: 800 }}>{perfil.nome.charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
+                {/* Botão de câmera para upload */}
+                <button onClick={() => inputFotoRef.current?.click()} disabled={subindoFoto}
+                  title="Trocar foto"
+                  style={{
+                    position: "absolute", bottom: 0, right: 0,
+                    width: "32px", height: "32px", borderRadius: "50%",
+                    background: "#111111", border: "3px solid #FFFFFF",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer", fontSize: "14px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                  }}>
+                  {subindoFoto ? "..." : "📷"}
+                </button>
+                <input ref={inputFotoRef} type="file" accept="image/*" onChange={handleUploadFoto} style={{ display: "none" }} />
               </div>
-              <button onClick={() => { setEditando(!editando); setNomeEdit(perfil.nome); }} style={{ height: "36px", padding: "0 20px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                {editando ? "Cancelar" : "Editar perfil"}
-              </button>
+
+              <div style={{ display: "flex", gap: "8px", marginTop: "56px" }}>
+                <BotaoConvite variant="ghost" />
+                <button onClick={() => { setEditando(!editando); setNomeEdit(perfil.nome); }} style={{ height: "36px", padding: "0 20px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  {editando ? "Cancelar" : "Editar perfil"}
+                </button>
+              </div>
             </div>
 
             {/* Nome editável */}
