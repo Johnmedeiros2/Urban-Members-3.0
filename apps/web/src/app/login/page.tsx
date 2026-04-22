@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
+import { vincularIndicador } from "@/lib/queries";
 
 const INPUT: React.CSSProperties = {
   width: "100%", height: "52px",
@@ -37,6 +38,15 @@ export default function Login() {
       setLoading(false);
       return;
     }
+    // Se o usuário veio por link de indicação, vincula agora
+    const ref = typeof window !== "undefined" ? localStorage.getItem("urban_ref") : null;
+    if (ref) {
+      try {
+        await vincularIndicador(ref);
+        localStorage.removeItem("urban_ref");
+      } catch {}
+    }
+
     router.push("/feed");
     router.refresh();
   }

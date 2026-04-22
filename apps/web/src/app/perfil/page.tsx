@@ -5,7 +5,7 @@ import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
-import { meusProdutos, meusCursos, minhasVendasResumo, uploadFotoPerfil } from "@/lib/queries";
+import { meusProdutos, meusCursos, minhasVendasResumo, uploadFotoPerfil, minhasIndicacoes, type Indicacao } from "@/lib/queries";
 
 interface ProdutoMeu {
   id: string; nome: string; preco: number; categoria: string; total_vendas: number;
@@ -72,6 +72,16 @@ export default function Perfil() {
   const inputFotoRef = useRef<HTMLInputElement>(null);
   const [subindoFoto, setSubindoFoto] = useState(false);
 
+  // Indicações
+  const [indicacoes, setIndicacoes] = useState<{
+    pessoas: Indicacao[];
+    total_comissao: number;
+    total_pessoas: number;
+    pessoas_compraram: number;
+  }>({ pessoas: [], total_comissao: 0, total_pessoas: 0, pessoas_compraram: 0 });
+  const [linkCopiado, setLinkCopiado] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
   async function handleUploadFoto(e: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
     if (!arquivo) return;
@@ -128,15 +138,30 @@ export default function Perfil() {
     }
     carregar();
 
-    // Carrega dados de comércio em paralelo
+    // Carrega dados de comércio e indicações em paralelo
     (async () => {
-      const [mp, mc, r] = await Promise.all([meusProdutos(), meusCursos(), minhasVendasResumo()]);
+      const [mp, mc, r, ind, userData] = await Promise.all([
+        meusProdutos(),
+        meusCursos(),
+        minhasVendasResumo(),
+        minhasIndicacoes(),
+        createClient().auth.getUser(),
+      ]);
       setMinhaLoja(mp.loja as LojaMinha | null);
       setProdutos(mp.produtos as ProdutoMeu[]);
       setCursos(mc as CursoMeu[]);
       setResumo(r);
+      setIndicacoes(ind);
+      setUserId(userData.data.user?.id ?? null);
     })();
   }, []);
+
+  function copiarLinkConvite() {
+    if (!userId) return;
+    navigator.clipboard.writeText(`https://urbanicsa.com/cadastro?ref=${userId}`);
+    setLinkCopiado(true);
+    setTimeout(() => setLinkCopiado(false), 2000);
+  }
 
   async function salvarNome() {
     if (!nomeEdit.trim()) return;
@@ -427,6 +452,103 @@ export default function Perfil() {
             )}
           </div>
         )}
+
+        {/* Indicações — sistema de afiliados */}
+        <div style={{ marginTop: "16px", background: "#FFFFFF", borderRadius: "20px", padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Indicações</h3>
+              <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "2px" }}>Ganhe 3% quando quem você convida compra algo</p>
+            </div>
+          </div>
+
+          {/* Stats de indicação */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+            <div style={{ background: "#F7F7F8", borderRadius: "12px", padding: "14px" }}>
+              <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Convidados</p>
+              <p style={{ fontSize: "20px", fontWeight: 800, color: "#111111", letterSpacing: "-0.03em", marginTop: "4px" }}>
+                {indicacoes.total_pessoas}
+              </p>
+            </div>
+            <div style={{ background: "#F7F7F8", borderRadius: "12px", padding: "14px" }}>
+              <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Compraram</p>
+              <p style={{ fontSize: "20px", fontWeight: 800, color: "#FF5C2E", letterSpacing: "-0.03em", marginTop: "4px" }}>
+                {indicacoes.pessoas_compraram}
+              </p>
+            </div>
+            <div style={{ background: "#F7F7F8", borderRadius: "12px", padding: "14px" }}>
+              <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Comissão</p>
+              <p style={{ fontSize: "20px", fontWeight: 800, color: "#10B981", letterSpacing: "-0.03em", marginTop: "4px" }}>
+                R$ {indicacoes.total_comissao.toFixed(2).replace(".", ",")}
+              </p>
+            </div>
+          </div>
+
+          {/* Link de convite */}
+          <div style={{ background: "#111111", borderRadius: "14px", padding: "14px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ flex: 1, overflow: "hidden" }}>
+              <p style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "2px" }}>
+                Seu link
+              </p>
+              <p style={{ fontSize: "12px", color: "#FFFFFF", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                urbanicsa.com/cadastro?ref={userId?.slice(0, 8)}...
+              </p>
+            </div>
+            <button onClick={copiarLinkConvite}
+              style={{
+                background: linkCopiado ? "#10B981" : "#FF5C2E",
+                color: "#FFFFFF", border: "none", borderRadius: "999px",
+                padding: "8px 16px", fontSize: "12px", fontWeight: 700,
+                cursor: "pointer", fontFamily: "Inter, sans-serif", whiteSpace: "nowrap",
+              }}>
+              {linkCopiado ? "✓ Copiado" : "Copiar"}
+            </button>
+          </div>
+
+          {/* Lista de indicados */}
+          {indicacoes.pessoas.length > 0 && (
+            <div style={{ marginTop: "4px" }}>
+              <p style={{ fontSize: "12px", fontWeight: 700, color: "#525252", marginBottom: "10px" }}>Pessoas que você trouxe</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {indicacoes.pessoas.map((p) => {
+                  const jaGerou = p.total_gerado > 0;
+                  return (
+                    <div key={p.id} style={{
+                      display: "flex", alignItems: "center", gap: "12px",
+                      padding: "10px 12px", borderRadius: "12px",
+                      background: jaGerou ? "#F0FDF4" : "#F7F7F8",
+                      border: jaGerou ? "1px solid rgba(16,185,129,0.2)" : "1px solid transparent",
+                    }}>
+                      <Avatar name={p.nome} foto={p.foto_url} size={36} />
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{p.nome}</p>
+                        <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{p.cidade ?? "—"}</p>
+                      </div>
+                      {jaGerou ? (
+                        <div style={{ textAlign: "right" }}>
+                          <p style={{ fontSize: "13px", fontWeight: 800, color: "#10B981" }}>
+                            R$ {p.total_gerado.toFixed(2).replace(".", ",")}
+                          </p>
+                          <p style={{ fontSize: "10px", color: "#A3A3A3" }}>gerado</p>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, background: "#FFFFFF", padding: "3px 10px", borderRadius: "999px" }}>
+                          Ainda não consumiu
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {indicacoes.pessoas.length === 0 && (
+            <p style={{ fontSize: "12px", color: "#A3A3A3", textAlign: "center", padding: "12px" }}>
+              Nenhum morador convidado ainda. Compartilhe seu link.
+            </p>
+          )}
+        </div>
 
         {/* CTA para abrir comércio caso não tenha nada */}
         {!minhaLoja && cursos.length === 0 && (

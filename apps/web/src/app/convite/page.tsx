@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase";
 
 const BENEFICIOS = [
   { titulo: "Endereço digital",     desc: "Sua cidade, seu bairro, sua identidade na plataforma."   },
@@ -13,7 +14,18 @@ const BENEFICIOS = [
 
 export default function Convite() {
   const [copiado, setCopiado] = useState(false);
-  const link = "https://urbanicsa.com/cadastro";
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await createClient().auth.getUser();
+      if (user) setUserId(user.id);
+    })();
+  }, []);
+
+  const link = userId
+    ? `https://urbanicsa.com/cadastro?ref=${userId}`
+    : "https://urbanicsa.com/cadastro";
 
   function copiar() {
     navigator.clipboard.writeText(link);
@@ -49,9 +61,27 @@ export default function Convite() {
           <span style={{ color: "#FF5C2E" }}>a cidade.</span>
         </h1>
 
-        <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, marginBottom: "48px", maxWidth: "520px" }}>
+        <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, marginBottom: "24px", maxWidth: "520px" }}>
           Urban Members é a primeira cidade digital brasileira. Um lugar para aprender, conectar e fazer negócios — sem sair de onde você está.
         </p>
+
+        {userId && (
+          <div style={{
+            background: "rgba(255,92,46,0.1)",
+            border: "1px solid rgba(255,92,46,0.3)",
+            borderRadius: "14px",
+            padding: "14px 18px",
+            marginBottom: "32px",
+            maxWidth: "520px",
+          }}>
+            <p style={{ fontSize: "13px", color: "#FF5C2E", fontWeight: 700, marginBottom: "4px" }}>
+              💰 Você ganha 3% quando quem você convida compra algo.
+            </p>
+            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+              Comissão automática, paga direto no seu Urban Pay. Só você recebe quando a pessoa consome — convidar não paga, consumo paga.
+            </p>
+          </div>
+        )}
 
         {/* CTA principal */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "64px" }}>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase";
 
 interface BotaoConviteProps {
   variant?: "dark" | "light" | "ghost";
@@ -8,6 +9,18 @@ interface BotaoConviteProps {
 
 export default function BotaoConvite({ variant = "light" }: BotaoConviteProps) {
   const [copiado, setCopiado] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await createClient().auth.getUser();
+      if (user) setUserId(user.id);
+    })();
+  }, []);
+
+  const link = userId
+    ? `https://urbanicsa.com/cadastro?ref=${userId}`
+    : "https://urbanicsa.com/convite";
 
   const estilos = {
     dark: {
@@ -33,7 +46,7 @@ export default function BotaoConvite({ variant = "light" }: BotaoConviteProps) {
   function copiar(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    navigator.clipboard.writeText("https://urbanicsa.com/convite");
+    navigator.clipboard.writeText(link);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
   }

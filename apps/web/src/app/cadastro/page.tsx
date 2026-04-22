@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
 
 const INPUT: React.CSSProperties = {
@@ -32,8 +32,25 @@ function forca(senha: string): { nivel: number; texto: string; cor: string } {
   return                  { nivel: 4, texto: "Forte",  cor: "#10B981" };
 }
 
-export default function Cadastro() {
+export default function CadastroPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif", color: "#A3A3A3" }}>Carregando...</div>}>
+      <Cadastro />
+    </Suspense>
+  );
+}
+
+function Cadastro() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref");
+
+  // Guarda o ref no localStorage para usar após a confirmação do e-mail
+  useEffect(() => {
+    if (ref && typeof window !== "undefined") {
+      localStorage.setItem("urban_ref", ref);
+    }
+  }, [ref]);
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -60,7 +77,10 @@ export default function Cadastro() {
     const { error } = await supabase.auth.signUp({
       email, password: senha,
       options: {
-        data: { nome_completo: nome },
+        data: {
+          nome_completo: nome,
+          indicador_id: ref ?? null,
+        },
         emailRedirectTo: `${window.location.origin}/login`,
       },
     });

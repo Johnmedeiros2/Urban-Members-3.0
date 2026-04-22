@@ -417,6 +417,96 @@ export async function saldoAtual() {
 
 // ── ADMIN (estatísticas completas) ──────────────────────────────────
 
+// ── INDICAÇÕES (AFILIADOS) ──────────────────────────────────────────
+
+export async function vincularIndicador(indicador_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  if (user.id === indicador_id) return; // não pode se auto-indicar
+
+  // Só vincula se ainda não tem indicador (primeiro que convidar leva)
+  await supabase
+    .from("perfis")
+    .update({ indicador_id })
+    .eq("id", user.id)
+    .is("indicador_id", null);
+}
+
+export interface Indicacao {
+  id: string;
+  nome: string;
+  foto_url: string | null;
+  cidade: string | null;
+  criado_em: string;
+  total_gerado: number;
+  urban_score: number;
+}
+
+export async function minhasIndicacoes(): Promise<{
+  pessoas: Indicacao[];
+  total_comissao: number;
+  total_pessoas: number;
+  pessoas_compraram: number;
+}> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { pessoas: [], total_comissao: 0, total_pessoas: 0, pessoas_compraram: 0 };
+
+  // Pessoas que você indicou
+  const { data: pessoas } = await supabase
+    .from("perfis")
+    .select("id, nome, foto_url, cidade, criado_em, urban_score")
+    .eq("indicador_id", user.id)
+    .order("criado_em", { ascending: false });
+
+  if (!pessoas || pessoas.length === 0) {
+    return { pessoas: [], total_comissao: 0, total_pessoas: 0, pessoas_compraram: 0 };
+  }
+
+  // Comissões que você ganhou de cada uma
+  const { data: comissoes } = await supabase
+    .from("transacoes")
+    .select("comprador_id, comissao_indicador")
+    .eq("indicador_id", user.id)
+    .eq("status", "concluida");
+
+  // Agrega total por pessoa
+  const mapa = new Map<string, number>();
+  let total_comissao = 0;
+  const compradores = new Set<string>();
+  for (const c of comissoes ?? []) {
+    const valor = Number(c.comissao_indicador);
+    mapa.set(c.comprador_id, (mapa.get(c.comprador_id) ?? 0) + valor);
+    compradores.add(c.comprador_id);
+    total_comissao += valor;
+  }
+
+  const enriquecidas: Indicacao[] = (pessoas as Array<{ id: string; nome: string; foto_url: string | null; cidade: string | null; criado_em: string; urban_score: number }>).map((p) => ({
+    ...p,
+    total_gerado: mapa.get(p.id) ?? 0,
+  }));
+
+  return {
+    pessoas: enriquecidas,
+    total_comissao,
+    total_pessoas: pessoas.length,
+    pessoas_compraram: compradores.size,
+  };
+}
+
+export async function saldoComissoes() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return 0;
+  const { data } = await supabase
+    .from("transacoes")
+    .select("comissao_indicador")
+    .eq("indicador_id", user.id)
+    .eq("status", "concluida");
+  return (data ?? []).reduce((s: number, t: { comissao_indicador: number }) => s + Number(t.comissao_indicador), 0);
+}
+
 // ── CONEXÕES ────────────────────────────────────────────────────────
 
 export async function todosMoradores(busca = "") {
