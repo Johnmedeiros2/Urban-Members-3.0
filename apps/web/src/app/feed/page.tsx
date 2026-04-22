@@ -85,9 +85,10 @@ export default function Feed() {
       await criarPost(conteudo, bairroSelecionado);
       setConteudo("");
       await carregar();
-    } catch (e) {
-      console.error(e);
-      alert("Erro ao postar. Tente novamente.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro desconhecido";
+      console.error("Erro ao postar:", e);
+      alert(`Erro ao postar: ${msg}`);
     } finally {
       setPostando(false);
     }
@@ -223,7 +224,7 @@ export default function Feed() {
 
           {posts.map((post) => {
             const curtido = curtidas.has(post.id);
-            const nome = post.perfis?.nome ?? "Morador";
+            const nome = post.autor?.nome ?? "Morador";
             return (
               <article key={post.id} style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
@@ -232,7 +233,7 @@ export default function Feed() {
                     <div>
                       <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{nome}</p>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "3px" }}>
-                        <span style={{ fontSize: "12px", color: "#525252" }}>{post.perfis?.cidade ?? ""}</span>
+                        <span style={{ fontSize: "12px", color: "#525252" }}>{post.autor?.cidade ?? ""}</span>
                         <span style={{ fontSize: "11px", color: "#FF5C2E", fontWeight: 600, background: "#FFF3EF", padding: "1px 7px", borderRadius: "999px" }}>
                           {post.bairro_id}
                         </span>
@@ -240,7 +241,7 @@ export default function Feed() {
                       </div>
                     </div>
                   </div>
-                  <ScoreBadge score={post.perfis?.urban_score ?? 10} compact />
+                  <ScoreBadge score={post.autor?.urban_score ?? 10} compact />
                 </div>
 
                 <p style={{ fontSize: "15px", color: "#111111", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{post.conteudo}</p>

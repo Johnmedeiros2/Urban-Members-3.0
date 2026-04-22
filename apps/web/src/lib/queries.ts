@@ -8,32 +8,71 @@ export interface PostReal {
   total_curtidas: number;
   total_comentarios: number;
   criado_em: string;
-  perfis?: { nome: string; cidade: string; urban_score: number } | null;
+  autor?: { nome: string; cidade: string | null; urban_score: number } | null;
 }
 
 // ── POSTS ───────────────────────────────────────────────────────────
 
 export async function buscarPosts(limite = 20): Promise<PostReal[]> {
   const supabase = createClient();
-  const { data, error } = await supabase
+
+  // 1. Busca posts
+  const { data: posts, error } = await supabase
     .from("posts")
-    .select("*, perfis(nome, cidade, urban_score)")
+    .select("*")
     .order("criado_em", { ascending: false })
     .limit(limite);
-  if (error) { console.error(error); return []; }
-  return (data as PostReal[]) ?? [];
+
+  if (error) { console.error("buscarPosts:", error); return []; }
+  if (!posts || posts.length === 0) return [];
+
+  // 2. Busca autores dos posts em uma query separada
+  const autorIds = [...new Set(posts.map((p: { autor_id: string }) => p.autor_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, cidade, urban_score")
+    .in("id", autorIds);
+
+  const perfisMap = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number }) => [p.id, p]));
+
+  return posts.map((p: PostReal) => ({
+    ...p,
+    autor: perfisMap.get(p.autor_id) ?? null,
+  }));
 }
 
 export async function criarPost(conteudo: string, bairro_id = "negocios") {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Usuário não autenticado");
+  if (!user) throw new Error("Usuário não autenticado. Faça login novamente.");
+
+  // Garante que o perfil existe antes de postar
+  const { data: perfil } = await supabase
+    .from("perfis")
+    .select("id")
+    .eq("id", user.id)
+    .single();
+
+  if (!perfil) {
+    // Cria perfil se não existir (usuários antigos antes do trigger)
+    await supabase
+      .from("perfis")
+      .insert({
+        id: user.id,
+        nome: user.user_metadata?.nome_completo ?? user.email?.split("@")[0] ?? "Morador",
+      });
+  }
+
   const { data, error } = await supabase
     .from("posts")
     .insert({ autor_id: user.id, bairro_id, conteudo })
     .select()
     .single();
-  if (error) throw error;
+
+  if (error) {
+    console.error("criarPost:", error);
+    throw new Error(error.message);
+  }
   return data;
 }
 
