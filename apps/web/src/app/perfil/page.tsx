@@ -5,6 +5,23 @@ import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
+import { meusProdutos, meusCursos, minhasVendasResumo } from "@/lib/queries";
+
+interface ProdutoMeu {
+  id: string; nome: string; preco: number; categoria: string; total_vendas: number;
+}
+
+interface CursoMeu {
+  id: string; titulo: string; preco: number; nivel: string; total_alunos: number;
+}
+
+interface LojaMinha {
+  id: string; nome: string; total_vendas: number;
+}
+
+interface Resumo {
+  total_recebido: number; total_vendas: number; ticket_medio: number; taxa_paga: number;
+}
 
 interface Perfil {
   nome: string;
@@ -43,6 +60,12 @@ export default function Perfil() {
   const [editando, setEditando] = useState(false);
   const [nomeEdit, setNomeEdit] = useState("");
   const [salvando, setSalvando] = useState(false);
+
+  // Meu comércio
+  const [minhaLoja, setMinhaLoja] = useState<LojaMinha | null>(null);
+  const [produtos, setProdutos] = useState<ProdutoMeu[]>([]);
+  const [cursos, setCursos] = useState<CursoMeu[]>([]);
+  const [resumo, setResumo] = useState<Resumo>({ total_recebido: 0, total_vendas: 0, ticket_medio: 0, taxa_paga: 0 });
 
   useEffect(() => {
     async function carregar() {
@@ -84,6 +107,15 @@ export default function Perfil() {
       setCarregando(false);
     }
     carregar();
+
+    // Carrega dados de comércio em paralelo
+    (async () => {
+      const [mp, mc, r] = await Promise.all([meusProdutos(), meusCursos(), minhasVendasResumo()]);
+      setMinhaLoja(mp.loja as LojaMinha | null);
+      setProdutos(mp.produtos as ProdutoMeu[]);
+      setCursos(mc as CursoMeu[]);
+      setResumo(r);
+    })();
   }, []);
 
   async function salvarNome() {
@@ -229,6 +261,153 @@ export default function Perfil() {
             })}
           </div>
         </div>
+
+        {/* Meu comércio — aparece apenas se tem loja ou cursos */}
+        {(minhaLoja || cursos.length > 0) && (
+          <div style={{ marginTop: "16px", background: "#FFFFFF", borderRadius: "20px", padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Meu comércio</h3>
+              <span style={{ fontSize: "11px", fontWeight: 600, color: "#FF5C2E", background: "#FFF3EF", padding: "3px 10px", borderRadius: "999px" }}>
+                {resumo.total_vendas} vendas
+              </span>
+            </div>
+
+            {/* Resumo financeiro */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+              <div style={{ background: "#F7F7F8", borderRadius: "12px", padding: "14px" }}>
+                <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Recebido</p>
+                <p style={{ fontSize: "20px", fontWeight: 800, color: "#10B981", letterSpacing: "-0.03em", marginTop: "4px" }}>
+                  R$ {resumo.total_recebido.toFixed(2).replace(".", ",")}
+                </p>
+              </div>
+              <div style={{ background: "#F7F7F8", borderRadius: "12px", padding: "14px" }}>
+                <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Ticket médio</p>
+                <p style={{ fontSize: "20px", fontWeight: 800, color: "#111111", letterSpacing: "-0.03em", marginTop: "4px" }}>
+                  R$ {resumo.ticket_medio.toFixed(2).replace(".", ",")}
+                </p>
+              </div>
+              <div style={{ background: "#F7F7F8", borderRadius: "12px", padding: "14px" }}>
+                <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Taxa Urban</p>
+                <p style={{ fontSize: "20px", fontWeight: 800, color: "#FF5C2E", letterSpacing: "-0.03em", marginTop: "4px" }}>
+                  R$ {resumo.taxa_paga.toFixed(2).replace(".", ",")}
+                </p>
+              </div>
+            </div>
+
+            {/* Loja e produtos */}
+            {minhaLoja && produtos.length > 0 && (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: 700, color: "#525252" }}>{minhaLoja.nome} · Produtos</p>
+                  <a href="/mercado" style={{ fontSize: "11px", color: "#A3A3A3", textDecoration: "none" }}>Gerenciar →</a>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {produtos.map((p, i) => {
+                    const receita = p.total_vendas * Number(p.preco) * 0.9;
+                    const maisVendido = i === 0 && p.total_vendas > 0;
+                    return (
+                      <div key={p.id} style={{
+                        display: "flex", alignItems: "center", gap: "12px",
+                        padding: "12px 14px", borderRadius: "12px",
+                        background: maisVendido ? "#FFF3EF" : "#F7F7F8",
+                        border: maisVendido ? "1px solid rgba(255,92,46,0.2)" : "1px solid transparent",
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{p.nome}</p>
+                            {maisVendido && (
+                              <span style={{ fontSize: "9px", fontWeight: 700, color: "#FF5C2E", background: "#FFFFFF", padding: "2px 6px", borderRadius: "999px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                                Mais vendido
+                              </span>
+                            )}
+                          </div>
+                          <p style={{ fontSize: "11px", color: "#A3A3A3", marginTop: "2px" }}>
+                            {p.categoria} · R$ {Number(p.preco).toFixed(2).replace(".", ",")}
+                          </p>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <p style={{ fontSize: "13px", fontWeight: 800, color: "#10B981" }}>R$ {receita.toFixed(2).replace(".", ",")}</p>
+                          <p style={{ fontSize: "10px", color: "#A3A3A3" }}>{p.total_vendas} vendas</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Cursos */}
+            {cursos.length > 0 && (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px", marginTop: minhaLoja ? "8px" : "0", paddingTop: minhaLoja ? "16px" : "0", borderTop: minhaLoja ? "1px solid #F5F5F5" : "none" }}>
+                  <p style={{ fontSize: "12px", fontWeight: 700, color: "#525252" }}>Meus cursos</p>
+                  <a href="/sala-de-aula" style={{ fontSize: "11px", color: "#A3A3A3", textDecoration: "none" }}>Gerenciar →</a>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {cursos.map((c, i) => {
+                    const maisPopular = i === 0 && c.total_alunos > 0;
+                    return (
+                      <div key={c.id} style={{
+                        display: "flex", alignItems: "center", gap: "12px",
+                        padding: "12px 14px", borderRadius: "12px",
+                        background: maisPopular ? "#F0FDF4" : "#F7F7F8",
+                        border: maisPopular ? "1px solid rgba(16,185,129,0.2)" : "1px solid transparent",
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{c.titulo}</p>
+                            {maisPopular && (
+                              <span style={{ fontSize: "9px", fontWeight: 700, color: "#10B981", background: "#FFFFFF", padding: "2px 6px", borderRadius: "999px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                                Mais procurado
+                              </span>
+                            )}
+                          </div>
+                          <p style={{ fontSize: "11px", color: "#A3A3A3", marginTop: "2px" }}>
+                            {c.nivel} · {c.preco > 0 ? `R$ ${Number(c.preco).toFixed(2)}` : "Gratuito"}
+                          </p>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <p style={{ fontSize: "14px", fontWeight: 800, color: "#111111" }}>{c.total_alunos}</p>
+                          <p style={{ fontSize: "10px", color: "#A3A3A3" }}>alunos</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CTA para abrir comércio caso não tenha nada */}
+        {!minhaLoja && cursos.length === 0 && (
+          <div style={{ marginTop: "16px", background: "#111111", borderRadius: "20px", padding: "24px", display: "flex", flexDirection: "column", gap: "14px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 80% 30%, rgba(255,92,46,0.15) 0%, transparent 60%)" }} />
+            <div style={{ position: "relative" }}>
+              <p style={{ fontSize: "11px", color: "#FF5C2E", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                Comece a vender
+              </p>
+              <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#FFFFFF", marginTop: "4px" }}>
+                Transforme seu conhecimento em renda.
+              </h3>
+              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: 1.5, marginTop: "6px", marginBottom: "14px" }}>
+                Abra sua loja ou crie um curso. Urban só ganha quando você ganhar.
+              </p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <a href="/mercado" style={{ textDecoration: "none", flex: 1 }}>
+                  <button style={{ width: "100%", height: "40px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    Abrir loja
+                  </button>
+                </a>
+                <a href="/sala-de-aula" style={{ textDecoration: "none", flex: 1 }}>
+                  <button style={{ width: "100%", height: "40px", background: "rgba(255,255,255,0.1)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    Criar curso
+                  </button>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Posts recentes */}
         <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>

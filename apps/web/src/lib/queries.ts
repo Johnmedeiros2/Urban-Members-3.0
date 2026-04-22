@@ -417,6 +417,67 @@ export async function saldoAtual() {
 
 // ── ADMIN (estatísticas completas) ──────────────────────────────────
 
+// ── MEU COMÉRCIO (perfil) ───────────────────────────────────────────
+
+export async function meusProdutos() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { loja: null, produtos: [] };
+
+  const { data: loja } = await supabase
+    .from("lojas")
+    .select("*")
+    .eq("dono_id", user.id)
+    .maybeSingle();
+
+  if (!loja) return { loja: null, produtos: [] };
+
+  const { data: produtos } = await supabase
+    .from("produtos")
+    .select("*")
+    .eq("loja_id", loja.id)
+    .order("total_vendas", { ascending: false });
+
+  return { loja, produtos: produtos ?? [] };
+}
+
+export async function meusCursos() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data } = await supabase
+    .from("cursos")
+    .select("*")
+    .eq("instrutor_id", user.id)
+    .order("total_alunos", { ascending: false });
+  return data ?? [];
+}
+
+export async function minhasVendasResumo() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { total_recebido: 0, total_vendas: 0, ticket_medio: 0, taxa_paga: 0 };
+
+  const { data } = await supabase
+    .from("transacoes")
+    .select("valor, valor_liquido, taxa_urban")
+    .eq("vendedor_id", user.id)
+    .eq("status", "concluida");
+
+  if (!data || data.length === 0) return { total_recebido: 0, total_vendas: 0, ticket_medio: 0, taxa_paga: 0 };
+
+  const total_recebido = data.reduce((s: number, t: { valor_liquido: number }) => s + Number(t.valor_liquido), 0);
+  const taxa_paga = data.reduce((s: number, t: { taxa_urban: number }) => s + Number(t.taxa_urban), 0);
+  const total_vendas = data.length;
+
+  return {
+    total_recebido,
+    total_vendas,
+    ticket_medio: total_recebido / total_vendas,
+    taxa_paga,
+  };
+}
+
 export async function estatisticasCompletas() {
   const supabase = createClient();
   const [
