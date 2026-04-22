@@ -63,7 +63,9 @@ export default function BairroPage() {
       }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
+            <a href="/feed" style={{ textDecoration: "none" }}>
+              <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
+            </a>
             <span style={{ fontSize: "14px", color: "#A3A3A3" }}>/</span>
             <a href="/feed" style={{ fontSize: "13px", color: "#A3A3A3", textDecoration: "none" }}>Bairros</a>
             <span style={{ fontSize: "14px", color: "#A3A3A3" }}>/</span>

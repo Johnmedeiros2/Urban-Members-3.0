@@ -93,8 +93,10 @@ export default function Admin() {
 
       <header style={{ background: "#111111", padding: "0 32px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <img src="/logo.svg" alt="Urban Members" width={32} height={32} style={{ filter: "invert(1)" }} />
-          <span style={{ fontSize: "15px", fontWeight: 800, color: "#FFFFFF" }}>Urban Members</span>
+          <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}>
+            <img src="/logo.svg" alt="Urban Members" width={32} height={32} style={{ filter: "invert(1)" }} />
+            <span style={{ fontSize: "15px", fontWeight: 800, color: "#FFFFFF" }}>Urban Members</span>
+          </a>
           <span style={{ fontSize: "12px", color: "#525252", margin: "0 4px" }}>/</span>
           <span style={{ fontSize: "12px", fontWeight: 600, color: "#FF5C2E", background: "rgba(255,92,46,0.15)", padding: "2px 10px", borderRadius: "999px" }}>Admin</span>
         </div>

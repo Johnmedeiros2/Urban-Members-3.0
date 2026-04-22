@@ -70,8 +70,10 @@ export default function Moradores() {
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
-            <span style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>Urban Members</span>
+            <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+              <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
+              <span style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>Urban Members</span>
+            </a>
             <span style={{ fontSize: "13px", color: "#A3A3A3", margin: "0 4px" }}>/</span>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#525252" }}>Moradores</span>
           </div>

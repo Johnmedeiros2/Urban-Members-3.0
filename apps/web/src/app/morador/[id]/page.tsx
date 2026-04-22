@@ -120,7 +120,9 @@ export default function PerfilPublico() {
             <a href="/moradores" style={{ textDecoration: "none" }}>
               <button style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>←</button>
             </a>
-            <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
+            <a href="/feed" style={{ textDecoration: "none" }}>
+              <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
+            </a>
             <span style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{perfil.nome}</span>
           </div>
           <BotaoConvite variant="ghost" />

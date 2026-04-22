@@ -64,10 +64,10 @@ export default function UrbanPay() {
 
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ maxWidth: "720px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
             <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
             <span style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>Urban Pay</span>
-          </div>
+          </a>
           <BotaoConvite variant="ghost" />
         </div>
       </header>

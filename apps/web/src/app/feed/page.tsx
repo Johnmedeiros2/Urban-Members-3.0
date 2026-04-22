@@ -121,10 +121,10 @@ export default function Feed() {
       {/* Header */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
             <img src="/logo.svg" alt="Urban Members" width={36} height={36} />
             <span style={{ fontSize: "15px", fontWeight: 800, letterSpacing: "-0.03em", color: "#111111" }}>Urban Members</span>
-          </div>
+          </a>
 
           <div style={{ flex: 1, maxWidth: "360px", margin: "0 32px", background: "#F5F5F5", borderRadius: "999px", padding: "0 16px", height: "40px", display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ fontSize: "13px", color: "#A3A3A3", fontFamily: "Inter, sans-serif" }}>Buscar na cidade...</span>

@@ -177,10 +177,10 @@ export default function Perfil() {
         borderBottom: "1px solid rgba(0,0,0,0.06)",
       }}>
         <div style={{ maxWidth: "720px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
             <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
             <span style={{ fontSize: "15px", fontWeight: 800, letterSpacing: "-0.03em", color: "#111111" }}>Urban Members</span>
-          </div>
+          </a>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <BotaoConvite variant="ghost" />
             <ScoreBadge score={perfil.urban_score} compact />
