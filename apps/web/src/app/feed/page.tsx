@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
 import Notificacoes from "@/components/ui/Notificacoes";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarPosts, criarPost, curtirPost, descurtirPost, minhasCurtidas, type PostReal } from "@/lib/queries";
+import { buscarPosts, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
 const neighborhoods = [
@@ -43,7 +43,10 @@ export default function Feed() {
   const [conteudo, setConteudo] = useState("");
   const [bairroSelecionado, setBairroSelecionado] = useState("negocios");
   const [postando, setPostando] = useState(false);
-  const [usuario, setUsuario] = useState<{ nome: string; score: number } | null>(null);
+  const [usuario, setUsuario] = useState<{ id: string; nome: string; score: number; foto_url: string | null } | null>(null);
+  const [foto, setFoto] = useState<File | null>(null);
+  const [previewFoto, setPreviewFoto] = useState<string | null>(null);
+  const fotoInputRef = useRef<HTMLInputElement>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -59,10 +62,10 @@ export default function Feed() {
     if (user.data.user) {
       const { data } = await createClient()
         .from("perfis")
-        .select("nome, urban_score")
+        .select("nome, urban_score, foto_url")
         .eq("id", user.data.user.id)
         .single();
-      if (data) setUsuario({ nome: data.nome, score: data.urban_score });
+      if (data) setUsuario({ id: user.data.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
     }
     setCarregando(false);
   }, []);
@@ -80,11 +83,13 @@ export default function Feed() {
   }, [carregar]);
 
   async function handlePostar() {
-    if (!conteudo.trim() || postando) return;
+    if ((!conteudo.trim() && !foto) || postando) return;
     setPostando(true);
     try {
-      await criarPost(conteudo, bairroSelecionado);
+      await criarPost(conteudo, bairroSelecionado, foto);
       setConteudo("");
+      setFoto(null);
+      setPreviewFoto(null);
       await carregar();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";
@@ -92,6 +97,30 @@ export default function Feed() {
       alert(`Erro ao postar: ${msg}`);
     } finally {
       setPostando(false);
+    }
+  }
+
+  function handleSelecionarFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = e.target.files?.[0];
+    if (!arquivo) return;
+    if (arquivo.size > 5 * 1024 * 1024) { alert("Imagem muito grande (máx 5MB)"); return; }
+    setFoto(arquivo);
+    setPreviewFoto(URL.createObjectURL(arquivo));
+  }
+
+  function removerFoto() {
+    setFoto(null);
+    setPreviewFoto(null);
+    if (fotoInputRef.current) fotoInputRef.current.value = "";
+  }
+
+  async function handleDeletar(post_id: string) {
+    if (!confirm("Tem certeza que quer deletar este post?")) return;
+    try {
+      await deletarPost(post_id);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro ao deletar");
     }
   }
 
@@ -139,7 +168,7 @@ export default function Feed() {
                 Urban Pay
               </button>
             </a>
-            <a href="/perfil"><Avatar name={meuNome} size={36} /></a>
+            <a href="/perfil"><Avatar name={meuNome} foto={usuario?.foto_url} size={36} /></a>
           </div>
         </div>
       </header>
@@ -180,8 +209,8 @@ export default function Feed() {
 
           {/* Composer */}
           <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <Avatar name={meuNome} size={40} />
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+              <Avatar name={meuNome} foto={usuario?.foto_url} size={40} />
               <textarea
                 value={conteudo}
                 onChange={(e) => setConteudo(e.target.value)}
@@ -191,19 +220,48 @@ export default function Feed() {
                   flex: 1, border: "none", outline: "none", resize: "none",
                   fontSize: "14px", color: "#111111",
                   fontFamily: "Inter, sans-serif", background: "transparent",
-                  padding: "8px 0",
+                  padding: "8px 0", minHeight: "32px",
                 }}
               />
             </div>
-            {conteudo.trim() && (
+
+            {/* Preview da foto selecionada */}
+            {previewFoto && (
+              <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden", maxHeight: "300px" }}>
+                <img src={previewFoto} alt="preview" style={{ width: "100%", objectFit: "cover", display: "block", maxHeight: "300px" }} />
+                <button onClick={removerFoto}
+                  style={{ position: "absolute", top: "8px", right: "8px", width: "28px", height: "28px", borderRadius: "50%", background: "rgba(0,0,0,0.7)", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  ×
+                </button>
+              </div>
+            )}
+
+            {(conteudo.trim() || foto) && (
               <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
-                <select value={bairroSelecionado} onChange={(e) => setBairroSelecionado(e.target.value)}
-                  style={{ fontSize: "12px", color: "#525252", border: "1px solid #E5E5E5", borderRadius: "999px", padding: "6px 12px", background: "#FFFFFF", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                  {BAIRROS.map((b) => <option key={b.id} value={b.id}>📍 {b.label}</option>)}
-                </select>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <button onClick={() => fotoInputRef.current?.click()}
+                    title="Adicionar foto"
+                    style={{ width: "34px", height: "34px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>
+                    🖼️
+                  </button>
+                  <input ref={fotoInputRef} type="file" accept="image/*" onChange={handleSelecionarFoto} style={{ display: "none" }} />
+                  <select value={bairroSelecionado} onChange={(e) => setBairroSelecionado(e.target.value)}
+                    style={{ fontSize: "12px", color: "#525252", border: "1px solid #E5E5E5", borderRadius: "999px", padding: "6px 12px", background: "#FFFFFF", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    {BAIRROS.map((b) => <option key={b.id} value={b.id}>📍 {b.label}</option>)}
+                  </select>
+                </div>
                 <button onClick={handlePostar} disabled={postando}
                   style={{ background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", padding: "8px 18px", fontSize: "13px", fontWeight: 700, cursor: postando ? "not-allowed" : "pointer", opacity: postando ? 0.6 : 1, fontFamily: "Inter, sans-serif" }}>
                   {postando ? "Postando..." : "Postar"}
+                </button>
+              </div>
+            )}
+
+            {!conteudo.trim() && !foto && (
+              <div style={{ display: "flex", gap: "8px", paddingTop: "4px" }}>
+                <button onClick={() => fotoInputRef.current?.click()}
+                  style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "12px", color: "#525252", fontFamily: "Inter, sans-serif" }}>
+                  🖼️ Foto
                 </button>
               </div>
             )}
@@ -226,11 +284,12 @@ export default function Feed() {
           {posts.map((post) => {
             const curtido = curtidas.has(post.id);
             const nome = post.autor?.nome ?? "Morador";
+            const ehMeuPost = usuario?.id === post.autor_id;
             return (
               <article key={post.id} style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
                   <a href={`/morador/${post.autor_id}`} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
-                    <Avatar name={nome} size={44} />
+                    <Avatar name={nome} foto={post.autor?.foto_url} size={44} />
                     <div>
                       <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{nome}</p>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "3px" }}>
@@ -242,10 +301,30 @@ export default function Feed() {
                       </div>
                     </div>
                   </a>
-                  <ScoreBadge score={post.autor?.urban_score ?? 10} compact />
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <ScoreBadge score={post.autor?.urban_score ?? 10} compact />
+                    {ehMeuPost && (
+                      <button onClick={() => handleDeletar(post.id)}
+                        title="Excluir post"
+                        style={{ width: "28px", height: "28px", borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", fontSize: "14px", color: "#A3A3A3" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#FEF2F2"; (e.currentTarget as HTMLElement).style.color = "#DC2626"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#A3A3A3"; }}
+                      >
+                        🗑
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <p style={{ fontSize: "15px", color: "#111111", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{post.conteudo}</p>
+                {post.conteudo && (
+                  <p style={{ fontSize: "15px", color: "#111111", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{post.conteudo}</p>
+                )}
+
+                {post.foto_url && (
+                  <div style={{ borderRadius: "14px", overflow: "hidden", maxHeight: "500px" }}>
+                    <img src={post.foto_url} alt="Foto do post" style={{ width: "100%", objectFit: "cover", display: "block", maxHeight: "500px" }} />
+                  </div>
+                )}
 
                 <div style={{ display: "flex", alignItems: "center", gap: "4px", paddingTop: "12px", borderTop: "1px solid #F5F5F5" }}>
                   <button onClick={() => toggleCurtir(post.id)} style={{

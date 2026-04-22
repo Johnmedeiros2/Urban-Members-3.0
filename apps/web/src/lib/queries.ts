@@ -8,7 +8,8 @@ export interface PostReal {
   total_curtidas: number;
   total_comentarios: number;
   criado_em: string;
-  autor?: { nome: string; cidade: string | null; urban_score: number } | null;
+  foto_url: string | null;
+  autor?: { nome: string; cidade: string | null; urban_score: number; foto_url: string | null } | null;
 }
 
 // ── POSTS ───────────────────────────────────────────────────────────
@@ -30,10 +31,10 @@ export async function buscarPosts(limite = 20): Promise<PostReal[]> {
   const autorIds = [...new Set(posts.map((p: { autor_id: string }) => p.autor_id))];
   const { data: perfis } = await supabase
     .from("perfis")
-    .select("id, nome, cidade, urban_score")
+    .select("id, nome, cidade, urban_score, foto_url")
     .in("id", autorIds);
 
-  const perfisMap = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number }) => [p.id, p]));
+  const perfisMap = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number; foto_url: string | null }) => [p.id, p]));
 
   return posts.map((p: PostReal) => ({
     ...p,
@@ -41,7 +42,7 @@ export async function buscarPosts(limite = 20): Promise<PostReal[]> {
   }));
 }
 
-export async function criarPost(conteudo: string, bairro_id = "negocios") {
+export async function criarPost(conteudo: string, bairro_id = "negocios", foto?: File | null) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado. Faça login novamente.");
@@ -54,7 +55,6 @@ export async function criarPost(conteudo: string, bairro_id = "negocios") {
     .single();
 
   if (!perfil) {
-    // Cria perfil se não existir (usuários antigos antes do trigger)
     await supabase
       .from("perfis")
       .insert({
@@ -63,17 +63,55 @@ export async function criarPost(conteudo: string, bairro_id = "negocios") {
       });
   }
 
+  // Upload da foto se houver
+  let foto_url: string | null = null;
+  if (foto) {
+    const ext = foto.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("posts")
+      .upload(path, foto, { cacheControl: "3600" });
+    if (uploadError) throw new Error(uploadError.message);
+    const { data: { publicUrl } } = supabase.storage.from("posts").getPublicUrl(path);
+    foto_url = publicUrl;
+  }
+
   const { data, error } = await supabase
     .from("posts")
-    .insert({ autor_id: user.id, bairro_id, conteudo })
+    .insert({ autor_id: user.id, bairro_id, conteudo, foto_url })
     .select()
     .single();
 
-  if (error) {
-    console.error("criarPost:", error);
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
   return data;
+}
+
+export async function deletarPost(post_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+
+  // Busca a foto antes para poder deletar do storage
+  const { data: post } = await supabase
+    .from("posts")
+    .select("foto_url, autor_id")
+    .eq("id", post_id)
+    .single();
+
+  if (!post) throw new Error("Post não encontrado");
+  if (post.autor_id !== user.id) throw new Error("Você só pode deletar seus próprios posts");
+
+  // Deleta a foto do storage se houver
+  if (post.foto_url) {
+    const url = new URL(post.foto_url);
+    const pathParts = url.pathname.split("/posts/");
+    if (pathParts.length > 1) {
+      await supabase.storage.from("posts").remove([pathParts[1]]);
+    }
+  }
+
+  const { error } = await supabase.from("posts").delete().eq("id", post_id);
+  if (error) throw new Error(error.message);
 }
 
 // ── CURTIDAS ────────────────────────────────────────────────────────
