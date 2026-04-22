@@ -45,7 +45,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/feed", request.url));
   }
 
-  if (user && (path === "/login" || path === "/cadastro")) {
+  // Deixa link de convite (cadastro?ref=...) passar sempre — a página trata o caso
+  const temRef = request.nextUrl.searchParams.has("ref");
+  if (user && (path === "/login" || (path === "/cadastro" && !temRef))) {
     return NextResponse.redirect(new URL("/feed", request.url));
   }
 

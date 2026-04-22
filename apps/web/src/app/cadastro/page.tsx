@@ -52,6 +52,15 @@ function Cadastro() {
     }
   }, [ref]);
 
+  const [jaMorador, setJaMorador] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await createClient().auth.getUser();
+      if (user) setJaMorador(true);
+    })();
+  }, []);
+
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -60,6 +69,30 @@ function Cadastro() {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState(false);
+
+  if (jaMorador && ref) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif", padding: "24px" }}>
+        <div style={{ maxWidth: "420px", width: "100%", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", alignItems: "center" }}>
+          <div style={{ width: "72px", height: "72px", borderRadius: "50%", background: "#FFF3EF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>
+            🏙️
+          </div>
+          <div>
+            <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#111111", letterSpacing: "-0.03em" }}>Você já é morador</h1>
+            <p style={{ fontSize: "14px", color: "#6B6B6B", marginTop: "8px", lineHeight: 1.6 }}>
+              Este é um link de convite. Para testar o cadastro como novo usuário, abra em outro navegador ou use navegação anônima.
+            </p>
+          </div>
+          <button onClick={() => router.push("/feed")} style={{ height: "44px", padding: "0 24px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+            Voltar para o feed
+          </button>
+          <a href="/convite" style={{ fontSize: "13px", color: "#A3A3A3", textDecoration: "none" }}>
+            Compartilhar meu próprio convite →
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   const forcaSenha = forca(senha);
   const senhasIguais = senha === confirmar && confirmar.length > 0;
