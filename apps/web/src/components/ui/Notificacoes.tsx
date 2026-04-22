@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { createClient, supabaseConfigured } from "@/lib/supabase";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createClient } from "@/lib/supabase";
+import { buscarNotificacoes, marcarTodasLidas } from "@/lib/queries";
 import Avatar from "./Avatar";
 
 interface Notificacao {
@@ -10,16 +11,8 @@ interface Notificacao {
   mensagem: string;
   lida: boolean;
   criado_em: string;
-  originador_nome?: string;
+  originador?: { nome: string } | null;
 }
-
-const MOCK_NOTIFICACOES: Notificacao[] = [
-  { id: "1", tipo: "curtida",    mensagem: "Juliana Ramos curtiu seu post",              lida: false, criado_em: new Date(Date.now() - 2 * 60000).toISOString(),    originador_nome: "Juliana Ramos" },
-  { id: "2", tipo: "conexao",    mensagem: "Carlos Melo quer se conectar com você",      lida: false, criado_em: new Date(Date.now() - 15 * 60000).toISOString(),   originador_nome: "Carlos Melo"   },
-  { id: "3", tipo: "score",      mensagem: "Seu Urban Score subiu para 320 pontos!",     lida: false, criado_em: new Date(Date.now() - 60 * 60000).toISOString(),   originador_nome: undefined       },
-  { id: "4", tipo: "venda",      mensagem: "Pedro Santos comprou seu produto",           lida: true,  criado_em: new Date(Date.now() - 3 * 3600000).toISOString(),  originador_nome: "Pedro Santos"  },
-  { id: "5", tipo: "comentario", mensagem: "Ana Lima comentou no seu post",              lida: true,  criado_em: new Date(Date.now() - 5 * 3600000).toISOString(),  originador_nome: "Ana Lima"      },
-];
 
 function icone(tipo: Notificacao["tipo"]) {
   return { curtida: "♥", comentario: "💬", conexao: "👤", venda: "💰", score: "⬡" }[tipo];
@@ -35,11 +28,17 @@ function tempoRelativo(iso: string) {
 
 export default function Notificacoes() {
   const [aberto, setAberto] = useState(false);
-  const [notifs, setNotifs] = useState<Notificacao[]>(MOCK_NOTIFICACOES);
+  const [notifs, setNotifs] = useState<Notificacao[]>([]);
   const ref = useRef<HTMLDivElement>(null);
   const naoLidas = notifs.filter((n) => !n.lida).length;
 
-  // Fecha ao clicar fora
+  const carregar = useCallback(async () => {
+    const data = await buscarNotificacoes();
+    setNotifs(data as Notificacao[]);
+  }, []);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setAberto(false);
@@ -48,25 +47,17 @@ export default function Notificacoes() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Supabase Realtime — escuta novas notificações
   useEffect(() => {
-    if (!supabaseConfigured) return;
     const supabase = createClient();
     const channel = supabase
       .channel("notificacoes")
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "notificacoes",
-      }, (payload) => {
-        const nova = payload.new as Notificacao;
-        setNotifs((prev) => [nova, ...prev]);
-      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notificacoes" }, () => carregar())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [carregar]);
 
-  function marcarTodasLidas() {
+  async function handleMarcarLidas() {
+    await marcarTodasLidas();
     setNotifs((prev) => prev.map((n) => ({ ...n, lida: true })));
   }
 
@@ -118,7 +109,7 @@ export default function Notificacoes() {
               )}
             </div>
             {naoLidas > 0 && (
-              <button onClick={marcarTodasLidas} style={{ fontSize: "12px", color: "#A3A3A3", background: "none", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+              <button onClick={handleMarcarLidas} style={{ fontSize: "12px", color: "#A3A3A3", background: "none", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
                 Marcar todas como lidas
               </button>
             )}
@@ -143,8 +134,8 @@ export default function Notificacoes() {
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#F7F7F8")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = n.lida ? "#FFFFFF" : "#FAFAFA")}
               >
-                {n.originador_nome ? (
-                  <Avatar name={n.originador_nome} size={36} />
+                {n.originador?.nome ? (
+                  <Avatar name={n.originador.nome} size={36} />
                 ) : (
                   <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#FFF3EF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>
                     {icone(n.tipo)}
