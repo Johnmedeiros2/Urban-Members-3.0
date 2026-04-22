@@ -26,6 +26,7 @@ interface PostPublico {
   criado_em: string;
   total_curtidas: number;
   bairro_id: string;
+  foto_url: string | null;
 }
 
 interface Loja {
@@ -285,6 +286,9 @@ export default function PerfilPublico() {
                     </span>
                   </div>
                   <p style={{ fontSize: "14px", color: "#111111", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{p.conteudo}</p>
+                  {p.foto_url && (
+                    <img src={p.foto_url} alt="Foto do post" style={{ width: "100%", marginTop: "12px", borderRadius: "12px", display: "block", objectFit: "cover", maxHeight: "500px" }} />
+                  )}
                   <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
                     <span style={{ fontSize: "12px", color: "#A3A3A3", fontWeight: 600 }}>♡ {p.total_curtidas}</span>
                   </div>
