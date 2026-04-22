@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { buscarNotificacoes, marcarTodasLidas } from "@/lib/queries";
 import Avatar from "./Avatar";
@@ -11,6 +12,7 @@ interface Notificacao {
   mensagem: string;
   lida: boolean;
   criado_em: string;
+  originador_id: string | null;
   originador?: { nome: string } | null;
 }
 
@@ -27,10 +29,19 @@ function tempoRelativo(iso: string) {
 }
 
 export default function Notificacoes() {
+  const router = useRouter();
   const [aberto, setAberto] = useState(false);
   const [notifs, setNotifs] = useState<Notificacao[]>([]);
   const ref = useRef<HTMLDivElement>(null);
   const naoLidas = notifs.filter((n) => !n.lida).length;
+
+  function aoClicar(n: Notificacao) {
+    setNotifs((prev) => prev.map((x) => x.id === n.id ? { ...x, lida: true } : x));
+    if (n.originador_id) {
+      setAberto(false);
+      router.push(`/morador/${n.originador_id}`);
+    }
+  }
 
   const carregar = useCallback(async () => {
     const data = await buscarNotificacoes();
@@ -124,7 +135,7 @@ export default function Notificacoes() {
             ) : notifs.map((n) => (
               <div
                 key={n.id}
-                onClick={() => setNotifs((prev) => prev.map((x) => x.id === n.id ? { ...x, lida: true } : x))}
+                onClick={() => aoClicar(n)}
                 style={{
                   padding: "12px 20px", display: "flex", alignItems: "flex-start", gap: "12px",
                   background: n.lida ? "#FFFFFF" : "#FAFAFA",
