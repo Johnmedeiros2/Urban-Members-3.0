@@ -138,7 +138,7 @@ export default function PerfilPublico() {
           </div>
 
           <div style={{ padding: "0 24px 24px" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginTop: "-48px", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginTop: "-48px", marginBottom: "20px", position: "relative", zIndex: 1 }}>
               {perfil.foto_url ? (
                 <img src={perfil.foto_url} alt={perfil.nome}
                   style={{ width: "96px", height: "96px", borderRadius: "50%", border: "4px solid #FFFFFF", objectFit: "cover", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", display: "block" }} />
