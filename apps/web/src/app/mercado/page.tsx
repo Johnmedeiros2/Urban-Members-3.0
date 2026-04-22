@@ -1,364 +1,282 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, type Produto } from "@/lib/queries";
 
-const categorias = [
-  { label: "Todos",       active: true  },
-  { label: "Digital",     active: false },
-  { label: "Serviços",    active: false },
-  { label: "Físico",      active: false },
-  { label: "Cursos",      active: false },
-  { label: "Consultoria", active: false },
-];
+const categorias = ["Todos", "Digital", "Serviços", "Físico", "Cursos", "Consultoria"];
 
-const destaques = [
-  {
-    id: 1,
-    nome: "Pack de Templates para Instagram",
-    vendedor: "Juliana Ramos",
-    cidade: "BH",
-    score: 850,
-    preco: 47,
-    categoria: "Digital",
-    vendas: 312,
-    descricao: "50 templates editáveis no Canva para negócios locais. Funciona para qualquer nicho.",
-    tag: "Mais vendido",
-    tagColor: "#FF5C2E",
-  },
-  {
-    id: 2,
-    nome: "Mentoria 1h — Marketing Digital",
-    vendedor: "Carlos Melo",
-    cidade: "Fortaleza",
-    score: 450,
-    preco: 120,
-    categoria: "Consultoria",
-    vendas: 89,
-    descricao: "Sessão individual de 1 hora focada no seu negócio. Estratégia, tráfego e conversão.",
-    tag: "Em alta",
-    tagColor: "#111111",
-  },
-  {
-    id: 3,
-    nome: "Identidade Visual Completa",
-    vendedor: "Ana Lima",
-    cidade: "São Paulo",
-    score: 120,
-    preco: 380,
-    categoria: "Serviços",
-    vendas: 27,
-    descricao: "Logo, paleta, tipografia, cartão e papelaria. Entrega em 7 dias úteis.",
-    tag: "Novo",
-    tagColor: "#10B981",
-  },
-  {
-    id: 4,
-    nome: "Planilha de Controle Financeiro",
-    vendedor: "Pedro Santos",
-    cidade: "Recife",
-    score: 430,
-    preco: 29,
-    categoria: "Digital",
-    vendas: 541,
-    descricao: "Controle de gastos, metas e investimentos. Simples, bonita e funcional.",
-    tag: "Mais vendido",
-    tagColor: "#FF5C2E",
-  },
-  {
-    id: 5,
-    nome: "Copy para Página de Vendas",
-    vendedor: "Mariana Costa",
-    cidade: "Curitiba",
-    score: 210,
-    preco: 197,
-    categoria: "Serviços",
-    vendas: 44,
-    descricao: "Texto persuasivo para sua página de vendas. Inclui revisão e ajustes.",
-    tag: null,
-    tagColor: "",
-  },
-  {
-    id: 6,
-    nome: "E-book: Venda pelo WhatsApp",
-    vendedor: "Rafael Torres",
-    cidade: "Goiânia",
-    score: 175,
-    preco: 19,
-    categoria: "Digital",
-    vendas: 728,
-    descricao: "Guia prático para transformar conversas em vendas. Linguagem simples e direta.",
-    tag: "Em alta",
-    tagColor: "#111111",
-  },
-];
-
-const lojas = [
-  { nome: "Studio Ana Lima",   vendedor: "Ana Lima",      cidade: "São Paulo",  score: 120, produtos: 8,  vendas: 143 },
-  { nome: "Melo Digital",      vendedor: "Carlos Melo",   cidade: "Fortaleza",  score: 450, produtos: 5,  vendas: 312 },
-  { nome: "Ramos Criativo",    vendedor: "Juliana Ramos", cidade: "BH",         score: 850, produtos: 14, vendas: 891 },
-  { nome: "Santos Finanças",   vendedor: "Pedro Santos",  cidade: "Recife",     score: 430, produtos: 3,  vendas: 621 },
-];
+interface LojaComDono {
+  id: string;
+  nome: string;
+  total_vendas: number;
+  dono?: { nome: string; cidade: string | null; urban_score: number } | null;
+}
 
 export default function Mercado() {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [lojas, setLojas] = useState<LojaComDono[]>([]);
+  const [minhaLoja, setMinhaLoja] = useState<{ id: string; nome: string } | null>(null);
+  const [carregando, setCarregando] = useState(true);
+  const [categoria, setCategoria] = useState("Todos");
+  const [modalLoja, setModalLoja] = useState(false);
+  const [modalProduto, setModalProduto] = useState(false);
+  const [comprando, setComprando] = useState<string | null>(null);
+
+  // Form loja
+  const [nomeLoja, setNomeLoja] = useState("");
+  const [descLoja, setDescLoja] = useState("");
+  // Form produto
+  const [nomeProd, setNomeProd] = useState("");
+  const [descProd, setDescProd] = useState("");
+  const [precoProd, setPrecoProd] = useState("");
+  const [catProd, setCatProd] = useState("Digital");
+
+  const carregar = useCallback(async () => {
+    setCarregando(true);
+    const [p, l, mine] = await Promise.all([buscarProdutos(), buscarLojas(), buscarMinhaLoja()]);
+    setProdutos(p);
+    setLojas(l as unknown as LojaComDono[]);
+    setMinhaLoja(mine as unknown as { id: string; nome: string } | null);
+    setCarregando(false);
+  }, []);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
+  const filtrados = categoria === "Todos" ? produtos : produtos.filter((p) => p.categoria === categoria);
+
+  async function handleCriarLoja() {
+    if (!nomeLoja.trim()) return;
+    try {
+      await criarLoja(nomeLoja, descLoja);
+      setModalLoja(false);
+      setNomeLoja(""); setDescLoja("");
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  async function handleCriarProduto() {
+    if (!nomeProd.trim() || !precoProd || !minhaLoja) return;
+    try {
+      await criarProduto(minhaLoja.id, nomeProd, parseFloat(precoProd), descProd, catProd);
+      setModalProduto(false);
+      setNomeProd(""); setDescProd(""); setPrecoProd("");
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  async function handleComprar(produto: Produto) {
+    if (!produto.loja?.dono_id) return;
+    if (!confirm(`Confirmar compra de "${produto.nome}" por R$ ${produto.preco}?`)) return;
+    setComprando(produto.id);
+    try {
+      await criarTransacao(produto.loja.dono_id, produto.preco, produto.nome);
+      alert(`Compra realizada! R$ ${(produto.preco * 0.9).toFixed(2)} foi para ${produto.loja.dono?.nome}.`);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setComprando(null);
+    }
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: "#F7F7F8", fontFamily: "Inter, sans-serif" }}>
 
-      {/* Header */}
-      <header style={{
-        position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(0,0,0,0.06)",
-      }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
-            <span style={{ fontSize: "15px", fontWeight: 800, letterSpacing: "-0.03em", color: "#111111" }}>Urban Members</span>
+            <span style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>Urban Members</span>
             <span style={{ fontSize: "13px", color: "#A3A3A3", margin: "0 4px" }}>/</span>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#525252" }}>Mercado Urbano</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <BotaoConvite variant="ghost" />
-            <button style={{ height: "36px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-              + Vender
-            </button>
-            <ScoreBadge score={320} compact />
-            <Avatar name="Você" size={36} />
+            {minhaLoja ? (
+              <button onClick={() => setModalProduto(true)} style={{ height: "36px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                + Novo produto
+              </button>
+            ) : (
+              <button onClick={() => setModalLoja(true)} style={{ height: "36px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                Abrir minha loja
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 24px 80px" }}>
 
-        {/* Hero */}
-        <div style={{
-          background: "#111111", borderRadius: "24px",
-          padding: "40px 48px", marginBottom: "32px",
-          position: "relative", overflow: "hidden",
-          display: "flex", alignItems: "center", justifyContent: "space-between", gap: "32px",
-        }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 80% 50%, rgba(255,92,46,0.15) 0%, transparent 55%), radial-gradient(circle at 10% 80%, rgba(255,255,255,0.03) 0%, transparent 40%)" }} />
+        <div style={{ background: "#111111", borderRadius: "24px", padding: "40px 48px", marginBottom: "32px", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "32px" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 80% 50%, rgba(255,92,46,0.15) 0%, transparent 55%)" }} />
           <div style={{ position: "relative" }}>
-            <p style={{ fontSize: "12px", color: "#FF5C2E", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>
-              Mercado Urbano
-            </p>
+            <p style={{ fontSize: "12px", color: "#FF5C2E", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>Mercado Urbano</p>
             <h1 style={{ fontSize: "32px", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.03em", lineHeight: 1.2, marginBottom: "12px" }}>
               Compre e venda<br />dentro da cidade.
             </h1>
             <p style={{ fontSize: "15px", color: "#A3A3A3", lineHeight: 1.6, maxWidth: "400px" }}>
-              Produtos digitais, serviços, mentorias e muito mais — de moradores reais para moradores reais. Urban só ganha quando você ganha.
+              Urban só ganha quando você ganha. Taxa de 10% apenas em transações concluídas.
             </p>
           </div>
-          <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: "12px", flexShrink: 0 }}>
+          <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: "12px" }}>
             {[
-              { label: "Produtos disponíveis", value: "2.841" },
-              { label: "Vendas realizadas",    value: "18.4k" },
-              { label: "Vendedores ativos",    value: "934"   },
-            ].map((stat) => (
-              <div key={stat.label} style={{ background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "12px 20px", textAlign: "center" }}>
-                <p style={{ fontSize: "22px", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.03em" }}>{stat.value}</p>
-                <p style={{ fontSize: "11px", color: "#A3A3A3", marginTop: "2px" }}>{stat.label}</p>
+              { label: "Produtos", value: produtos.length.toString() },
+              { label: "Lojistas", value: lojas.length.toString()    },
+            ].map((s) => (
+              <div key={s.label} style={{ background: "rgba(255,255,255,0.06)", borderRadius: "12px", padding: "12px 24px", textAlign: "center" }}>
+                <p style={{ fontSize: "24px", fontWeight: 800, color: "#FFFFFF" }}>{s.value}</p>
+                <p style={{ fontSize: "11px", color: "#A3A3A3", marginTop: "2px" }}>{s.label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Busca + categorias */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "28px", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: "240px", background: "#FFFFFF", borderRadius: "999px", padding: "0 18px", height: "44px", display: "flex", alignItems: "center", gap: "8px", border: "1px solid #E5E5E5" }}>
-            <span style={{ fontSize: "14px", color: "#A3A3A3" }}>🔍</span>
-            <span style={{ fontSize: "14px", color: "#A3A3A3" }}>Buscar produtos, serviços ou vendedores...</span>
-          </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            {categorias.map((cat) => (
-              <button key={cat.label} style={{
-                height: "44px", padding: "0 18px",
-                background: cat.active ? "#111111" : "#FFFFFF",
-                color: cat.active ? "#FFFFFF" : "#525252",
-                border: `1px solid ${cat.active ? "#111111" : "#E5E5E5"}`,
-                borderRadius: "999px", fontSize: "13px", fontWeight: cat.active ? 700 : 400,
-                cursor: "pointer", fontFamily: "Inter, sans-serif", transition: "all 0.15s",
-              }}>
-                {cat.label}
-              </button>
-            ))}
-          </div>
+        {/* Filtros */}
+        <div style={{ display: "flex", gap: "8px", marginBottom: "28px", flexWrap: "wrap" }}>
+          {categorias.map((cat) => (
+            <button key={cat} onClick={() => setCategoria(cat)} style={{
+              height: "40px", padding: "0 18px",
+              background: categoria === cat ? "#111111" : "#FFFFFF",
+              color: categoria === cat ? "#FFFFFF" : "#525252",
+              border: `1px solid ${categoria === cat ? "#111111" : "#E5E5E5"}`,
+              borderRadius: "999px", fontSize: "13px", fontWeight: categoria === cat ? 700 : 400,
+              cursor: "pointer", fontFamily: "Inter, sans-serif",
+            }}>
+              {cat}
+            </button>
+          ))}
         </div>
 
-        {/* Layout principal */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "24px" }}>
 
-          {/* Produtos */}
+          {/* Grid de produtos */}
           <div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#111111" }}>Em destaque</h2>
-              <span style={{ fontSize: "13px", color: "#A3A3A3" }}>{destaques.length} produtos</span>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
-              {destaques.map((produto) => (
-                <div key={produto.id}
-                  style={{
-                    background: "#FFFFFF", borderRadius: "20px", overflow: "hidden",
-                    border: "1px solid rgba(0,0,0,0.05)",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    display: "flex", flexDirection: "column",
-                    cursor: "pointer", transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)";
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                  }}
-                >
-                  {/* Thumbnail */}
-                  <div style={{
-                    height: "120px", background: "#F5F5F5",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    position: "relative",
-                  }}>
-                    <span style={{ fontSize: "40px", opacity: 0.15 }}>
-                      {produto.categoria === "Digital" ? "📦" : produto.categoria === "Serviços" ? "🛠️" : produto.categoria === "Consultoria" ? "💬" : "📄"}
-                    </span>
-                    {produto.tag && (
-                      <span style={{
-                        position: "absolute", top: "12px", left: "12px",
-                        background: produto.tagColor, color: "#FFFFFF",
-                        fontSize: "10px", fontWeight: 700,
-                        padding: "3px 10px", borderRadius: "999px",
-                        letterSpacing: "0.04em",
-                      }}>
-                        {produto.tag}
+            {carregando ? (
+              <div style={{ textAlign: "center", padding: "40px", color: "#A3A3A3" }}>Carregando mercado...</div>
+            ) : filtrados.length === 0 ? (
+              <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "48px 24px", textAlign: "center", border: "1px solid rgba(0,0,0,0.05)" }}>
+                <p style={{ fontSize: "15px", fontWeight: 700, color: "#111111" }}>O mercado ainda está vazio</p>
+                <p style={{ fontSize: "13px", color: "#A3A3A3", marginTop: "6px" }}>
+                  {minhaLoja ? "Adicione seu primeiro produto." : "Seja o primeiro a abrir uma loja."}
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
+                {filtrados.map((produto) => (
+                  <div key={produto.id} style={{ background: "#FFFFFF", borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }}>
+                    <div style={{ height: "100px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                      <span style={{ fontSize: "32px", opacity: 0.15 }}>📦</span>
+                      <span style={{ position: "absolute", top: "12px", right: "12px", background: "#FFFFFF", color: "#525252", fontSize: "11px", fontWeight: 600, padding: "3px 10px", borderRadius: "999px", border: "1px solid #E5E5E5" }}>
+                        {produto.categoria}
                       </span>
-                    )}
-                    <span style={{
-                      position: "absolute", top: "12px", right: "12px",
-                      background: "#FFFFFF", color: "#525252",
-                      fontSize: "11px", fontWeight: 600,
-                      padding: "3px 10px", borderRadius: "999px",
-                      border: "1px solid #E5E5E5",
-                    }}>
-                      {produto.categoria}
-                    </span>
-                  </div>
-
-                  {/* Conteúdo */}
-                  <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
-                    <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111", lineHeight: 1.4 }}>
-                      {produto.nome}
-                    </h3>
-                    <p style={{ fontSize: "13px", color: "#6B6B6B", lineHeight: 1.5 }}>
-                      {produto.descricao}
-                    </p>
-
-                    {/* Vendedor */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingTop: "8px", borderTop: "1px solid #F5F5F5" }}>
-                      <Avatar name={produto.vendedor} size={28} />
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: "12px", fontWeight: 600, color: "#111111" }}>{produto.vendedor}</p>
-                        <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{produto.cidade} · {produto.vendas} vendas</p>
-                      </div>
-                      <ScoreBadge score={produto.score} compact />
                     </div>
-
-                    {/* Preço + CTA */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "4px" }}>
-                      <div>
-                        <span style={{ fontSize: "11px", color: "#A3A3A3" }}>Por apenas</span>
-                        <p style={{ fontSize: "20px", fontWeight: 800, color: "#111111", letterSpacing: "-0.03em" }}>
-                          R$ {produto.preco.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </p>
+                    <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
+                      <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111", lineHeight: 1.4 }}>{produto.nome}</h3>
+                      {produto.descricao && (
+                        <p style={{ fontSize: "13px", color: "#6B6B6B", lineHeight: 1.5 }}>{produto.descricao}</p>
+                      )}
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingTop: "8px", borderTop: "1px solid #F5F5F5" }}>
+                        <Avatar name={produto.loja?.dono?.nome ?? "Vendedor"} size={28} />
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: "12px", fontWeight: 600, color: "#111111" }}>{produto.loja?.dono?.nome ?? "Vendedor"}</p>
+                          <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{produto.loja?.dono?.cidade ?? ""} · {produto.total_vendas} vendas</p>
+                        </div>
+                        <ScoreBadge score={produto.loja?.dono?.urban_score ?? 10} compact />
                       </div>
-                      <button style={{
-                        background: "#111111", color: "#FFFFFF",
-                        border: "none", borderRadius: "999px",
-                        padding: "10px 18px", fontSize: "13px", fontWeight: 700,
-                        cursor: "pointer", fontFamily: "Inter, sans-serif",
-                        transition: "background 0.15s",
-                      }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "#FF5C2E")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#111111")}
-                      >
-                        Comprar
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                          <span style={{ fontSize: "11px", color: "#A3A3A3" }}>Por apenas</span>
+                          <p style={{ fontSize: "20px", fontWeight: 800, color: "#111111" }}>R$ {Number(produto.preco).toFixed(2).replace(".", ",")}</p>
+                        </div>
+                        <button onClick={() => handleComprar(produto)} disabled={comprando === produto.id} style={{
+                          background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px",
+                          padding: "10px 18px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif",
+                          opacity: comprando === produto.id ? 0.5 : 1,
+                        }}>
+                          {comprando === produto.id ? "..." : "Comprar"}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Sidebar — Lojas em destaque */}
+          {/* Sidebar */}
           <aside>
-            <div style={{
-              background: "#FFFFFF", borderRadius: "20px", padding: "20px",
-              border: "1px solid rgba(0,0,0,0.05)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-              position: "sticky", top: "84px",
-              display: "flex", flexDirection: "column", gap: "16px",
-            }}>
+            <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", position: "sticky", top: "84px", display: "flex", flexDirection: "column", gap: "16px" }}>
               <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Lojas em destaque</h3>
-
-              {lojas.map((loja) => (
-                <div key={loja.nome} style={{
-                  padding: "14px", borderRadius: "14px",
-                  border: "1px solid #F5F5F5", cursor: "pointer",
-                  transition: "border-color 0.15s",
-                }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#111111")}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#F5F5F5")}
-                >
+              {lojas.length === 0 ? (
+                <p style={{ fontSize: "12px", color: "#A3A3A3" }}>Ainda não há lojas abertas. Seja o primeiro!</p>
+              ) : lojas.map((loja) => (
+                <div key={loja.id} style={{ padding: "14px", borderRadius: "14px", border: "1px solid #F5F5F5" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                    <Avatar name={loja.vendedor} size={36} />
+                    <Avatar name={loja.dono?.nome ?? "Lojista"} size={36} />
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{loja.nome}</p>
-                      <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{loja.cidade}</p>
+                      <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{loja.dono?.cidade ?? ""}</p>
                     </div>
-                    <ScoreBadge score={loja.score} compact />
+                    <ScoreBadge score={loja.dono?.urban_score ?? 10} compact />
                   </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <div style={{ flex: 1, background: "#F7F7F8", borderRadius: "10px", padding: "8px", textAlign: "center" }}>
-                      <p style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>{loja.produtos}</p>
-                      <p style={{ fontSize: "10px", color: "#A3A3A3" }}>produtos</p>
-                    </div>
-                    <div style={{ flex: 1, background: "#F7F7F8", borderRadius: "10px", padding: "8px", textAlign: "center" }}>
-                      <p style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>{loja.vendas}</p>
-                      <p style={{ fontSize: "10px", color: "#A3A3A3" }}>vendas</p>
-                    </div>
-                  </div>
+                  <p style={{ fontSize: "11px", color: "#6B6B6B" }}>{loja.total_vendas} vendas</p>
                 </div>
               ))}
-
-              {/* CTA para abrir loja */}
-              <div style={{
-                background: "#F7F7F8", borderRadius: "14px", padding: "16px",
-                display: "flex", flexDirection: "column", gap: "10px",
-              }}>
-                <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>
-                  Quer vender na cidade?
-                </p>
-                <p style={{ fontSize: "12px", color: "#6B6B6B", lineHeight: 1.5 }}>
-                  Abra sua loja gratuitamente. Urban só ganha quando você vender.
-                </p>
-                <button style={{
-                  width: "100%", height: "42px",
-                  background: "#111111", color: "#FFFFFF",
-                  border: "none", borderRadius: "999px",
-                  fontSize: "13px", fontWeight: 700,
-                  cursor: "pointer", fontFamily: "Inter, sans-serif",
-                }}>
-                  Abrir minha loja
-                </button>
-              </div>
             </div>
           </aside>
-
         </div>
       </div>
+
+      {/* Modal abrir loja */}
+      {modalLoja && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "24px" }}>
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "28px", maxWidth: "440px", width: "100%", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#111111" }}>Abrir minha loja</h2>
+            <p style={{ fontSize: "13px", color: "#A3A3A3" }}>Sem mensalidade. Urban ganha apenas quando você vender.</p>
+            <input placeholder="Nome da loja" value={nomeLoja} onChange={(e) => setNomeLoja(e.target.value)}
+              style={{ width: "100%", height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }} />
+            <textarea placeholder="Descrição (opcional)" value={descLoja} onChange={(e) => setDescLoja(e.target.value)} rows={3}
+              style={{ width: "100%", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "12px 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif", resize: "none" }} />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button onClick={() => setModalLoja(false)} style={{ flex: 1, height: "44px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancelar</button>
+              <button onClick={handleCriarLoja} style={{ flex: 1, height: "44px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Abrir loja</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal novo produto */}
+      {modalProduto && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "24px" }}>
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "28px", maxWidth: "440px", width: "100%", display: "flex", flexDirection: "column", gap: "14px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#111111" }}>Novo produto</h2>
+            <input placeholder="Nome" value={nomeProd} onChange={(e) => setNomeProd(e.target.value)}
+              style={{ width: "100%", height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }} />
+            <textarea placeholder="Descrição" value={descProd} onChange={(e) => setDescProd(e.target.value)} rows={3}
+              style={{ width: "100%", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "12px 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif", resize: "none" }} />
+            <div style={{ display: "flex", gap: "10px" }}>
+              <input type="number" placeholder="Preço R$" value={precoProd} onChange={(e) => setPrecoProd(e.target.value)}
+                style={{ flex: 1, height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }} />
+              <select value={catProd} onChange={(e) => setCatProd(e.target.value)}
+                style={{ flex: 1, height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }}>
+                {["Digital", "Serviços", "Físico", "Cursos", "Consultoria"].map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button onClick={() => setModalProduto(false)} style={{ flex: 1, height: "44px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancelar</button>
+              <button onClick={handleCriarProduto} style={{ flex: 1, height: "44px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Publicar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
