@@ -209,6 +209,9 @@ export default function Feed() {
 
           {/* Composer */}
           <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px" }}>
+            {/* Input de arquivo sempre presente no DOM */}
+            <input ref={fotoInputRef} type="file" accept="image/*" onChange={handleSelecionarFoto} style={{ display: "none" }} />
+
             <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
               <Avatar name={meuNome} foto={usuario?.foto_url} size={40} />
               <textarea
@@ -223,6 +226,26 @@ export default function Feed() {
                   padding: "8px 0", minHeight: "32px",
                 }}
               />
+              {/* Ícone de foto sutil sempre visível ao lado do campo */}
+              <button onClick={() => fotoInputRef.current?.click()}
+                title="Adicionar foto"
+                style={{
+                  width: "32px", height: "32px",
+                  borderRadius: "50%", background: "transparent",
+                  border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#A3A3A3", transition: "all 0.15s",
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#F5F5F5"; (e.currentTarget as HTMLElement).style.color = "#111111"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#A3A3A3"; }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+              </button>
             </div>
 
             {/* Preview da foto selecionada */}
@@ -238,30 +261,13 @@ export default function Feed() {
 
             {(conteudo.trim() || foto) && (
               <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
-                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <button onClick={() => fotoInputRef.current?.click()}
-                    title="Adicionar foto"
-                    style={{ width: "34px", height: "34px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>
-                    🖼️
-                  </button>
-                  <input ref={fotoInputRef} type="file" accept="image/*" onChange={handleSelecionarFoto} style={{ display: "none" }} />
-                  <select value={bairroSelecionado} onChange={(e) => setBairroSelecionado(e.target.value)}
-                    style={{ fontSize: "12px", color: "#525252", border: "1px solid #E5E5E5", borderRadius: "999px", padding: "6px 12px", background: "#FFFFFF", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                    {BAIRROS.map((b) => <option key={b.id} value={b.id}>📍 {b.label}</option>)}
-                  </select>
-                </div>
+                <select value={bairroSelecionado} onChange={(e) => setBairroSelecionado(e.target.value)}
+                  style={{ fontSize: "12px", color: "#525252", border: "1px solid #E5E5E5", borderRadius: "999px", padding: "6px 12px", background: "#FFFFFF", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  {BAIRROS.map((b) => <option key={b.id} value={b.id}>📍 {b.label}</option>)}
+                </select>
                 <button onClick={handlePostar} disabled={postando}
                   style={{ background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", padding: "8px 18px", fontSize: "13px", fontWeight: 700, cursor: postando ? "not-allowed" : "pointer", opacity: postando ? 0.6 : 1, fontFamily: "Inter, sans-serif" }}>
                   {postando ? "Postando..." : "Postar"}
-                </button>
-              </div>
-            )}
-
-            {!conteudo.trim() && !foto && (
-              <div style={{ display: "flex", gap: "8px", paddingTop: "4px" }}>
-                <button onClick={() => fotoInputRef.current?.click()}
-                  style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "12px", color: "#525252", fontFamily: "Inter, sans-serif" }}>
-                  🖼️ Foto
                 </button>
               </div>
             )}
