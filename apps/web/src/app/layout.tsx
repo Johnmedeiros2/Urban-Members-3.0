@@ -10,6 +10,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Urban Members",
   description: "A primeira cidade digital brasileira.",
+  icons: {
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({
