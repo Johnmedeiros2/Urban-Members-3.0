@@ -61,7 +61,7 @@ export default function Cadastro() {
       email, password: senha,
       options: {
         data: { nome_completo: nome },
-        emailRedirectTo: `${window.location.origin}/onboarding`,
+        emailRedirectTo: `${window.location.origin}/login`,
       },
     });
     if (error) {
