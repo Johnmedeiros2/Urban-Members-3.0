@@ -6,6 +6,8 @@ import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, type Produto } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
+import CarrinhoDrawer from "@/components/ui/CarrinhoDrawer";
+import { useCarrinho } from "@/lib/carrinho";
 
 const categorias = ["Todos", "Digital", "Serviços", "Físico", "Cursos", "Consultoria"];
 
@@ -26,6 +28,8 @@ export default function Mercado() {
   const [modalProduto, setModalProduto] = useState(false);
   const [comprando, setComprando] = useState<string | null>(null);
   const [avaliacoesAbertas, setAvaliacoesAbertas] = useState<Set<string>>(new Set());
+  const { adicionar: adicionarCarrinho } = useCarrinho();
+  const [adicionadoFeedback, setAdicionadoFeedback] = useState<string | null>(null);
 
   // Form loja
   const [nomeLoja, setNomeLoja] = useState("");
@@ -102,6 +106,7 @@ export default function Mercado() {
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#525252" }}>Mercado Urbano</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <CarrinhoDrawer />
             <BotaoConvite variant="ghost" />
             {minhaLoja ? (
               <button onClick={() => setModalProduto(true)} style={{ height: "36px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
@@ -199,13 +204,39 @@ export default function Mercado() {
                           <span style={{ fontSize: "11px", color: "#A3A3A3" }}>Por apenas</span>
                           <p style={{ fontSize: "20px", fontWeight: 800, color: "#111111" }}>R$ {Number(produto.preco).toFixed(2).replace(".", ",")}</p>
                         </div>
-                        <button onClick={() => handleComprar(produto)} disabled={comprando === produto.id} style={{
-                          background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px",
-                          padding: "10px 18px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif",
-                          opacity: comprando === produto.id ? 0.5 : 1,
-                        }}>
-                          {comprando === produto.id ? "..." : "Comprar"}
-                        </button>
+                        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                          <button
+                            onClick={() => {
+                              if (!produto.loja?.dono_id) return;
+                              adicionarCarrinho({
+                                produto_id: produto.id,
+                                nome: produto.nome,
+                                preco: Number(produto.preco),
+                                vendedor_id: produto.loja.dono_id,
+                                vendedor_nome: produto.loja.dono?.nome,
+                              });
+                              setAdicionadoFeedback(produto.id);
+                              setTimeout(() => setAdicionadoFeedback(null), 1500);
+                            }}
+                            style={{
+                              background: adicionadoFeedback === produto.id ? "#10B981" : "#F5F5F5",
+                              color: adicionadoFeedback === produto.id ? "#FFFFFF" : "#111111",
+                              border: "none", borderRadius: "999px",
+                              padding: "10px 14px", fontSize: "12px", fontWeight: 700,
+                              cursor: "pointer", fontFamily: "Inter, sans-serif",
+                              transition: "all 0.2s",
+                            }}
+                          >
+                            {adicionadoFeedback === produto.id ? "✓ Adicionado" : "+ Carrinho"}
+                          </button>
+                          <button onClick={() => handleComprar(produto)} disabled={comprando === produto.id} style={{
+                            background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px",
+                            padding: "10px 16px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif",
+                            opacity: comprando === produto.id ? 0.5 : 1,
+                          }}>
+                            {comprando === produto.id ? "..." : "Comprar"}
+                          </button>
+                        </div>
                       </div>
                       <button
                         onClick={() => setAvaliacoesAbertas((prev) => {
