@@ -499,6 +499,24 @@ export interface Produto {
   } | null;
 }
 
+export async function produtosEmAlta(limite = 6): Promise<Produto[]> {
+  const supabase = createClient();
+  const { data: produtos } = await supabase
+    .from("produtos")
+    .select("*, loja:lojas(nome, dono_id)")
+    .eq("disponivel", true)
+    .gt("total_vendas", 0)
+    .order("total_vendas", { ascending: false })
+    .limit(limite);
+  if (!produtos) return [];
+
+  const donoIds = produtos.map((p: Produto) => p.loja?.dono_id).filter(Boolean) as string[];
+  if (donoIds.length === 0) return produtos as Produto[];
+  const { data: perfis } = await supabase.from("perfis").select("id, nome, cidade, urban_score").in("id", donoIds);
+  const map = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number }) => [p.id, p]));
+  return produtos.map((p: Produto) => ({ ...p, loja: p.loja ? { ...p.loja, dono: map.get(p.loja.dono_id) ?? null } : null }));
+}
+
 export async function buscarProdutos(limite = 20): Promise<Produto[]> {
   const supabase = createClient();
   const { data: produtos, error } = await supabase

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, type Produto } from "@/lib/queries";
+import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, produtosEmAlta, type Produto } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 import CarrinhoDrawer from "@/components/ui/CarrinhoDrawer";
 import { useCarrinho } from "@/lib/carrinho";
@@ -30,6 +30,7 @@ export default function Mercado() {
   const [avaliacoesAbertas, setAvaliacoesAbertas] = useState<Set<string>>(new Set());
   const { adicionar: adicionarCarrinho } = useCarrinho();
   const [adicionadoFeedback, setAdicionadoFeedback] = useState<string | null>(null);
+  const [emAlta, setEmAlta] = useState<Produto[]>([]);
 
   // Form loja
   const [nomeLoja, setNomeLoja] = useState("");
@@ -42,10 +43,11 @@ export default function Mercado() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [p, l, mine] = await Promise.all([buscarProdutos(), buscarLojas(), buscarMinhaLoja()]);
+    const [p, l, mine, alta] = await Promise.all([buscarProdutos(), buscarLojas(), buscarMinhaLoja(), produtosEmAlta(6)]);
     setProdutos(p);
     setLojas(l as unknown as LojaComDono[]);
     setMinhaLoja(mine as unknown as { id: string; nome: string } | null);
+    setEmAlta(alta);
     setCarregando(false);
   }, []);
 
@@ -146,6 +148,57 @@ export default function Mercado() {
             ))}
           </div>
         </div>
+
+        {/* Em alta */}
+        {emAlta.length > 0 && (
+          <div style={{ marginBottom: "32px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+              <span style={{ fontSize: "16px" }}>🔥</span>
+              <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111", letterSpacing: "-0.02em" }}>Em alta no Mercado</h2>
+              <span style={{ fontSize: "11px", color: "#A3A3A3", background: "#F5F5F5", padding: "3px 10px", borderRadius: "999px", fontWeight: 600 }}>Top vendidos</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
+              {emAlta.map((p, i) => (
+                <div key={p.id} style={{ background: "#FFFFFF", borderRadius: "14px", padding: "14px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
+                  <div style={{ position: "absolute", top: "10px", right: "10px", background: i < 3 ? "#111111" : "#F5F5F5", color: i < 3 ? "#FFFFFF" : "#525252", fontSize: "10px", fontWeight: 800, padding: "2px 8px", borderRadius: "999px" }}>
+                    #{i + 1}
+                  </div>
+                  <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", paddingRight: "30px" }}>{p.nome}</p>
+                  <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{p.loja?.dono?.nome ?? "Vendedor"} · {p.total_vendas} {p.total_vendas === 1 ? "venda" : "vendas"}</p>
+                  <p style={{ fontSize: "16px", fontWeight: 800, color: "#FF5C2E" }}>R$ {Number(p.preco).toFixed(2).replace(".", ",")}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Top vendedores */}
+        {lojas.filter((l) => l.total_vendas > 0).length > 0 && (
+          <div style={{ marginBottom: "32px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+              <span style={{ fontSize: "16px" }}>🏆</span>
+              <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111", letterSpacing: "-0.02em" }}>Top vendedores</h2>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "12px" }}>
+              {lojas.filter((l) => l.total_vendas > 0).slice(0, 3).map((l, i) => (
+                <div key={l.id} style={{
+                  background: i === 0 ? "linear-gradient(135deg, #111111, #1F1F1F)" : "#FFFFFF",
+                  color: i === 0 ? "#FFFFFF" : "#111111",
+                  borderRadius: "14px", padding: "16px", border: "1px solid rgba(0,0,0,0.05)",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: "12px",
+                }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: i === 0 ? "#FF5C2E" : "#F5F5F5", color: i === 0 ? "#FFFFFF" : "#111111", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 800, flexShrink: 0 }}>
+                    #{i + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: "14px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.nome}</p>
+                    <p style={{ fontSize: "11px", opacity: 0.7 }}>{l.dono?.nome ?? "Vendedor"} · {l.total_vendas} {l.total_vendas === 1 ? "venda" : "vendas"}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Filtros */}
         <div style={{ display: "flex", gap: "8px", marginBottom: "28px", flexWrap: "wrap" }}>
