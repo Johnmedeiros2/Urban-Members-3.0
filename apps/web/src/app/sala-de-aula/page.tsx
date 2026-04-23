@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarCursos, criarCurso, matricularCurso, iniciarPagamento, type Curso } from "@/lib/queries";
+import { buscarCursos, criarCurso, matricularCurso, type Curso } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 
 export default function SalaDeAula() {
@@ -42,25 +42,12 @@ export default function SalaDeAula() {
   async function handleMatricular(curso: Curso) {
     setMatriculando(curso.id);
     try {
-      if (Number(curso.preco) === 0) {
-        await matricularCurso(curso.id);
-        alert("Matrícula realizada! +5 pontos no seu Urban Score.");
-        await carregar();
-        setMatriculando(null);
-      } else {
-        if (!curso.instrutor_id) throw new Error("Instrutor do curso inválido");
-        if (!confirm(`Ir para pagamento de "${curso.titulo}" por R$ ${curso.preco}?`)) { setMatriculando(null); return; }
-        const { init_point } = await iniciarPagamento({
-          vendedor_id: curso.instrutor_id,
-          valor: Number(curso.preco),
-          descricao: curso.titulo,
-          tipo: "curso",
-          item_id: curso.id,
-        });
-        window.location.href = init_point;
-      }
+      await matricularCurso(curso.id);
+      alert("Matrícula realizada! +5 pontos no seu Urban Score.");
+      await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
+    } finally {
       setMatriculando(null);
     }
   }

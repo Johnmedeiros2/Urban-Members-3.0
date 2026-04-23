@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, iniciarPagamento, type Produto } from "@/lib/queries";
+import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, type Produto } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 
 const categorias = ["Todos", "Digital", "Serviços", "Físico", "Cursos", "Consultoria"];
@@ -75,19 +75,15 @@ export default function Mercado() {
 
   async function handleComprar(produto: Produto) {
     if (!produto.loja?.dono_id) return;
-    if (!confirm(`Ir para pagamento de "${produto.nome}" por R$ ${produto.preco}?`)) return;
+    if (!confirm(`Confirmar compra de "${produto.nome}" por R$ ${produto.preco}?`)) return;
     setComprando(produto.id);
     try {
-      const { init_point } = await iniciarPagamento({
-        vendedor_id: produto.loja.dono_id,
-        valor: Number(produto.preco),
-        descricao: produto.nome,
-        tipo: "produto",
-        item_id: produto.id,
-      });
-      window.location.href = init_point;
+      await criarTransacao(produto.loja.dono_id, produto.preco, produto.nome);
+      alert(`Compra realizada! R$ ${(produto.preco * 0.9).toFixed(2)} foi para ${produto.loja.dono?.nome}.`);
+      await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
+    } finally {
       setComprando(null);
     }
   }
