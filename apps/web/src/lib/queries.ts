@@ -615,6 +615,31 @@ export async function minhasTransacoes(): Promise<Transacao[]> {
   }));
 }
 
+export async function minhasCompras(): Promise<Transacao[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data } = await supabase
+    .from("transacoes")
+    .select("*")
+    .eq("comprador_id", user.id)
+    .order("criado_em", { ascending: false })
+    .limit(100);
+  if (!data) return [];
+
+  const ids = [...new Set(data.map((t: Transacao) => t.vendedor_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome")
+    .in("id", ids);
+  const perfisMap = new Map((perfis ?? []).map((p: { id: string; nome: string }) => [p.id, p]));
+
+  return data.map((t: Transacao) => ({
+    ...t,
+    vendedor: perfisMap.get(t.vendedor_id) ?? null,
+  }));
+}
+
 export async function criarTransacao(
   vendedor_id: string,
   valor: number,
