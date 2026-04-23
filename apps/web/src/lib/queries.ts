@@ -179,6 +179,25 @@ export async function marcarTodasLidas() {
     .eq("lida", false);
 }
 
+// ── MERCADO PAGO ────────────────────────────────────────────────────
+
+export async function iniciarPagamento(params: {
+  vendedor_id: string;
+  valor: number;
+  descricao: string;
+  tipo: "produto" | "curso" | "pay";
+  item_id?: string;
+}): Promise<{ init_point: string; transacao_id: string }> {
+  const resp = await fetch("/api/mercadopago/preference", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(data.error || "Erro ao iniciar pagamento");
+  return { init_point: data.init_point, transacao_id: data.transacao_id };
+}
+
 // ── AVALIAÇÕES ──────────────────────────────────────────────────────
 
 export interface Avaliacao {

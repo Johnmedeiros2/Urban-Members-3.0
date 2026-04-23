@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarCursos, criarCurso, matricularCurso, type Curso } from "@/lib/queries";
+import { buscarCursos, criarCurso, matricularCurso, iniciarPagamento, type Curso } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 
 export default function SalaDeAula() {
@@ -39,15 +39,28 @@ export default function SalaDeAula() {
     }
   }
 
-  async function handleMatricular(cursoId: string) {
-    setMatriculando(cursoId);
+  async function handleMatricular(curso: Curso) {
+    setMatriculando(curso.id);
     try {
-      await matricularCurso(cursoId);
-      alert("Matrícula realizada! +5 pontos no seu Urban Score.");
-      await carregar();
+      if (Number(curso.preco) === 0) {
+        await matricularCurso(curso.id);
+        alert("Matrícula realizada! +5 pontos no seu Urban Score.");
+        await carregar();
+        setMatriculando(null);
+      } else {
+        if (!curso.instrutor_id) throw new Error("Instrutor do curso inválido");
+        if (!confirm(`Ir para pagamento de "${curso.titulo}" por R$ ${curso.preco}?`)) { setMatriculando(null); return; }
+        const { init_point } = await iniciarPagamento({
+          vendedor_id: curso.instrutor_id,
+          valor: Number(curso.preco),
+          descricao: curso.titulo,
+          tipo: "curso",
+          item_id: curso.id,
+        });
+        window.location.href = init_point;
+      }
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
-    } finally {
       setMatriculando(null);
     }
   }
@@ -122,8 +135,8 @@ export default function SalaDeAula() {
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
                   <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{curso.total_alunos} alunos</span>
-                  <button onClick={() => handleMatricular(curso.id)} disabled={matriculando === curso.id} style={{ background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", padding: "8px 16px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                    {matriculando === curso.id ? "..." : "Matricular"}
+                  <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} style={{ background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", padding: "8px 16px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
                   </button>
                 </div>
                 <button
