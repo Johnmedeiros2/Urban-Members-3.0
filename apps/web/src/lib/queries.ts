@@ -198,6 +198,81 @@ export async function iniciarPagamento(params: {
   return { init_point: data.init_point, transacao_id: data.transacao_id };
 }
 
+// ── CUPONS ──────────────────────────────────────────────────────────
+
+export interface Cupom {
+  id: string;
+  codigo: string;
+  afiliado_id: string;
+  desconto_percentual: number;
+  max_usos: number;
+  usos_atuais: number;
+  ativo: boolean;
+  expira_em: string | null;
+  criado_em: string;
+}
+
+export async function criarCupom(codigo: string, desconto_percentual: number, max_usos = 100): Promise<Cupom> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  const cod = codigo.trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{3,24}$/.test(cod)) throw new Error("Código inválido (3-24 letras/números)");
+  if (desconto_percentual < 1 || desconto_percentual > 50) throw new Error("Desconto entre 1 e 50");
+
+  const { data, error } = await supabase
+    .from("cupons")
+    .insert({ codigo: cod, afiliado_id: user.id, desconto_percentual, max_usos })
+    .select()
+    .single();
+  if (error) {
+    if (error.message.includes("duplicate") || error.code === "23505") throw new Error("Esse código já existe");
+    throw new Error(error.message);
+  }
+  return data as Cupom;
+}
+
+export async function meusCupons(): Promise<Cupom[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data } = await supabase
+    .from("cupons")
+    .select("*")
+    .eq("afiliado_id", user.id)
+    .order("criado_em", { ascending: false });
+  return (data ?? []) as Cupom[];
+}
+
+export async function validarCupom(codigo: string): Promise<Cupom | null> {
+  const supabase = createClient();
+  const cod = codigo.trim().toUpperCase();
+  if (!cod) return null;
+  const { data } = await supabase
+    .from("cupons")
+    .select("*")
+    .eq("codigo", cod)
+    .eq("ativo", true)
+    .maybeSingle();
+  if (!data) return null;
+  const cupom = data as Cupom;
+  if (cupom.usos_atuais >= cupom.max_usos) return null;
+  if (cupom.expira_em && new Date(cupom.expira_em) < new Date()) return null;
+  return cupom;
+}
+
+export async function togglarCupom(id: string, ativo: boolean) {
+  const supabase = createClient();
+  const { error } = await supabase.from("cupons").update({ ativo }).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deletarCupom(id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("cupons").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 // ── AVALIAÇÕES ──────────────────────────────────────────────────────
 
 export interface Avaliacao {
@@ -643,19 +718,56 @@ export async function minhasCompras(): Promise<Transacao[]> {
 export async function criarTransacao(
   vendedor_id: string,
   valor: number,
-  descricao: string
+  descricao: string,
+  cupomCodigo?: string | null
 ) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
   if (user.id === vendedor_id) throw new Error("Não é possível pagar para si mesmo");
 
+  let cupom_id: string | null = null;
+  let desconto_aplicado = 0;
+  let valorFinal = valor;
+
+  if (cupomCodigo) {
+    const cupom = await validarCupom(cupomCodigo);
+    if (!cupom) throw new Error("Cupom inválido ou expirado");
+    desconto_aplicado = Number((valor * (cupom.desconto_percentual / 100)).toFixed(2));
+    valorFinal = Number((valor - desconto_aplicado).toFixed(2));
+    cupom_id = cupom.id;
+  }
+
   const { data, error } = await supabase
     .from("transacoes")
-    .insert({ comprador_id: user.id, vendedor_id, valor, descricao, status: "concluida" })
+    .insert({
+      comprador_id: user.id,
+      vendedor_id,
+      valor: valorFinal,
+      descricao,
+      status: "concluida",
+      cupom_id,
+      desconto_aplicado,
+    })
     .select()
     .single();
   if (error) throw new Error(error.message);
+
+  // Incrementa uso do cupom (não atômico, mas aceitável em MVP)
+  if (cupom_id) {
+    const { data: cuponAtual } = await supabase
+      .from("cupons")
+      .select("usos_atuais")
+      .eq("id", cupom_id)
+      .single();
+    if (cuponAtual) {
+      await supabase
+        .from("cupons")
+        .update({ usos_atuais: (cuponAtual.usos_atuais ?? 0) + 1 })
+        .eq("id", cupom_id);
+    }
+  }
+
   return data;
 }
 

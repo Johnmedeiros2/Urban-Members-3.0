@@ -2,24 +2,56 @@
 
 import { useState } from "react";
 import { useCarrinho } from "@/lib/carrinho";
-import { criarTransacao } from "@/lib/queries";
+import { criarTransacao, validarCupom, type Cupom } from "@/lib/queries";
 
 export default function CarrinhoDrawer() {
   const { itens, mudarQtd, remover, limpar, total, quantidadeTotal } = useCarrinho();
   const [aberto, setAberto] = useState(false);
   const [pagando, setPagando] = useState(false);
+  const [cupomCodigo, setCupomCodigo] = useState("");
+  const [cupom, setCupom] = useState<Cupom | null>(null);
+  const [validandoCupom, setValidandoCupom] = useState(false);
+  const [erroCupom, setErroCupom] = useState<string | null>(null);
+
+  const desconto = cupom ? total * (cupom.desconto_percentual / 100) : 0;
+  const totalFinal = total - desconto;
+
+  async function aplicarCupom() {
+    if (!cupomCodigo.trim()) return;
+    setValidandoCupom(true);
+    setErroCupom(null);
+    try {
+      const c = await validarCupom(cupomCodigo);
+      if (!c) {
+        setErroCupom("Cupom inválido ou expirado");
+        setCupom(null);
+      } else {
+        setCupom(c);
+      }
+    } finally {
+      setValidandoCupom(false);
+    }
+  }
+
+  function removerCupom() {
+    setCupom(null);
+    setCupomCodigo("");
+    setErroCupom(null);
+  }
 
   async function finalizar() {
     if (itens.length === 0) return;
-    if (!confirm(`Finalizar compra de ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"} (R$ ${total.toFixed(2)})?`)) return;
+    if (!confirm(`Finalizar compra de ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"} (R$ ${totalFinal.toFixed(2)})?`)) return;
     setPagando(true);
     try {
       for (const item of itens) {
         const valorTotal = item.preco * item.quantidade;
         const descricao = item.quantidade > 1 ? `${item.nome} x${item.quantidade}` : item.nome;
-        await criarTransacao(item.vendedor_id, valorTotal, descricao);
+        await criarTransacao(item.vendedor_id, valorTotal, descricao, cupom?.codigo);
       }
       limpar();
+      setCupom(null);
+      setCupomCodigo("");
       setAberto(false);
       alert(`Compra finalizada! ${quantidadeTotal} ${quantidadeTotal === 1 ? "item comprado" : "itens comprados"}.`);
     } catch (e: unknown) {
@@ -125,9 +157,54 @@ export default function CarrinhoDrawer() {
 
             {itens.length > 0 && (
               <div style={{ padding: "20px 24px", borderTop: "1px solid #F5F5F5", background: "#F7F7F8" }}>
+                {/* Cupom */}
+                <div style={{ marginBottom: "14px" }}>
+                  {cupom ? (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#FFF3EF", border: "1px solid #FFD4C4", borderRadius: "10px", padding: "10px 12px" }}>
+                      <div>
+                        <p style={{ fontSize: "12px", fontWeight: 700, color: "#FF5C2E" }}>{cupom.codigo} aplicado</p>
+                        <p style={{ fontSize: "11px", color: "#525252" }}>{cupom.desconto_percentual}% de desconto</p>
+                      </div>
+                      <button onClick={removerCupom} style={{ background: "none", border: "none", color: "#FF5C2E", fontSize: "11px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                        remover
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <input
+                        value={cupomCodigo}
+                        onChange={(e) => { setCupomCodigo(e.target.value.toUpperCase()); setErroCupom(null); }}
+                        placeholder="Cupom de desconto"
+                        style={{ flex: 1, height: "36px", padding: "0 12px", background: "#FFFFFF", border: `1px solid ${erroCupom ? "#EF4444" : "#E5E5E5"}`, borderRadius: "10px", fontSize: "12px", outline: "none", fontFamily: "Inter, sans-serif", color: "#111111", textTransform: "uppercase" }}
+                      />
+                      <button
+                        onClick={aplicarCupom}
+                        disabled={!cupomCodigo.trim() || validandoCupom}
+                        style={{ height: "36px", padding: "0 14px", background: "#F5F5F5", color: "#111111", border: "1px solid #E5E5E5", borderRadius: "10px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+                      >
+                        {validandoCupom ? "..." : "Aplicar"}
+                      </button>
+                    </div>
+                  )}
+                  {erroCupom && <p style={{ fontSize: "11px", color: "#EF4444", marginTop: "4px" }}>{erroCupom}</p>}
+                </div>
+
+                {cupom && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "12px", color: "#A3A3A3" }}>Subtotal</span>
+                    <span style={{ fontSize: "13px", color: "#A3A3A3", textDecoration: "line-through" }}>R$ {total.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                )}
+                {cupom && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+                    <span style={{ fontSize: "12px", color: "#10B981", fontWeight: 600 }}>Desconto</span>
+                    <span style={{ fontSize: "13px", color: "#10B981", fontWeight: 600 }}>− R$ {desconto.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                )}
+
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "14px" }}>
                   <span style={{ fontSize: "14px", color: "#525252" }}>Total</span>
-                  <span style={{ fontSize: "22px", fontWeight: 800, color: "#111111" }}>R$ {total.toFixed(2).replace(".", ",")}</span>
+                  <span style={{ fontSize: "22px", fontWeight: 800, color: "#111111" }}>R$ {totalFinal.toFixed(2).replace(".", ",")}</span>
                 </div>
                 <button
                   onClick={finalizar}

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import MeusCupons from "@/components/ui/MeusCupons";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
 import { meusProdutos, meusCursos, minhasVendasResumo, uploadFotoPerfil, minhasIndicacoes, type Indicacao } from "@/lib/queries";
 
@@ -553,6 +554,10 @@ export default function Perfil() {
               Nenhum morador convidado ainda. Compartilhe seu link.
             </p>
           )}
+        </div>
+
+        <div style={{ marginTop: "16px" }}>
+          <MeusCupons />
         </div>
 
         {/* CTA para abrir comércio caso não tenha nada */}
