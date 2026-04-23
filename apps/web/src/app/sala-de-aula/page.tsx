@@ -5,12 +5,14 @@ import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import { buscarCursos, criarCurso, matricularCurso, type Curso } from "@/lib/queries";
+import Avaliacoes from "@/components/ui/Avaliacoes";
 
 export default function SalaDeAula() {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modal, setModal] = useState(false);
   const [matriculando, setMatriculando] = useState<string | null>(null);
+  const [avaliacoesAbertas, setAvaliacoesAbertas] = useState<Set<string>>(new Set());
 
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -124,6 +126,19 @@ export default function SalaDeAula() {
                     {matriculando === curso.id ? "..." : "Matricular"}
                   </button>
                 </div>
+                <button
+                  onClick={() => setAvaliacoesAbertas((prev) => {
+                    const n = new Set(prev);
+                    if (n.has(curso.id)) n.delete(curso.id); else n.add(curso.id);
+                    return n;
+                  })}
+                  style={{ background: "none", border: "none", padding: 0, color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left" }}
+                >
+                  {avaliacoesAbertas.has(curso.id) ? "Ocultar avaliações ↑" : "Ver avaliações ↓"}
+                </button>
+                {avaliacoesAbertas.has(curso.id) && (
+                  <Avaliacoes cursoId={curso.id} />
+                )}
               </div>
             ))}
           </div>

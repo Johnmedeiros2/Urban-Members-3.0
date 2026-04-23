@@ -179,6 +179,81 @@ export async function marcarTodasLidas() {
     .eq("lida", false);
 }
 
+// ── AVALIAÇÕES ──────────────────────────────────────────────────────
+
+export interface Avaliacao {
+  id: string;
+  produto_id: string | null;
+  curso_id: string | null;
+  autor_id: string;
+  estrelas: number;
+  comentario: string | null;
+  criado_em: string;
+  autor?: { nome: string; foto_url: string | null } | null;
+}
+
+export interface MediaAvaliacao {
+  media: number;
+  total: number;
+}
+
+export async function buscarAvaliacoes(produto_id?: string, curso_id?: string): Promise<Avaliacao[]> {
+  const supabase = createClient();
+  let query = supabase.from("avaliacoes").select("*").order("criado_em", { ascending: false });
+  if (produto_id) query = query.eq("produto_id", produto_id);
+  if (curso_id) query = query.eq("curso_id", curso_id);
+  const { data, error } = await query;
+  if (error) { console.error("buscarAvaliacoes:", error); return []; }
+  if (!data || data.length === 0) return [];
+
+  const autorIds = [...new Set(data.map((a: { autor_id: string }) => a.autor_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, foto_url")
+    .in("id", autorIds);
+  const map = new Map((perfis ?? []).map((p: { id: string; nome: string; foto_url: string | null }) => [p.id, p]));
+  return data.map((a: Avaliacao) => ({ ...a, autor: map.get(a.autor_id) ?? null }));
+}
+
+export async function mediaAvaliacao(produto_id?: string, curso_id?: string): Promise<MediaAvaliacao> {
+  const supabase = createClient();
+  let query = supabase.from("avaliacoes").select("estrelas");
+  if (produto_id) query = query.eq("produto_id", produto_id);
+  if (curso_id) query = query.eq("curso_id", curso_id);
+  const { data } = await query;
+  if (!data || data.length === 0) return { media: 0, total: 0 };
+  const soma = data.reduce((acc: number, a: { estrelas: number }) => acc + a.estrelas, 0);
+  return { media: soma / data.length, total: data.length };
+}
+
+export async function criarAvaliacao(params: { produto_id?: string; curso_id?: string; estrelas: number; comentario?: string }) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  if (params.estrelas < 1 || params.estrelas > 5) throw new Error("Avaliação inválida");
+  if (!params.produto_id && !params.curso_id) throw new Error("Produto ou curso obrigatório");
+
+  const { data, error } = await supabase
+    .from("avaliacoes")
+    .insert({
+      produto_id: params.produto_id ?? null,
+      curso_id: params.curso_id ?? null,
+      autor_id: user.id,
+      estrelas: params.estrelas,
+      comentario: params.comentario?.trim() || null,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deletarAvaliacao(id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("avaliacoes").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 // ── COMENTÁRIOS ─────────────────────────────────────────────────────
 
 export interface Comentario {

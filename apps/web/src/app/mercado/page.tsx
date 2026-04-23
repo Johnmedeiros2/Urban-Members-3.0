@@ -5,6 +5,7 @@ import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, type Produto } from "@/lib/queries";
+import Avaliacoes from "@/components/ui/Avaliacoes";
 
 const categorias = ["Todos", "Digital", "Serviços", "Físico", "Cursos", "Consultoria"];
 
@@ -24,6 +25,7 @@ export default function Mercado() {
   const [modalLoja, setModalLoja] = useState(false);
   const [modalProduto, setModalProduto] = useState(false);
   const [comprando, setComprando] = useState<string | null>(null);
+  const [avaliacoesAbertas, setAvaliacoesAbertas] = useState<Set<string>>(new Set());
 
   // Form loja
   const [nomeLoja, setNomeLoja] = useState("");
@@ -205,6 +207,21 @@ export default function Mercado() {
                           {comprando === produto.id ? "..." : "Comprar"}
                         </button>
                       </div>
+                      <button
+                        onClick={() => setAvaliacoesAbertas((prev) => {
+                          const n = new Set(prev);
+                          if (n.has(produto.id)) n.delete(produto.id); else n.add(produto.id);
+                          return n;
+                        })}
+                        style={{ background: "none", border: "none", padding: "8px 0 0", color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left", borderTop: "1px solid #F5F5F5" }}
+                      >
+                        {avaliacoesAbertas.has(produto.id) ? "Ocultar avaliações ↑" : "Ver avaliações ↓"}
+                      </button>
+                      {avaliacoesAbertas.has(produto.id) && (
+                        <div style={{ marginTop: "8px" }}>
+                          <Avaliacoes produtoId={produto.id} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
