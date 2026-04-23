@@ -14,15 +14,17 @@ export interface PostReal {
 
 // ── POSTS ───────────────────────────────────────────────────────────
 
-export async function buscarPosts(limite = 20): Promise<PostReal[]> {
+export async function buscarPosts(limite = 20, tag?: string | null): Promise<PostReal[]> {
   const supabase = createClient();
 
-  // 1. Busca posts
-  const { data: posts, error } = await supabase
+  // 1. Busca posts (filtra por hashtag se fornecida)
+  let query = supabase
     .from("posts")
     .select("*")
     .order("criado_em", { ascending: false })
     .limit(limite);
+  if (tag) query = query.ilike("conteudo", `%#${tag}%`);
+  const { data: posts, error } = await query;
 
   if (error) { console.error("buscarPosts:", error); return []; }
   if (!posts || posts.length === 0) return [];

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { buscarComentarios, criarComentario, deletarComentario, type Comentario } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 import Avatar from "./Avatar";
+import ConteudoFormatado from "./ConteudoFormatado";
 
 function tempoRelativo(iso: string) {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -125,7 +126,7 @@ export default function Comentarios({ postId, onContagem }: Props) {
                     </button>
                   )}
                 </div>
-                <p style={{ fontSize: "13px", color: "#111111", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{c.conteudo}</p>
+                <ConteudoFormatado texto={c.conteudo} style={{ fontSize: "13px", color: "#111111", lineHeight: 1.5 }} />
               </div>
             </div>
           ))}

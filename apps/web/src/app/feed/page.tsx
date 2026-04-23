@@ -8,6 +8,7 @@ import BotaoConvite from "@/components/ui/BotaoConvite";
 import BuscaGlobal from "@/components/ui/BuscaGlobal";
 import Comentarios from "@/components/ui/Comentarios";
 import BotaoCompartilhar from "@/components/ui/BotaoCompartilhar";
+import ConteudoFormatado from "@/components/ui/ConteudoFormatado";
 import { buscarPosts, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
@@ -50,6 +51,13 @@ export default function Feed() {
   const [previewFoto, setPreviewFoto] = useState<string | null>(null);
   const fotoInputRef = useRef<HTMLInputElement>(null);
   const [comentariosAbertos, setComentariosAbertos] = useState<Set<string>>(new Set());
+  const [tagFiltro, setTagFiltro] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setTagFiltro(params.get("tag"));
+  }, []);
 
   function toggleComentarios(postId: string) {
     setComentariosAbertos((prev) => {
@@ -66,7 +74,7 @@ export default function Feed() {
   const carregar = useCallback(async () => {
     setCarregando(true);
     const [p, user] = await Promise.all([
-      buscarPosts(),
+      buscarPosts(20, tagFiltro),
       createClient().auth.getUser(),
     ]);
     setPosts(p);
@@ -83,7 +91,7 @@ export default function Feed() {
       if (data) setUsuario({ id: user.data.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
     }
     setCarregando(false);
-  }, []);
+  }, [tagFiltro]);
 
   useEffect(() => { carregar(); }, [carregar]);
 
@@ -222,6 +230,20 @@ export default function Feed() {
         {/* Feed central */}
         <main style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
 
+          {tagFiltro && (
+            <div style={{ background: "#FFF3EF", border: "1px solid #FFD4C4", borderRadius: "14px", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: "13px", color: "#111111" }}>
+                Filtrando por <strong style={{ color: "#FF5C2E" }}>#{tagFiltro}</strong>
+              </span>
+              <button
+                onClick={() => { window.history.replaceState(null, "", "/feed"); setTagFiltro(null); }}
+                style={{ background: "none", border: "none", fontSize: "12px", fontWeight: 600, color: "#FF5C2E", cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+              >
+                Limpar filtro
+              </button>
+            </div>
+          )}
+
           {/* Composer */}
           <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px" }}>
             {/* Input de arquivo sempre presente no DOM */}
@@ -338,7 +360,7 @@ export default function Feed() {
                 </div>
 
                 {post.conteudo && (
-                  <p style={{ fontSize: "15px", color: "#111111", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{post.conteudo}</p>
+                  <ConteudoFormatado texto={post.conteudo} style={{ fontSize: "15px", color: "#111111", lineHeight: 1.65 }} />
                 )}
 
                 {post.foto_url && (

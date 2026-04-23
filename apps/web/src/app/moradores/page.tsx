@@ -32,7 +32,12 @@ export default function Moradores() {
     setCarregando(false);
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setBusca(q);
+    else carregar();
+  }, [carregar]);
 
   useEffect(() => {
     const t = setTimeout(() => carregar(busca), 300);
