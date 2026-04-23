@@ -6,6 +6,7 @@ import Avatar from "@/components/ui/Avatar";
 import Notificacoes from "@/components/ui/Notificacoes";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import BuscaGlobal from "@/components/ui/BuscaGlobal";
+import Comentarios from "@/components/ui/Comentarios";
 import { buscarPosts, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
@@ -47,6 +48,19 @@ export default function Feed() {
   const [foto, setFoto] = useState<File | null>(null);
   const [previewFoto, setPreviewFoto] = useState<string | null>(null);
   const fotoInputRef = useRef<HTMLInputElement>(null);
+  const [comentariosAbertos, setComentariosAbertos] = useState<Set<string>>(new Set());
+
+  function toggleComentarios(postId: string) {
+    setComentariosAbertos((prev) => {
+      const nova = new Set(prev);
+      if (nova.has(postId)) nova.delete(postId); else nova.add(postId);
+      return nova;
+    });
+  }
+
+  function atualizarContagem(postId: string, n: number) {
+    setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, total_comentarios: n } : p));
+  }
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -342,10 +356,23 @@ export default function Feed() {
                     <span style={{ fontSize: "15px" }}>{curtido ? "♥" : "♡"}</span>
                     {post.total_curtidas}
                   </button>
-                  <button style={{ display: "flex", alignItems: "center", gap: "5px", padding: "7px 12px", borderRadius: "999px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: "transparent", color: "#A3A3A3", fontFamily: "Inter, sans-serif" }}>
+                  <button
+                    onClick={() => toggleComentarios(post.id)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: "5px",
+                      padding: "7px 12px", borderRadius: "999px", border: "none", cursor: "pointer",
+                      fontSize: "13px", fontWeight: 600, background: "transparent",
+                      color: comentariosAbertos.has(post.id) ? "#111111" : "#A3A3A3",
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  >
                     <span>💬</span> {post.total_comentarios}
                   </button>
                 </div>
+
+                {comentariosAbertos.has(post.id) && (
+                  <Comentarios postId={post.id} onContagem={(n) => atualizarContagem(post.id, n)} />
+                )}
               </article>
             );
           })}

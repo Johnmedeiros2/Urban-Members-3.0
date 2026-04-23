@@ -177,6 +177,58 @@ export async function marcarTodasLidas() {
     .eq("lida", false);
 }
 
+// ── COMENTÁRIOS ─────────────────────────────────────────────────────
+
+export interface Comentario {
+  id: string;
+  post_id: string;
+  autor_id: string;
+  conteudo: string;
+  criado_em: string;
+  autor?: { nome: string; foto_url: string | null } | null;
+}
+
+export async function buscarComentarios(post_id: string): Promise<Comentario[]> {
+  const supabase = createClient();
+  const { data: comentarios, error } = await supabase
+    .from("comentarios")
+    .select("*")
+    .eq("post_id", post_id)
+    .order("criado_em", { ascending: true });
+  if (error) { console.error("buscarComentarios:", error); return []; }
+  if (!comentarios || comentarios.length === 0) return [];
+
+  const autorIds = [...new Set(comentarios.map((c: { autor_id: string }) => c.autor_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, foto_url")
+    .in("id", autorIds);
+  const map = new Map((perfis ?? []).map((p: { id: string; nome: string; foto_url: string | null }) => [p.id, p]));
+
+  return comentarios.map((c: Comentario) => ({ ...c, autor: map.get(c.autor_id) ?? null }));
+}
+
+export async function criarComentario(post_id: string, conteudo: string): Promise<Comentario> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  if (!conteudo.trim()) throw new Error("Comentário vazio");
+
+  const { data, error } = await supabase
+    .from("comentarios")
+    .insert({ post_id, autor_id: user.id, conteudo: conteudo.trim() })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Comentario;
+}
+
+export async function deletarComentario(comentario_id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("comentarios").delete().eq("id", comentario_id);
+  if (error) throw new Error(error.message);
+}
+
 // ── BUSCA GLOBAL ────────────────────────────────────────────────────
 
 export interface ResultadoBuscaMorador {
