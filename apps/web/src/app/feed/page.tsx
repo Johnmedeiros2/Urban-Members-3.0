@@ -5,6 +5,7 @@ import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
 import Notificacoes from "@/components/ui/Notificacoes";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import BuscaGlobal from "@/components/ui/BuscaGlobal";
 import { buscarPosts, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
@@ -154,8 +155,8 @@ export default function Feed() {
             <span style={{ fontSize: "15px", fontWeight: 800, letterSpacing: "-0.03em", color: "#111111" }}>Urban Members</span>
           </a>
 
-          <div style={{ flex: 1, maxWidth: "360px", margin: "0 32px", background: "#F5F5F5", borderRadius: "999px", padding: "0 16px", height: "40px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "13px", color: "#A3A3A3", fontFamily: "Inter, sans-serif" }}>Buscar na cidade...</span>
+          <div style={{ flex: 1, margin: "0 32px", display: "flex", justifyContent: "center" }}>
+            <BuscaGlobal />
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>

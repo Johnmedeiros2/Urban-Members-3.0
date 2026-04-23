@@ -177,6 +177,57 @@ export async function marcarTodasLidas() {
     .eq("lida", false);
 }
 
+// ── BUSCA GLOBAL ────────────────────────────────────────────────────
+
+export interface ResultadoBuscaMorador {
+  tipo: "morador";
+  id: string;
+  nome: string;
+  cidade: string | null;
+  foto_url: string | null;
+  urban_score: number;
+}
+
+export interface ResultadoBuscaProduto {
+  tipo: "produto";
+  id: string;
+  nome: string;
+  preco: number;
+  categoria: string;
+}
+
+export interface ResultadoBuscaCurso {
+  tipo: "curso";
+  id: string;
+  titulo: string;
+  nivel: string;
+  preco: number;
+}
+
+export interface ResultadosBusca {
+  moradores: ResultadoBuscaMorador[];
+  produtos: ResultadoBuscaProduto[];
+  cursos: ResultadoBuscaCurso[];
+}
+
+export async function buscarGlobal(termo: string): Promise<ResultadosBusca> {
+  if (!termo.trim() || termo.trim().length < 2) {
+    return { moradores: [], produtos: [], cursos: [] };
+  }
+  const supabase = createClient();
+  const q = `%${termo.trim()}%`;
+  const [m, p, c] = await Promise.all([
+    supabase.from("perfis").select("id, nome, cidade, foto_url, urban_score").ilike("nome", q).limit(5),
+    supabase.from("produtos").select("id, nome, preco, categoria").ilike("nome", q).limit(5),
+    supabase.from("cursos").select("id, titulo, nivel, preco").ilike("titulo", q).limit(5),
+  ]);
+  return {
+    moradores: (m.data ?? []).map((r) => ({ ...r, tipo: "morador" as const })),
+    produtos: (p.data ?? []).map((r) => ({ ...r, tipo: "produto" as const })),
+    cursos: (c.data ?? []).map((r) => ({ ...r, tipo: "curso" as const })),
+  };
+}
+
 // ── ADMIN ───────────────────────────────────────────────────────────
 
 export async function estatisticasAdmin() {
