@@ -7,6 +7,7 @@ import Notificacoes from "@/components/ui/Notificacoes";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import BuscaGlobal from "@/components/ui/BuscaGlobal";
 import Comentarios from "@/components/ui/Comentarios";
+import BotaoCompartilhar from "@/components/ui/BotaoCompartilhar";
 import { buscarPosts, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
@@ -368,6 +369,7 @@ export default function Feed() {
                   >
                     <span>💬</span> {post.total_comentarios}
                   </button>
+                  <BotaoCompartilhar texto={post.conteudo} autor={post.autor?.nome} />
                 </div>
 
                 {comentariosAbertos.has(post.id) && (
