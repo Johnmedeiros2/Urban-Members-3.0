@@ -28,12 +28,23 @@ function tempoRelativo(iso: string) {
   return `${Math.floor(diff / 86400)}d`;
 }
 
+type TipoAba = "tudo" | "curtida" | "comentario" | "conexao" | "venda";
+
 export default function Notificacoes() {
   const router = useRouter();
   const [aberto, setAberto] = useState(false);
   const [notifs, setNotifs] = useState<Notificacao[]>([]);
+  const [aba, setAba] = useState<TipoAba>("tudo");
   const ref = useRef<HTMLDivElement>(null);
   const naoLidas = notifs.filter((n) => !n.lida).length;
+
+  const filtrados = aba === "tudo" ? notifs : notifs.filter((n) => n.tipo === aba);
+  const contaPorTipo = {
+    curtida:    notifs.filter((n) => n.tipo === "curtida"    && !n.lida).length,
+    comentario: notifs.filter((n) => n.tipo === "comentario" && !n.lida).length,
+    conexao:    notifs.filter((n) => n.tipo === "conexao"    && !n.lida).length,
+    venda:      notifs.filter((n) => n.tipo === "venda"      && !n.lida).length,
+  };
 
   function aoClicar(n: Notificacao) {
     setNotifs((prev) => prev.map((x) => x.id === n.id ? { ...x, lida: true } : x));
@@ -126,13 +137,53 @@ export default function Notificacoes() {
             )}
           </div>
 
+          {/* Abas por tipo */}
+          <div style={{ display: "flex", gap: "2px", padding: "8px 12px", borderBottom: "1px solid #F5F5F5", overflowX: "auto", scrollbarWidth: "none" }}>
+            {([
+              { id: "tudo"       as const, label: "Tudo",      icon: null,  count: naoLidas               },
+              { id: "curtida"    as const, label: "Curtidas",  icon: "♥",   count: contaPorTipo.curtida   },
+              { id: "comentario" as const, label: "Coment.",   icon: "💬",  count: contaPorTipo.comentario },
+              { id: "conexao"    as const, label: "Conexões",  icon: "👤",  count: contaPorTipo.conexao   },
+              { id: "venda"      as const, label: "Vendas",    icon: "💰",  count: contaPorTipo.venda     },
+            ]).map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setAba(t.id)}
+                style={{
+                  padding: "6px 10px", background: aba === t.id ? "#111111" : "transparent",
+                  color: aba === t.id ? "#FFFFFF" : "#525252",
+                  border: "none", borderRadius: "999px", cursor: "pointer",
+                  fontSize: "11px", fontWeight: aba === t.id ? 700 : 500,
+                  fontFamily: "Inter, sans-serif", whiteSpace: "nowrap",
+                  display: "flex", alignItems: "center", gap: "4px",
+                  flexShrink: 0,
+                }}
+              >
+                {t.icon && <span style={{ fontSize: "10px" }}>{t.icon}</span>}
+                {t.label}
+                {t.count > 0 && (
+                  <span style={{
+                    fontSize: "9px", fontWeight: 800,
+                    color: aba === t.id ? "#111111" : "#FFFFFF",
+                    background: aba === t.id ? "#FFFFFF" : "#FF5C2E",
+                    padding: "1px 5px", borderRadius: "999px", minWidth: "14px", textAlign: "center",
+                  }}>
+                    {t.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
           {/* Lista */}
           <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-            {notifs.length === 0 ? (
+            {filtrados.length === 0 ? (
               <div style={{ padding: "32px", textAlign: "center" }}>
-                <p style={{ fontSize: "13px", color: "#A3A3A3" }}>Nenhuma notificação</p>
+                <p style={{ fontSize: "13px", color: "#A3A3A3" }}>
+                  {notifs.length === 0 ? "Nenhuma notificação" : `Nenhuma ${aba === "tudo" ? "notificação" : "notificação nessa aba"}`}
+                </p>
               </div>
-            ) : notifs.map((n) => (
+            ) : filtrados.map((n) => (
               <div
                 key={n.id}
                 onClick={() => aoClicar(n)}
