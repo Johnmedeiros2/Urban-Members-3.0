@@ -160,7 +160,15 @@ function Secao({ titulo, lives, meuId, onToggle, onApagar, destaque, atenuado }:
             borderRadius: "16px", padding: "16px", border: "1px solid rgba(0,0,0,0.05)",
             opacity: atenuado ? 0.6 : 1,
             display: "flex", flexDirection: "column", gap: "10px",
-          }}>
+            cursor: "pointer", transition: "transform 0.15s",
+          }}
+            onClick={(e) => {
+              if ((e.target as HTMLElement).tagName === "BUTTON" || (e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("a")) return;
+              window.location.href = `/live/${l.id}`;
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+          >
             {destaque && (
               <span style={{ fontSize: "10px", fontWeight: 800, color: "#FFFFFF", background: "#FF5C2E", padding: "3px 10px", borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.08em", alignSelf: "flex-start" }}>
                 🔴 Ao vivo

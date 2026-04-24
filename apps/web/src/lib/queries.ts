@@ -298,6 +298,116 @@ export async function deletarLive(id: string) {
   if (error) throw new Error(error.message);
 }
 
+export interface ItemLive {
+  id: string;
+  live_id: string;
+  produto_id: string | null;
+  curso_id: string | null;
+  destaque: boolean;
+  ordem: number;
+  produto?: { id: string; nome: string; preco: number; categoria: string; loja?: { dono_id: string } } | null;
+  curso?: { id: string; titulo: string; preco: number; instrutor_id: string } | null;
+}
+
+export async function buscarItensLive(live_id: string): Promise<ItemLive[]> {
+  const supabase = createClient();
+  const { data: vinculos } = await supabase
+    .from("live_produtos")
+    .select("*")
+    .eq("live_id", live_id)
+    .order("destaque", { ascending: false })
+    .order("ordem", { ascending: true });
+  if (!vinculos || vinculos.length === 0) return [];
+
+  const produtoIds = vinculos.filter((v: { produto_id: string | null }) => v.produto_id).map((v: { produto_id: string }) => v.produto_id);
+  const cursoIds = vinculos.filter((v: { curso_id: string | null }) => v.curso_id).map((v: { curso_id: string }) => v.curso_id);
+
+  const [prodRes, cursoRes] = await Promise.all([
+    produtoIds.length > 0
+      ? supabase.from("produtos").select("id, nome, preco, categoria, loja:lojas(dono_id)").in("id", produtoIds)
+      : Promise.resolve({ data: [] }),
+    cursoIds.length > 0
+      ? supabase.from("cursos").select("id, titulo, preco, instrutor_id").in("id", cursoIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+  const prodMap = new Map((prodRes.data ?? []).map((p: { id: string }) => [p.id, p]));
+  const cursoMap = new Map((cursoRes.data ?? []).map((c: { id: string }) => [c.id, c]));
+
+  return (vinculos as ItemLive[]).map((v) => ({
+    ...v,
+    produto: v.produto_id ? prodMap.get(v.produto_id) as ItemLive["produto"] : null,
+    curso: v.curso_id ? cursoMap.get(v.curso_id) as ItemLive["curso"] : null,
+  }));
+}
+
+export async function vincularItemLive(params: { live_id: string; produto_id?: string; curso_id?: string; destaque?: boolean }) {
+  const supabase = createClient();
+  if (!params.produto_id && !params.curso_id) throw new Error("Vincule um produto ou curso");
+  const { error } = await supabase.from("live_produtos").insert({
+    live_id: params.live_id,
+    produto_id: params.produto_id ?? null,
+    curso_id: params.curso_id ?? null,
+    destaque: params.destaque ?? false,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function desvincularItemLive(id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("live_produtos").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+// Variante de criarTransacao que registra origem_live_id
+export async function comprarDaLive(vendedor_id: string, valor: number, descricao: string, live_id: string, cupomCodigo?: string | null) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  if (user.id === vendedor_id) throw new Error("Não é possível pagar para si mesmo");
+
+  let cupom_id: string | null = null;
+  let desconto_aplicado = 0;
+  let valorFinal = valor;
+  if (cupomCodigo) {
+    const cupom = await validarCupom(cupomCodigo);
+    if (!cupom) throw new Error("Cupom inválido");
+    desconto_aplicado = Number((valor * (cupom.desconto_percentual / 100)).toFixed(2));
+    valorFinal = Number((valor - desconto_aplicado).toFixed(2));
+    cupom_id = cupom.id;
+  }
+
+  const { data, error } = await supabase
+    .from("transacoes")
+    .insert({
+      comprador_id: user.id,
+      vendedor_id,
+      valor: valorFinal,
+      descricao,
+      status: "concluida",
+      cupom_id,
+      desconto_aplicado,
+      origem_live_id: live_id,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// Resumo de conversão de uma live
+export async function resumoConversaoLive(live_id: string) {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("transacoes")
+    .select("valor, valor_liquido")
+    .eq("origem_live_id", live_id)
+    .eq("status", "concluida");
+  if (!data || data.length === 0) return { total_vendas: 0, total_valor: 0, total_liquido: 0 };
+  const total_valor = data.reduce((s: number, t: { valor: number }) => s + Number(t.valor), 0);
+  const total_liquido = data.reduce((s: number, t: { valor_liquido: number }) => s + Number(t.valor_liquido), 0);
+  return { total_vendas: data.length, total_valor, total_liquido };
+}
+
 // ── STORIES 24H ─────────────────────────────────────────────────────
 
 export interface Story {
