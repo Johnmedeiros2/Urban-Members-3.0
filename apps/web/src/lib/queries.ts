@@ -775,6 +775,121 @@ export async function criarCurso(titulo: string, descricao: string, nivel: strin
   return data;
 }
 
+// ── AULAS ───────────────────────────────────────────────────────────
+
+export interface Aula {
+  id: string;
+  curso_id: string;
+  titulo: string;
+  descricao: string | null;
+  ordem: number;
+  video_url: string | null;
+  duracao_seg: number;
+  ao_vivo: boolean;
+  agendado_para: string | null;
+  link_ao_vivo: string | null;
+  criado_em: string;
+  concluida?: boolean;
+}
+
+export async function buscarAulas(curso_id: string): Promise<Aula[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("aulas")
+    .select("*")
+    .eq("curso_id", curso_id)
+    .order("ordem", { ascending: true });
+  if (!data) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return data as Aula[];
+
+  const aulaIds = data.map((a: Aula) => a.id);
+  const { data: progresso } = await supabase
+    .from("aula_progresso")
+    .select("aula_id, concluida")
+    .in("aula_id", aulaIds)
+    .eq("morador_id", user.id);
+  const map = new Map((progresso ?? []).map((p: { aula_id: string; concluida: boolean }) => [p.aula_id, p.concluida]));
+  return (data as Aula[]).map((a) => ({ ...a, concluida: map.get(a.id) ?? false }));
+}
+
+export async function criarAula(
+  curso_id: string,
+  titulo: string,
+  params: { descricao?: string; video?: File | null; ao_vivo?: boolean; agendado_para?: string | null; link_ao_vivo?: string }
+) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+
+  // Determina próxima ordem
+  const { data: existentes } = await supabase
+    .from("aulas")
+    .select("ordem")
+    .eq("curso_id", curso_id)
+    .order("ordem", { ascending: false })
+    .limit(1);
+  const proximaOrdem = ((existentes?.[0] as { ordem: number } | undefined)?.ordem ?? -1) + 1;
+
+  let video_url: string | null = null;
+  if (params.video) {
+    const ext = params.video.name.split(".").pop() ?? "mp4";
+    const path = `${user.id}/aula-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("videos").upload(path, params.video, { cacheControl: "3600", contentType: params.video.type });
+    if (error) throw new Error(`Vídeo: ${error.message}`);
+    video_url = supabase.storage.from("videos").getPublicUrl(path).data.publicUrl;
+  }
+
+  const { data, error } = await supabase
+    .from("aulas")
+    .insert({
+      curso_id, titulo,
+      descricao: params.descricao ?? null,
+      ordem: proximaOrdem,
+      video_url,
+      ao_vivo: params.ao_vivo ?? false,
+      agendado_para: params.agendado_para ?? null,
+      link_ao_vivo: params.link_ao_vivo ?? null,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function marcarAulaConcluida(aula_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  await supabase
+    .from("aula_progresso")
+    .upsert({ aula_id, morador_id: user.id, concluida: true, atualizado_em: new Date().toISOString() }, { onConflict: "aula_id,morador_id" });
+}
+
+export async function deletarAula(aula_id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("aulas").delete().eq("id", aula_id);
+  if (error) throw new Error(error.message);
+}
+
+export async function buscarCurso(curso_id: string) {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("cursos")
+    .select("*")
+    .eq("id", curso_id)
+    .maybeSingle();
+  if (!data) return null;
+  const curso = data as { id: string; instrutor_id: string; titulo: string; descricao: string | null; nivel: string; preco: number; total_alunos: number };
+  const { data: instrutor } = await supabase
+    .from("perfis")
+    .select("id, nome, cidade, urban_score, foto_url")
+    .eq("id", curso.instrutor_id)
+    .maybeSingle();
+  return { ...curso, instrutor };
+}
+
 export async function matricularCurso(curso_id: string) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

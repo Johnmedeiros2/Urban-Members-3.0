@@ -108,7 +108,9 @@ export default function SalaDeAula() {
                   )}
                 </div>
 
-                <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", lineHeight: 1.4 }}>{curso.titulo}</h3>
+                <a href={`/curso/${curso.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                  <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", lineHeight: 1.4, cursor: "pointer" }}>{curso.titulo}</h3>
+                </a>
                 {curso.descricao && <p style={{ fontSize: "13px", color: "#6B6B6B", lineHeight: 1.5 }}>{curso.descricao}</p>}
 
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
