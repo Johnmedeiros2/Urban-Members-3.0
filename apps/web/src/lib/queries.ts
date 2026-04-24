@@ -45,6 +45,45 @@ export async function buscarPosts(limite = 20, tag?: string | null): Promise<Pos
   }));
 }
 
+export async function buscarPostsPersonalizado(limite = 30): Promise<PostReal[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return buscarPosts(limite);
+
+  const [meusBairros, minhasConex, posts] = await Promise.all([
+    supabase.from("bairro_membros").select("bairro_id").eq("morador_id", user.id),
+    supabase.from("conexoes").select("seguindo_id").eq("seguidor_id", user.id),
+    supabase.from("posts").select("*").order("criado_em", { ascending: false }).limit(limite * 2),
+  ]);
+
+  if (!posts.data || posts.data.length === 0) return [];
+
+  const bairrosSet = new Set((meusBairros.data ?? []).map((b: { bairro_id: string }) => b.bairro_id));
+  const conexSet = new Set((minhasConex.data ?? []).map((c: { seguindo_id: string }) => c.seguindo_id));
+
+  const agora = Date.now();
+  const scored = posts.data.map((p: PostReal) => {
+    let score = 0;
+    if (bairrosSet.has(p.bairro_id)) score += 5;
+    if (conexSet.has(p.autor_id)) score += 3;
+    score += Math.min(Number(p.total_curtidas) * 0.5, 10);
+    // Decay por dia
+    const dias = (agora - new Date(p.criado_em).getTime()) / (1000 * 60 * 60 * 24);
+    score -= dias * 0.3;
+    return { ...p, _score: score };
+  });
+  scored.sort((a: PostReal & { _score: number }, b: PostReal & { _score: number }) => b._score - a._score);
+
+  const top = scored.slice(0, limite);
+  const autorIds = [...new Set(top.map((p: PostReal) => p.autor_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, cidade, urban_score, foto_url")
+    .in("id", autorIds);
+  const map = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number; foto_url: string | null }) => [p.id, p]));
+  return top.map((p: PostReal) => ({ ...p, autor: map.get(p.autor_id) ?? null }));
+}
+
 export async function criarPost(conteudo: string, bairro_id = "negocios", foto?: File | null, video?: File | null) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

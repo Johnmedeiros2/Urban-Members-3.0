@@ -10,7 +10,7 @@ import Comentarios from "@/components/ui/Comentarios";
 import BotaoCompartilhar from "@/components/ui/BotaoCompartilhar";
 import ConteudoFormatado from "@/components/ui/ConteudoFormatado";
 import Stories from "@/components/ui/Stories";
-import { buscarPosts, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
+import { buscarPosts, buscarPostsPersonalizado, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
 const neighborhoods = [
@@ -58,6 +58,7 @@ export default function Feed() {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [comentariosAbertos, setComentariosAbertos] = useState<Set<string>>(new Set());
   const [tagFiltro, setTagFiltro] = useState<string | null>(null);
+  const [modoFeed, setModoFeed] = useState<"recente" | "voce">("voce");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -79,8 +80,13 @@ export default function Feed() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
+    const fetcher = tagFiltro
+      ? buscarPosts(20, tagFiltro)
+      : modoFeed === "voce"
+        ? buscarPostsPersonalizado(30)
+        : buscarPosts(20);
     const [p, user] = await Promise.all([
-      buscarPosts(20, tagFiltro),
+      fetcher,
       createClient().auth.getUser(),
     ]);
     setPosts(p);
@@ -97,7 +103,7 @@ export default function Feed() {
       if (data) setUsuario({ id: user.data.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
     }
     setCarregando(false);
-  }, [tagFiltro]);
+  }, [tagFiltro, modoFeed]);
 
   useEffect(() => { carregar(); }, [carregar]);
 
@@ -251,6 +257,27 @@ export default function Feed() {
 
         {/* Feed central */}
         <main style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+          {!tagFiltro && (
+            <div style={{ display: "flex", gap: "6px", padding: "0 4px" }}>
+              {([
+                { id: "voce" as const,    label: "Pra você"   },
+                { id: "recente" as const, label: "Mais recente" },
+              ]).map((opt) => (
+                <button key={opt.id} onClick={() => setModoFeed(opt.id)} style={{
+                  padding: "8px 16px",
+                  background: modoFeed === opt.id ? "#111111" : "#FFFFFF",
+                  color: modoFeed === opt.id ? "#FFFFFF" : "#525252",
+                  border: `1px solid ${modoFeed === opt.id ? "#111111" : "#E5E5E5"}`,
+                  borderRadius: "999px", fontSize: "12px",
+                  fontWeight: modoFeed === opt.id ? 700 : 500,
+                  cursor: "pointer", fontFamily: "Inter, sans-serif",
+                }}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "12px 16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)" }}>
             <Stories />
