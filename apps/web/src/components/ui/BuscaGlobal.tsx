@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { buscarGlobal, type ResultadosBusca } from "@/lib/queries";
 import Avatar from "./Avatar";
 
-type Aba = "moradores" | "produtos" | "cursos";
+type Aba = "moradores" | "produtos" | "cursos" | "aulas";
 
 export default function BuscaGlobal() {
   const router = useRouter();
@@ -13,12 +13,12 @@ export default function BuscaGlobal() {
   const [aberto, setAberto] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [aba, setAba] = useState<Aba>("moradores");
-  const [resultados, setResultados] = useState<ResultadosBusca>({ moradores: [], produtos: [], cursos: [] });
+  const [resultados, setResultados] = useState<ResultadosBusca>({ moradores: [], produtos: [], cursos: [], aulas: [] });
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (termo.trim().length < 2) {
-      setResultados({ moradores: [], produtos: [], cursos: [] });
+      setResultados({ moradores: [], produtos: [], cursos: [], aulas: [] });
       return;
     }
     setCarregando(true);
@@ -44,7 +44,7 @@ export default function BuscaGlobal() {
     router.push(href);
   }
 
-  const total = resultados.moradores.length + resultados.produtos.length + resultados.cursos.length;
+  const total = resultados.moradores.length + resultados.produtos.length + resultados.cursos.length + resultados.aulas.length;
   const mostraDropdown = aberto && termo.trim().length >= 2;
 
   return (
@@ -88,6 +88,7 @@ export default function BuscaGlobal() {
               { id: "moradores" as const, label: "Moradores", count: resultados.moradores.length },
               { id: "produtos"  as const, label: "Produtos",  count: resultados.produtos.length  },
               { id: "cursos"    as const, label: "Cursos",    count: resultados.cursos.length    },
+              { id: "aulas"     as const, label: "Aulas",     count: resultados.aulas.length     },
             ]).map((t) => (
               <button
                 key={t.id}
@@ -147,11 +148,11 @@ export default function BuscaGlobal() {
                   <span style={{ fontSize: "12px", fontWeight: 700, color: "#111111" }}>R$ {p.preco.toFixed(2)}</span>
                 </div>
               ))
-            ) : (
+            ) : aba === "cursos" ? (
               resultados.cursos.length === 0 ? (
                 <div style={{ padding: "20px", textAlign: "center", fontSize: "12px", color: "#A3A3A3" }}>Sem cursos</div>
               ) : resultados.cursos.map((c) => (
-                <div key={c.id} onClick={() => navegar(`/sala-de-aula`)}
+                <div key={c.id} onClick={() => navegar(`/curso/${c.id}`)}
                   style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", transition: "background 0.15s" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "#F7F7F8")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
@@ -162,6 +163,22 @@ export default function BuscaGlobal() {
                     <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{c.nivel}</p>
                   </div>
                   <span style={{ fontSize: "12px", fontWeight: 700, color: "#111111" }}>{c.preco === 0 ? "Grátis" : `R$ ${c.preco.toFixed(2)}`}</span>
+                </div>
+              ))
+            ) : (
+              resultados.aulas.length === 0 ? (
+                <div style={{ padding: "20px", textAlign: "center", fontSize: "12px", color: "#A3A3A3" }}>Sem aulas</div>
+              ) : resultados.aulas.map((au) => (
+                <div key={au.id} onClick={() => navegar(`/curso/${au.curso_id}?aula=${au.id}`)}
+                  style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", transition: "background 0.15s" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F7F7F8")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>▶</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{au.titulo}</p>
+                    <p style={{ fontSize: "11px", color: "#A3A3A3", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{au.curso_titulo}</p>
+                  </div>
                 </div>
               ))
             )}

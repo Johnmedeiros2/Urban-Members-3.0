@@ -29,6 +29,7 @@ export default function CursoPage() {
   const [meuId, setMeuId] = useState<string | null>(null);
   const [matriculado, setMatriculado] = useState(false);
   const [carregando, setCarregando] = useState(true);
+  const [busca, setBusca] = useState("");
 
   const [modal, setModal] = useState(false);
   const [titulo, setTitulo] = useState("");
@@ -50,7 +51,11 @@ export default function CursoPage() {
     ]);
     setCurso(c as CursoInfo | null);
     setAulas(a);
-    setAulaAtual(a[0] ?? null);
+    // Se tem ?aula=X no URL, abre aquela aula
+    const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const aulaQuery = params?.get("aula");
+    const aulaDoQuery = aulaQuery ? a.find((x) => x.id === aulaQuery) : null;
+    setAulaAtual(aulaDoQuery ?? a[0] ?? null);
     setMeuId(userData.data.user?.id ?? null);
     if (userData.data.user) {
       const { data: matricula } = await supabase
@@ -229,10 +234,25 @@ export default function CursoPage() {
               )}
             </div>
 
+            {aulas.length > 0 && (
+              <input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar aula..."
+                style={{ width: "100%", height: "32px", padding: "0 10px", background: "#F5F5F5", border: "1px solid transparent", borderRadius: "8px", fontSize: "12px", outline: "none", fontFamily: "Inter, sans-serif", color: "#111111", boxSizing: "border-box" }}
+              />
+            )}
+
             <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "60vh", overflowY: "auto" }}>
-              {aulas.length === 0 ? (
-                <p style={{ fontSize: "12px", color: "#A3A3A3", textAlign: "center", padding: "20px 0" }}>Nenhuma aula ainda</p>
-              ) : aulas.map((a, i) => {
+              {(() => {
+                const filtradas = busca.trim()
+                  ? aulas.filter((a) => a.titulo.toLowerCase().includes(busca.toLowerCase()) || (a.descricao ?? "").toLowerCase().includes(busca.toLowerCase()))
+                  : aulas;
+                return filtradas.length === 0 ? (
+                  <p style={{ fontSize: "12px", color: "#A3A3A3", textAlign: "center", padding: "20px 0" }}>
+                    {aulas.length === 0 ? "Nenhuma aula ainda" : "Nada encontrado"}
+                  </p>
+                ) : filtradas.map((a, i) => {
                 const ativa = aulaAtual?.id === a.id;
                 return (
                   <div key={a.id}
@@ -267,7 +287,8 @@ export default function CursoPage() {
                     )}
                   </div>
                 );
-              })}
+              });
+              })()}
             </div>
           </div>
         </aside>

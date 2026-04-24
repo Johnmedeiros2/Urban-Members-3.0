@@ -726,27 +726,47 @@ export interface ResultadoBuscaCurso {
   preco: number;
 }
 
+export interface ResultadoBuscaAula {
+  tipo: "aula";
+  id: string;
+  titulo: string;
+  curso_id: string;
+  curso_titulo: string;
+}
+
 export interface ResultadosBusca {
   moradores: ResultadoBuscaMorador[];
   produtos: ResultadoBuscaProduto[];
   cursos: ResultadoBuscaCurso[];
+  aulas: ResultadoBuscaAula[];
 }
 
 export async function buscarGlobal(termo: string): Promise<ResultadosBusca> {
   if (!termo.trim() || termo.trim().length < 2) {
-    return { moradores: [], produtos: [], cursos: [] };
+    return { moradores: [], produtos: [], cursos: [], aulas: [] };
   }
   const supabase = createClient();
   const q = `%${termo.trim()}%`;
-  const [m, p, c] = await Promise.all([
+  const [m, p, c, a] = await Promise.all([
     supabase.from("perfis").select("id, nome, cidade, foto_url, urban_score").ilike("nome", q).limit(5),
     supabase.from("produtos").select("id, nome, preco, categoria").ilike("nome", q).limit(5),
     supabase.from("cursos").select("id, titulo, nivel, preco").ilike("titulo", q).limit(5),
+    supabase.from("aulas").select("id, titulo, curso_id, descricao, curso:cursos(titulo)").or(`titulo.ilike.${q},descricao.ilike.${q}`).limit(5),
   ]);
   return {
     moradores: (m.data ?? []).map((r) => ({ ...r, tipo: "morador" as const })),
     produtos: (p.data ?? []).map((r) => ({ ...r, tipo: "produto" as const })),
     cursos: (c.data ?? []).map((r) => ({ ...r, tipo: "curso" as const })),
+    aulas: (a.data ?? []).map((r: { id: string; titulo: string; curso_id: string; curso: { titulo: string }[] | { titulo: string } | null }) => {
+      const cursoObj = Array.isArray(r.curso) ? r.curso[0] : r.curso;
+      return {
+        tipo: "aula" as const,
+        id: r.id,
+        titulo: r.titulo,
+        curso_id: r.curso_id,
+        curso_titulo: cursoObj?.titulo ?? "",
+      };
+    }),
   };
 }
 
