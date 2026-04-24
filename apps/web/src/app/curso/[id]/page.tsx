@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarCurso, buscarAulas, criarAula, marcarAulaConcluida, deletarAula, matricularCurso, type Aula } from "@/lib/queries";
+import { buscarCurso, buscarAulas, criarAula, marcarAulaConcluida, deletarAula, matricularCurso, buscarMateriais, adicionarMaterial, deletarMaterial, type Aula, type Material } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
 interface CursoInfo {
@@ -30,6 +30,13 @@ export default function CursoPage() {
   const [matriculado, setMatriculado] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState("");
+  const [materiais, setMateriais] = useState<Material[]>([]);
+  const [modalMaterial, setModalMaterial] = useState(false);
+  const [mTitulo, setMTitulo] = useState("");
+  const [mDescricao, setMDescricao] = useState("");
+  const [mAulaId, setMAulaId] = useState<string | null>(null);
+  const [mArquivo, setMArquivo] = useState<File | null>(null);
+  const [mSalvando, setMSalvando] = useState(false);
 
   const [modal, setModal] = useState(false);
   const [titulo, setTitulo] = useState("");
@@ -44,11 +51,13 @@ export default function CursoPage() {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [c, a, userData] = await Promise.all([
+    const [c, a, m, userData] = await Promise.all([
       buscarCurso(id),
       buscarAulas(id),
+      buscarMateriais(id),
       supabase.auth.getUser(),
     ]);
+    setMateriais(m);
     setCurso(c as CursoInfo | null);
     setAulas(a);
     // Se tem ?aula=X no URL, abre aquela aula
@@ -115,6 +124,44 @@ export default function CursoPage() {
     await carregar();
   }
 
+  async function handleSalvarMaterial() {
+    if (!mTitulo.trim() || !mArquivo) return;
+    setMSalvando(true);
+    try {
+      await adicionarMaterial({
+        curso_id: id,
+        aula_id: mAulaId ?? null,
+        titulo: mTitulo,
+        descricao: mDescricao,
+        arquivo: mArquivo,
+      });
+      setMTitulo(""); setMDescricao(""); setMAulaId(null); setMArquivo(null);
+      setModalMaterial(false);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setMSalvando(false);
+    }
+  }
+
+  async function handleDeletarMaterial(mat: Material) {
+    if (!confirm(`Apagar o material "${mat.titulo}"?`)) return;
+    try {
+      await deletarMaterial(mat.id);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  function formatarTamanho(bytes: number | null): string {
+    if (!bytes) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+
   if (carregando) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif", color: "#A3A3A3" }}>Carregando curso...</div>;
   if (!curso) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif" }}>Curso não encontrado</div>;
 
@@ -141,9 +188,14 @@ export default function CursoPage() {
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
             {ehInstrutor && (
-              <button onClick={() => setModal(true)} style={{ height: "36px", padding: "0 16px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                + Nova aula
-              </button>
+              <>
+                <button onClick={() => setModal(true)} style={{ height: "36px", padding: "0 16px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  + Nova aula
+                </button>
+                <button onClick={() => setModalMaterial(true)} style={{ height: "36px", padding: "0 16px", background: "#F5F5F5", color: "#111111", border: "1px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  + Material
+                </button>
+              </>
             )}
             <BotaoConvite variant="ghost" />
           </div>
@@ -239,6 +291,66 @@ export default function CursoPage() {
               <button onClick={handleMatricular} style={{ marginTop: "16px", height: "44px", padding: "0 24px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
                 {Number(curso.preco) === 0 ? "Matricular grátis" : `Matricular por R$ ${Number(curso.preco).toFixed(2)}`}
               </button>
+            )}
+          </div>
+
+          {/* Materiais de apoio */}
+          <div style={{ marginTop: "20px", background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#111111" }}>📎 Materiais de apoio</h3>
+              {ehInstrutor && (
+                <button onClick={() => setModalMaterial(true)}
+                  style={{ height: "30px", padding: "0 12px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  + Adicionar
+                </button>
+              )}
+            </div>
+
+            {materiais.length === 0 ? (
+              <p style={{ fontSize: "13px", color: "#A3A3A3", textAlign: "center", padding: "16px 0" }}>
+                {ehInstrutor ? "Nenhum material ainda. Adicione PDFs, planilhas ou slides." : "O professor ainda não adicionou materiais."}
+              </p>
+            ) : !temAcesso ? (
+              <div style={{ background: "#F7F7F8", borderRadius: "12px", padding: "14px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={{ fontSize: "22px" }}>🔒</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{materiais.length} {materiais.length === 1 ? "material disponível" : "materiais disponíveis"}</p>
+                  <p style={{ fontSize: "11px", color: "#525252", marginTop: "2px" }}>Matricule-se para baixar os arquivos do curso.</p>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {materiais.map((m) => {
+                  const aulaVinculada = m.aula_id ? aulas.find((a) => a.id === m.aula_id) : null;
+                  return (
+                    <div key={m.id} style={{ background: "#F7F7F8", borderRadius: "12px", padding: "12px 14px", display: "flex", alignItems: "center", gap: "12px" }}>
+                      <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#FFF3EF", color: "#FF5C2E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, flexShrink: 0 }}>
+                        {m.tipo ?? "FILE"}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.titulo}</p>
+                        {m.descricao && <p style={{ fontSize: "12px", color: "#525252", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.descricao}</p>}
+                        <p style={{ fontSize: "11px", color: "#A3A3A3", marginTop: "3px" }}>
+                          {aulaVinculada ? `Aula: ${aulaVinculada.titulo} · ` : ""}
+                          {m.nome_arquivo}
+                          {m.tamanho_bytes ? ` · ${formatarTamanho(m.tamanho_bytes)}` : ""}
+                        </p>
+                      </div>
+                      <a href={m.arquivo_url} download={m.nome_arquivo} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                        <button style={{ height: "34px", padding: "0 14px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                          Baixar
+                        </button>
+                      </a>
+                      {ehInstrutor && (
+                        <button onClick={() => handleDeletarMaterial(m)}
+                          style={{ width: "30px", height: "30px", background: "transparent", color: "#A3A3A3", border: "none", borderRadius: "50%", fontSize: "14px", cursor: "pointer" }}>
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
@@ -351,6 +463,50 @@ export default function CursoPage() {
               <button onClick={salvarAula} disabled={!titulo.trim() || salvando}
                 style={{ flex: 1, height: "42px", background: titulo.trim() && !salvando ? "#111111" : "#E5E5E5", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: titulo.trim() && !salvando ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}>
                 {salvando ? "Salvando..." : "Criar aula"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalMaterial && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "24px" }}>
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "24px", maxWidth: "460px", width: "100%", display: "flex", flexDirection: "column", gap: "12px", maxHeight: "90vh", overflowY: "auto" }}>
+            <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111" }}>Adicionar material</h2>
+            <p style={{ fontSize: "12px", color: "#A3A3A3" }}>PDF, Word, Excel, PowerPoint ou texto. Máximo 50 MB.</p>
+
+            <input placeholder="Título do material" value={mTitulo} onChange={(e) => setMTitulo(e.target.value)}
+              style={{ width: "100%", height: "44px", border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "0 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif" }} />
+
+            <textarea placeholder="Descrição (opcional)" value={mDescricao} onChange={(e) => setMDescricao(e.target.value)} rows={2}
+              style={{ width: "100%", border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "10px 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif", resize: "none" }} />
+
+            <select value={mAulaId ?? ""} onChange={(e) => setMAulaId(e.target.value || null)}
+              style={{ width: "100%", height: "44px", border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "0 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif", background: "#FFFFFF" }}>
+              <option value="">Material geral do curso</option>
+              {aulas.map((a, i) => (
+                <option key={a.id} value={a.id}>Vincular à aula #{i + 1} — {a.titulo}</option>
+              ))}
+            </select>
+
+            <input type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/csv,text/plain"
+              onChange={(e) => setMArquivo(e.target.files?.[0] ?? null)}
+              style={{ fontSize: "12px", fontFamily: "Inter, sans-serif" }} />
+            {mArquivo && (
+              <p style={{ fontSize: "11px", color: "#525252" }}>
+                {mArquivo.name} · {formatarTamanho(mArquivo.size)}
+              </p>
+            )}
+
+            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+              <button onClick={() => { setModalMaterial(false); setMTitulo(""); setMDescricao(""); setMAulaId(null); setMArquivo(null); }}
+                style={{ flex: 1, height: "42px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                Cancelar
+              </button>
+              <button onClick={handleSalvarMaterial} disabled={!mTitulo.trim() || !mArquivo || mSalvando}
+                style={{ flex: 1, height: "42px", background: mTitulo.trim() && mArquivo && !mSalvando ? "#111111" : "#E5E5E5", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: mTitulo.trim() && mArquivo && !mSalvando ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}>
+                {mSalvando ? "Enviando..." : "Adicionar"}
               </button>
             </div>
           </div>

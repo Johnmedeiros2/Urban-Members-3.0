@@ -1315,6 +1315,96 @@ export interface Aula {
   concluida?: boolean;
 }
 
+// ── MATERIAIS DO CURSO ──────────────────────────────────────────
+
+export interface Material {
+  id: string;
+  curso_id: string;
+  aula_id: string | null;
+  titulo: string;
+  descricao: string | null;
+  arquivo_url: string;
+  nome_arquivo: string;
+  tipo: string | null;
+  tamanho_bytes: number | null;
+  criado_em: string;
+}
+
+function extensaoDoArquivo(nome: string): string {
+  const parts = nome.split(".");
+  return parts.length > 1 ? parts.pop()!.toLowerCase() : "";
+}
+
+function tipoDoArquivo(ext: string): string {
+  const map: Record<string, string> = {
+    pdf: "PDF",
+    xlsx: "Excel", xls: "Excel", csv: "CSV",
+    docx: "Word", doc: "Word",
+    pptx: "PowerPoint", ppt: "PowerPoint",
+    txt: "Texto",
+    zip: "Zip",
+  };
+  return map[ext] ?? "Arquivo";
+}
+
+export async function buscarMateriais(curso_id: string): Promise<Material[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("materiais")
+    .select("*")
+    .eq("curso_id", curso_id)
+    .order("criado_em", { ascending: true });
+  return (data ?? []) as Material[];
+}
+
+export async function adicionarMaterial(params: {
+  curso_id: string;
+  aula_id?: string | null;
+  titulo: string;
+  descricao?: string;
+  arquivo: File;
+}): Promise<Material> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  if (!params.titulo.trim()) throw new Error("Título é obrigatório");
+  if (!params.arquivo) throw new Error("Envie um arquivo");
+  if (params.arquivo.size > 50 * 1024 * 1024) throw new Error("Arquivo muito grande (máx 50MB)");
+
+  const ext = extensaoDoArquivo(params.arquivo.name);
+  const path = `${user.id}/${params.curso_id}/${Date.now()}-${params.arquivo.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("materiais")
+    .upload(path, params.arquivo, { cacheControl: "3600", contentType: params.arquivo.type });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data: { publicUrl } } = supabase.storage.from("materiais").getPublicUrl(path);
+
+  const { data, error } = await supabase
+    .from("materiais")
+    .insert({
+      curso_id: params.curso_id,
+      aula_id: params.aula_id ?? null,
+      titulo: params.titulo.trim(),
+      descricao: params.descricao?.trim() || null,
+      arquivo_url: publicUrl,
+      nome_arquivo: params.arquivo.name,
+      tipo: tipoDoArquivo(ext),
+      tamanho_bytes: params.arquivo.size,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Material;
+}
+
+export async function deletarMaterial(id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("materiais").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 export async function buscarAulas(curso_id: string): Promise<Aula[]> {
   const supabase = createClient();
   const { data } = await supabase
