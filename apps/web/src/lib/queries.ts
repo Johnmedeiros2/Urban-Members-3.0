@@ -9,6 +9,7 @@ export interface PostReal {
   total_comentarios: number;
   criado_em: string;
   foto_url: string | null;
+  video_url: string | null;
   autor?: { nome: string; cidade: string | null; urban_score: number; foto_url: string | null } | null;
 }
 
@@ -44,7 +45,7 @@ export async function buscarPosts(limite = 20, tag?: string | null): Promise<Pos
   }));
 }
 
-export async function criarPost(conteudo: string, bairro_id = "negocios", foto?: File | null) {
+export async function criarPost(conteudo: string, bairro_id = "negocios", foto?: File | null, video?: File | null) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado. Faça login novamente.");
@@ -78,14 +79,46 @@ export async function criarPost(conteudo: string, bairro_id = "negocios", foto?:
     foto_url = publicUrl;
   }
 
+  // Upload do vídeo se houver
+  let video_url: string | null = null;
+  if (video) {
+    const ext = video.name.split(".").pop() ?? "mp4";
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("videos")
+      .upload(path, video, { cacheControl: "3600", contentType: video.type });
+    if (uploadError) throw new Error(`Vídeo: ${uploadError.message}`);
+    const { data: { publicUrl } } = supabase.storage.from("videos").getPublicUrl(path);
+    video_url = publicUrl;
+  }
+
   const { data, error } = await supabase
     .from("posts")
-    .insert({ autor_id: user.id, bairro_id, conteudo, foto_url })
+    .insert({ autor_id: user.id, bairro_id, conteudo, foto_url, video_url })
     .select()
     .single();
 
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function buscarPulses(limite = 20): Promise<PostReal[]> {
+  const supabase = createClient();
+  const { data: posts, error } = await supabase
+    .from("posts")
+    .select("*")
+    .not("video_url", "is", null)
+    .order("criado_em", { ascending: false })
+    .limit(limite);
+  if (error || !posts || posts.length === 0) return [];
+
+  const autorIds = [...new Set(posts.map((p: { autor_id: string }) => p.autor_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, cidade, urban_score, foto_url")
+    .in("id", autorIds);
+  const map = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number; foto_url: string | null }) => [p.id, p]));
+  return posts.map((p: PostReal) => ({ ...p, autor: map.get(p.autor_id) ?? null }));
 }
 
 export async function deletarPost(post_id: string) {

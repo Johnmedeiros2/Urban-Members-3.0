@@ -16,6 +16,7 @@ const neighborhoods = [
   { label: "Início",       active: true,  href: "/feed"             },
   { label: "Moradores",    active: false, href: "/moradores"        },
   { label: "Bairros",      active: false, href: "/bairros/negocios" },
+  { label: "Pulse",        active: false, href: "/pulse"            },
   { label: "Mercado",      active: false, href: "/mercado"          },
   { label: "Negócios",     active: false, href: "/bairros/negocios" },
   { label: "Arte",         active: false, href: "/bairros/arte"     },
@@ -50,6 +51,9 @@ export default function Feed() {
   const [foto, setFoto] = useState<File | null>(null);
   const [previewFoto, setPreviewFoto] = useState<string | null>(null);
   const fotoInputRef = useRef<HTMLInputElement>(null);
+  const [video, setVideo] = useState<File | null>(null);
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const [comentariosAbertos, setComentariosAbertos] = useState<Set<string>>(new Set());
   const [tagFiltro, setTagFiltro] = useState<string | null>(null);
 
@@ -106,13 +110,15 @@ export default function Feed() {
   }, [carregar]);
 
   async function handlePostar() {
-    if ((!conteudo.trim() && !foto) || postando) return;
+    if ((!conteudo.trim() && !foto && !video) || postando) return;
     setPostando(true);
     try {
-      await criarPost(conteudo, bairroSelecionado, foto);
+      await criarPost(conteudo, bairroSelecionado, foto, video);
       setConteudo("");
       setFoto(null);
       setPreviewFoto(null);
+      setVideo(null);
+      setPreviewVideo(null);
       await carregar();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";
@@ -135,6 +141,20 @@ export default function Feed() {
     setFoto(null);
     setPreviewFoto(null);
     if (fotoInputRef.current) fotoInputRef.current.value = "";
+  }
+
+  function handleSelecionarVideo(e: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = e.target.files?.[0];
+    if (!arquivo) return;
+    if (arquivo.size > 50 * 1024 * 1024) { alert("Vídeo muito grande (máx 50MB)"); return; }
+    setVideo(arquivo);
+    setPreviewVideo(URL.createObjectURL(arquivo));
+  }
+
+  function removerVideo() {
+    setVideo(null);
+    setPreviewVideo(null);
+    if (videoInputRef.current) videoInputRef.current.value = "";
   }
 
   async function handleDeletar(post_id: string) {
@@ -246,8 +266,9 @@ export default function Feed() {
 
           {/* Composer */}
           <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Input de arquivo sempre presente no DOM */}
+            {/* Inputs de arquivo sempre presentes no DOM */}
             <input ref={fotoInputRef} type="file" accept="image/*" onChange={handleSelecionarFoto} style={{ display: "none" }} />
+            <input ref={videoInputRef} type="file" accept="video/mp4,video/quicktime,video/webm" onChange={handleSelecionarVideo} style={{ display: "none" }} />
 
             <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
               <Avatar name={meuNome} foto={usuario?.foto_url} size={40} />
@@ -283,6 +304,24 @@ export default function Feed() {
                   <path d="M21 15l-5-5L5 21"/>
                 </svg>
               </button>
+              <button onClick={() => videoInputRef.current?.click()}
+                title="Adicionar vídeo (Urban Pulse)"
+                style={{
+                  width: "32px", height: "32px",
+                  borderRadius: "50%", background: "transparent",
+                  border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#A3A3A3", transition: "all 0.15s",
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#F5F5F5"; (e.currentTarget as HTMLElement).style.color = "#FF5C2E"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#A3A3A3"; }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="23 7 16 12 23 17 23 7" />
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                </svg>
+              </button>
             </div>
 
             {/* Preview da foto selecionada */}
@@ -296,7 +335,18 @@ export default function Feed() {
               </div>
             )}
 
-            {(conteudo.trim() || foto) && (
+            {/* Preview do vídeo selecionado */}
+            {previewVideo && (
+              <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden", maxHeight: "400px", background: "#000000" }}>
+                <video src={previewVideo} controls style={{ width: "100%", maxHeight: "400px", display: "block" }} />
+                <button onClick={removerVideo}
+                  style={{ position: "absolute", top: "8px", right: "8px", width: "28px", height: "28px", borderRadius: "50%", background: "rgba(0,0,0,0.7)", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  ×
+                </button>
+              </div>
+            )}
+
+            {(conteudo.trim() || foto || video) && (
               <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
                 <select value={bairroSelecionado} onChange={(e) => setBairroSelecionado(e.target.value)}
                   style={{ fontSize: "12px", color: "#525252", border: "1px solid #E5E5E5", borderRadius: "999px", padding: "6px 12px", background: "#FFFFFF", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
@@ -366,6 +416,13 @@ export default function Feed() {
                 {post.foto_url && (
                   <div style={{ borderRadius: "14px", overflow: "hidden", maxHeight: "500px" }}>
                     <img src={post.foto_url} alt="Foto do post" style={{ width: "100%", objectFit: "cover", display: "block", maxHeight: "500px" }} />
+                  </div>
+                )}
+
+                {post.video_url && (
+                  <div style={{ borderRadius: "14px", overflow: "hidden", maxHeight: "600px", background: "#000000" }}>
+                    <video src={post.video_url} controls playsInline preload="metadata"
+                      style={{ width: "100%", maxHeight: "600px", display: "block" }} />
                   </div>
                 )}
 

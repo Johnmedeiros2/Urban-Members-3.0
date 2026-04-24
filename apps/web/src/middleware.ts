@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/admin", "/feed", "/mercado", "/sala-de-aula", "/perfil", "/pagamento", "/api/mercadopago", "/compras"];
+const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/admin", "/feed", "/mercado", "/sala-de-aula", "/perfil", "/pagamento", "/api/mercadopago", "/compras", "/pulse"];
 const ADMIN_EMAIL = "johnmedeiros30@gmail.com";
 const SUPABASE_CONFIGURED =
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
