@@ -9,6 +9,7 @@ import BuscaGlobal from "@/components/ui/BuscaGlobal";
 import Comentarios from "@/components/ui/Comentarios";
 import BotaoCompartilhar from "@/components/ui/BotaoCompartilhar";
 import ConteudoFormatado from "@/components/ui/ConteudoFormatado";
+import Stories from "@/components/ui/Stories";
 import { buscarPosts, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
@@ -249,6 +250,10 @@ export default function Feed() {
 
         {/* Feed central */}
         <main style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "12px 16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)" }}>
+            <Stories />
+          </div>
 
           {tagFiltro && (
             <div style={{ background: "#FFF3EF", border: "1px solid #FFD4C4", borderRadius: "14px", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>

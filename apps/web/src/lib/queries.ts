@@ -231,6 +231,94 @@ export async function iniciarPagamento(params: {
   return { init_point: data.init_point, transacao_id: data.transacao_id };
 }
 
+// ── STORIES 24H ─────────────────────────────────────────────────────
+
+export interface Story {
+  id: string;
+  autor_id: string;
+  foto_url: string | null;
+  video_url: string | null;
+  criado_em: string;
+  expira_em: string;
+  autor?: { nome: string; foto_url: string | null } | null;
+}
+
+export interface StoriesPorAutor {
+  autor_id: string;
+  autor: { nome: string; foto_url: string | null };
+  stories: Story[];
+}
+
+export async function buscarStoriesAtivos(): Promise<StoriesPorAutor[]> {
+  const supabase = createClient();
+  const agora = new Date().toISOString();
+  const { data } = await supabase
+    .from("stories")
+    .select("*")
+    .gt("expira_em", agora)
+    .order("criado_em", { ascending: true });
+  if (!data || data.length === 0) return [];
+
+  const autorIds = [...new Set(data.map((s: { autor_id: string }) => s.autor_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, foto_url")
+    .in("id", autorIds);
+  const perfilMap = new Map((perfis ?? []).map((p: { id: string; nome: string; foto_url: string | null }) => [p.id, p]));
+
+  // Agrupa por autor
+  const grupos = new Map<string, StoriesPorAutor>();
+  for (const s of data as Story[]) {
+    const autor = perfilMap.get(s.autor_id);
+    if (!autor) continue;
+    if (!grupos.has(s.autor_id)) {
+      grupos.set(s.autor_id, { autor_id: s.autor_id, autor, stories: [] });
+    }
+    grupos.get(s.autor_id)!.stories.push(s);
+  }
+  return Array.from(grupos.values());
+}
+
+export async function criarStory(foto?: File | null, video?: File | null) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  if (!foto && !video) throw new Error("Envie uma foto ou vídeo");
+
+  let foto_url: string | null = null;
+  let video_url: string | null = null;
+
+  if (foto) {
+    const ext = foto.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/story-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("posts").upload(path, foto, { cacheControl: "3600" });
+    if (error) throw new Error(error.message);
+    foto_url = supabase.storage.from("posts").getPublicUrl(path).data.publicUrl;
+  }
+
+  if (video) {
+    const ext = video.name.split(".").pop() ?? "mp4";
+    const path = `${user.id}/story-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("videos").upload(path, video, { cacheControl: "3600", contentType: video.type });
+    if (error) throw new Error(`Vídeo: ${error.message}`);
+    video_url = supabase.storage.from("videos").getPublicUrl(path).data.publicUrl;
+  }
+
+  const { data, error } = await supabase
+    .from("stories")
+    .insert({ autor_id: user.id, foto_url, video_url })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deletarStory(id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("stories").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 // ── CUPONS ──────────────────────────────────────────────────────────
 
 export interface Cupom {
