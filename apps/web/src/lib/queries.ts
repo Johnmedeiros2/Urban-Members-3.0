@@ -582,6 +582,7 @@ export interface Story {
   autor_id: string;
   foto_url: string | null;
   video_url: string | null;
+  visualizacao_unica: boolean;
   criado_em: string;
   expira_em: string;
   autor?: { nome: string; foto_url: string | null } | null;
@@ -596,6 +597,8 @@ export interface StoriesPorAutor {
 export async function buscarStoriesAtivos(): Promise<StoriesPorAutor[]> {
   const supabase = createClient();
   const agora = new Date().toISOString();
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { data } = await supabase
     .from("stories")
     .select("*")
@@ -603,7 +606,26 @@ export async function buscarStoriesAtivos(): Promise<StoriesPorAutor[]> {
     .order("criado_em", { ascending: true });
   if (!data || data.length === 0) return [];
 
-  const autorIds = [...new Set(data.map((s: { autor_id: string }) => s.autor_id))];
+  // Filtra stories de visualização única que o morador atual já viu
+  let jaVistos: Set<string> = new Set();
+  if (user) {
+    const { data: vistos } = await supabase
+      .from("story_visualizacoes")
+      .select("story_id")
+      .eq("morador_id", user.id);
+    jaVistos = new Set((vistos ?? []).map((v: { story_id: string }) => v.story_id));
+  }
+
+  const storiesFiltrados = (data as Story[]).filter((s) => {
+    // Autor sempre vê o próprio, mesmo se já visualizou
+    if (user && s.autor_id === user.id) return true;
+    if (s.visualizacao_unica && jaVistos.has(s.id)) return false;
+    return true;
+  });
+
+  if (storiesFiltrados.length === 0) return [];
+
+  const autorIds = [...new Set(storiesFiltrados.map((s) => s.autor_id))];
   const { data: perfis } = await supabase
     .from("perfis")
     .select("id, nome, foto_url")
@@ -612,7 +634,7 @@ export async function buscarStoriesAtivos(): Promise<StoriesPorAutor[]> {
 
   // Agrupa por autor
   const grupos = new Map<string, StoriesPorAutor>();
-  for (const s of data as Story[]) {
+  for (const s of storiesFiltrados) {
     const autor = perfilMap.get(s.autor_id);
     if (!autor) continue;
     if (!grupos.has(s.autor_id)) {
@@ -623,7 +645,16 @@ export async function buscarStoriesAtivos(): Promise<StoriesPorAutor[]> {
   return Array.from(grupos.values());
 }
 
-export async function criarStory(foto?: File | null, video?: File | null, horas: 12 | 24 = 24) {
+export async function registrarVisualizacaoStory(story_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from("story_visualizacoes")
+    .upsert({ story_id, morador_id: user.id }, { onConflict: "story_id,morador_id" });
+}
+
+export async function criarStory(foto?: File | null, video?: File | null, horas: 12 | 24 = 24, visualizacao_unica = false) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
@@ -651,7 +682,7 @@ export async function criarStory(foto?: File | null, video?: File | null, horas:
   const expira_em = new Date(Date.now() + horas * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("stories")
-    .insert({ autor_id: user.id, foto_url, video_url, expira_em })
+    .insert({ autor_id: user.id, foto_url, video_url, expira_em, visualizacao_unica })
     .select()
     .single();
   if (error) throw new Error(error.message);

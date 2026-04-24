@@ -280,10 +280,6 @@ export default function Feed() {
             </div>
           )}
 
-          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "12px 16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)" }}>
-            <Stories />
-          </div>
-
           {tagFiltro && (
             <div style={{ background: "#FFF3EF", border: "1px solid #FFD4C4", borderRadius: "14px", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "13px", color: "#111111" }}>
@@ -494,8 +490,15 @@ export default function Feed() {
         </main>
 
         {/* Sidebar direita */}
-        <aside>
-          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", position: "sticky", top: "84px", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <aside style={{ display: "flex", flexDirection: "column", gap: "16px", position: "sticky", top: "84px", alignSelf: "flex-start" }}>
+
+          {/* Now — coluna lateral */}
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "16px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <Stories layout="lateral" />
+          </div>
+
+          {/* Boas-vindas */}
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "16px" }}>
             <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Bem-vindo, {meuNome}</p>
             <p style={{ fontSize: "12px", color: "#A3A3A3", lineHeight: 1.5 }}>
               Seu feed mostra posts reais da cidade. Curta, comente e poste para subir seu Urban Score.
