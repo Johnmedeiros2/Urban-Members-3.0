@@ -270,6 +270,134 @@ export async function iniciarPagamento(params: {
   return { init_point: data.init_point, transacao_id: data.transacao_id };
 }
 
+// ── AGENDA (Calendário do morador) ──────────────────────────────────
+
+export interface EventoAgenda {
+  id: string;
+  tipo: "live" | "aula" | "curso-novo";
+  titulo: string;
+  data: string; // ISO
+  ao_vivo_agora?: boolean;
+  autor_nome?: string;
+  autor_id?: string;
+  link?: string;
+  href: string;
+  descricao?: string;
+}
+
+export async function agendaDoMorador(escopo: "meus" | "todos" = "todos"): Promise<EventoAgenda[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const agora = new Date();
+  const limiteFuturo = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias pra frente
+  const limitePassado = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 dias pra trás
+
+  // 1. Lives agendadas ou ao vivo agora
+  const { data: lives } = await supabase
+    .from("lives")
+    .select("id, titulo, descricao, agendado_para, link, ao_vivo, autor_id")
+    .or(`agendado_para.gte.${limitePassado.toISOString()},ao_vivo.eq.true`)
+    .lte("agendado_para", limiteFuturo.toISOString());
+
+  // 2. Aulas ao vivo de cursos que o morador está matriculado (ou todos se escopo = todos)
+  let cursosMatriculado: string[] = [];
+  if (user) {
+    const { data: matriculas } = await supabase
+      .from("curso_alunos")
+      .select("curso_id")
+      .eq("morador_id", user.id);
+    cursosMatriculado = (matriculas ?? []).map((m: { curso_id: string }) => m.curso_id);
+  }
+
+  let aulasQuery = supabase
+    .from("aulas")
+    .select("id, titulo, descricao, agendado_para, link_ao_vivo, curso_id")
+    .eq("ao_vivo", true)
+    .gte("agendado_para", limitePassado.toISOString())
+    .lte("agendado_para", limiteFuturo.toISOString());
+  if (escopo === "meus" && cursosMatriculado.length > 0) {
+    aulasQuery = aulasQuery.in("curso_id", cursosMatriculado);
+  } else if (escopo === "meus") {
+    aulasQuery = aulasQuery.eq("curso_id", "00000000-0000-0000-0000-000000000000"); // nada
+  }
+  const { data: aulas } = await aulasQuery;
+
+  // 3. Cursos novos criados recentemente (últimos 7 dias)
+  const { data: cursosNovos } = await supabase
+    .from("cursos")
+    .select("id, titulo, criado_em, instrutor_id")
+    .gte("criado_em", limitePassado.toISOString())
+    .order("criado_em", { ascending: false })
+    .limit(10);
+
+  // Nomes dos autores
+  const autorIds = [
+    ...(lives ?? []).map((l: { autor_id: string }) => l.autor_id),
+    ...(cursosNovos ?? []).map((c: { instrutor_id: string }) => c.instrutor_id),
+  ];
+  const idsUnicos = [...new Set(autorIds)];
+  const { data: perfis } = idsUnicos.length > 0
+    ? await supabase.from("perfis").select("id, nome").in("id", idsUnicos)
+    : { data: [] };
+  const nomeMap = new Map((perfis ?? []).map((p: { id: string; nome: string }) => [p.id, p.nome]));
+
+  // Títulos de cursos pra aulas
+  const cursoIds = (aulas ?? []).map((a: { curso_id: string }) => a.curso_id);
+  const { data: cursosInfo } = cursoIds.length > 0
+    ? await supabase.from("cursos").select("id, titulo").in("id", cursoIds)
+    : { data: [] };
+  const cursoNomeMap = new Map((cursosInfo ?? []).map((c: { id: string; titulo: string }) => [c.id, c.titulo]));
+
+  const eventos: EventoAgenda[] = [];
+
+  (lives ?? []).forEach((l: { id: string; titulo: string; descricao: string | null; agendado_para: string | null; link: string | null; ao_vivo: boolean; autor_id: string }) => {
+    if (escopo === "meus" && user && l.autor_id !== user.id) return;
+    const data = l.ao_vivo && !l.agendado_para ? agora.toISOString() : l.agendado_para;
+    if (!data) return;
+    eventos.push({
+      id: `live-${l.id}`,
+      tipo: "live",
+      titulo: l.titulo,
+      descricao: l.descricao ?? undefined,
+      data,
+      ao_vivo_agora: l.ao_vivo,
+      autor_nome: nomeMap.get(l.autor_id) ?? undefined,
+      autor_id: l.autor_id,
+      link: l.link ?? undefined,
+      href: `/live/${l.id}`,
+    });
+  });
+
+  (aulas ?? []).forEach((a: { id: string; titulo: string; descricao: string | null; agendado_para: string | null; link_ao_vivo: string | null; curso_id: string }) => {
+    if (!a.agendado_para) return;
+    const cursoTit = cursoNomeMap.get(a.curso_id) ?? "Curso";
+    eventos.push({
+      id: `aula-${a.id}`,
+      tipo: "aula",
+      titulo: `${a.titulo} · ${cursoTit}`,
+      descricao: a.descricao ?? undefined,
+      data: a.agendado_para,
+      link: a.link_ao_vivo ?? undefined,
+      href: `/curso/${a.curso_id}?aula=${a.id}`,
+    });
+  });
+
+  (cursosNovos ?? []).forEach((c: { id: string; titulo: string; criado_em: string; instrutor_id: string }) => {
+    eventos.push({
+      id: `curso-${c.id}`,
+      tipo: "curso-novo",
+      titulo: c.titulo,
+      data: c.criado_em,
+      autor_nome: nomeMap.get(c.instrutor_id) ?? undefined,
+      autor_id: c.instrutor_id,
+      href: `/curso/${c.id}`,
+    });
+  });
+
+  eventos.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+  return eventos;
+}
+
 // ── LIVES ───────────────────────────────────────────────────────────
 
 export interface Live {
