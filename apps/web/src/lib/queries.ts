@@ -456,7 +456,7 @@ export async function buscarStoriesAtivos(): Promise<StoriesPorAutor[]> {
   return Array.from(grupos.values());
 }
 
-export async function criarStory(foto?: File | null, video?: File | null) {
+export async function criarStory(foto?: File | null, video?: File | null, horas: 12 | 24 = 24) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
@@ -481,9 +481,10 @@ export async function criarStory(foto?: File | null, video?: File | null) {
     video_url = supabase.storage.from("videos").getPublicUrl(path).data.publicUrl;
   }
 
+  const expira_em = new Date(Date.now() + horas * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("stories")
-    .insert({ autor_id: user.id, foto_url, video_url })
+    .insert({ autor_id: user.id, foto_url, video_url, expira_em })
     .select()
     .single();
   if (error) throw new Error(error.message);

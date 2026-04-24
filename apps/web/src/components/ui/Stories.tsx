@@ -11,6 +11,9 @@ export default function Stories() {
   const [meuId, setMeuId] = useState<string | null>(null);
   const [viewerIdx, setViewerIdx] = useState<number | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [duracao, setDuracao] = useState<12 | 24>(24);
+  const [modalTipo, setModalTipo] = useState<null | "escolher" | "duracao">(null);
+  const [tipoEscolhido, setTipoEscolhido] = useState<"foto" | "video">("foto");
   const inputFoto = useRef<HTMLInputElement>(null);
   const inputVideo = useRef<HTMLInputElement>(null);
 
@@ -30,12 +33,13 @@ export default function Stories() {
   async function enviar(foto?: File | null, video?: File | null) {
     setEnviando(true);
     try {
-      await criarStory(foto, video);
+      await criarStory(foto, video, duracao);
       await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
     } finally {
       setEnviando(false);
+      setModalTipo(null);
       if (inputFoto.current) inputFoto.current.value = "";
       if (inputVideo.current) inputVideo.current.value = "";
     }
@@ -52,6 +56,14 @@ export default function Stories() {
     enviar(null, v);
   }
 
+  function iniciarCriacao() {
+    setModalTipo("escolher");
+  }
+  function confirmarCriacao() {
+    if (tipoEscolhido === "foto") inputFoto.current?.click();
+    else inputVideo.current?.click();
+  }
+
   const meuGrupo = meuId ? grupos.find((g) => g.autor_id === meuId) : null;
   const outrosGrupos = meuId ? grupos.filter((g) => g.autor_id !== meuId) : grupos;
   const gruposOrdenados = meuGrupo ? [meuGrupo, ...outrosGrupos] : outrosGrupos;
@@ -64,14 +76,10 @@ export default function Stories() {
         <input ref={inputFoto} type="file" accept="image/*" onChange={handleFoto} style={{ display: "none" }} />
         <input ref={inputVideo} type="file" accept="video/mp4,video/quicktime,video/webm" onChange={handleVideo} style={{ display: "none" }} />
 
-        {/* Botão criar story (sempre primeiro) */}
+        {/* Botão criar pulse (sempre primeiro) */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", flexShrink: 0, cursor: "pointer" }}>
           <div
-            onClick={() => {
-              const escolha = confirm("Escolha: OK = Foto, Cancel = Vídeo");
-              if (escolha) inputFoto.current?.click();
-              else inputVideo.current?.click();
-            }}
+            onClick={iniciarCriacao}
             style={{
               width: "62px", height: "62px", borderRadius: "50%",
               background: "#F5F5F5", border: "2px dashed #A3A3A3",
@@ -82,7 +90,7 @@ export default function Stories() {
           >
             {enviando ? "..." : "+"}
           </div>
-          <span style={{ fontSize: "11px", fontWeight: 600, color: "#525252" }}>Seu story</span>
+          <span style={{ fontSize: "11px", fontWeight: 600, color: "#525252" }}>Seu pulse</span>
         </div>
 
         {gruposOrdenados.map((g, i) => (
@@ -95,7 +103,7 @@ export default function Stories() {
               padding: "2px",
               background: "linear-gradient(135deg, #FF5C2E, #FF8C5A)",
             }}>
-              <div style={{ width: "100%", height: "100%", borderRadius: "50%", border: "2px solid #FFFFFF", overflow: "hidden" }}>
+              <div style={{ width: "100%", height: "100%", borderRadius: "50%", border: "2px solid #FFFFFF", overflow: "hidden", filter: "blur(6px)" }}>
                 <Avatar name={g.autor.nome} foto={g.autor.foto_url} size={54} />
               </div>
             </div>
@@ -105,6 +113,59 @@ export default function Stories() {
           </div>
         ))}
       </div>
+
+      {/* Modal: escolher foto/video + duração */}
+      {modalTipo === "escolher" && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "24px" }}>
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "24px", maxWidth: "380px", width: "100%", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111" }}>Novo pulse</h2>
+
+            <div>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "8px" }}>Tipo</p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                {(["foto", "video"] as const).map((t) => (
+                  <button key={t} onClick={() => setTipoEscolhido(t)} style={{
+                    flex: 1, height: "44px", borderRadius: "12px",
+                    background: tipoEscolhido === t ? "#111111" : "#F5F5F5",
+                    color: tipoEscolhido === t ? "#FFFFFF" : "#111111",
+                    border: "none", cursor: "pointer",
+                    fontSize: "13px", fontWeight: 700, fontFamily: "Inter, sans-serif",
+                    textTransform: "capitalize",
+                  }}>
+                    {t === "foto" ? "📷 Foto" : "🎬 Vídeo"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "8px" }}>Duração</p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                {([12, 24] as const).map((h) => (
+                  <button key={h} onClick={() => setDuracao(h)} style={{
+                    flex: 1, height: "44px", borderRadius: "12px",
+                    background: duracao === h ? "#FF5C2E" : "#F5F5F5",
+                    color: duracao === h ? "#FFFFFF" : "#111111",
+                    border: "none", cursor: "pointer",
+                    fontSize: "13px", fontWeight: 700, fontFamily: "Inter, sans-serif",
+                  }}>
+                    {h}h
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+              <button onClick={() => setModalTipo(null)} style={{ flex: 1, height: "44px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                Cancelar
+              </button>
+              <button onClick={confirmarCriacao} style={{ flex: 1, height: "44px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                Escolher arquivo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {viewerIdx !== null && gruposOrdenados[viewerIdx] && (
         <StoryViewer
@@ -193,7 +254,7 @@ function StoryViewer({ grupo, meuId, onClose, onDeletar, onProximo, onAnterior }
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
           {ehMeu && (
-            <button onClick={() => { if (confirm("Apagar este story?")) onDeletar(storyAtual.id); }}
+            <button onClick={() => { if (confirm("Apagar este pulse?")) onDeletar(storyAtual.id); }}
               style={{ background: "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "none", borderRadius: "999px", padding: "6px 14px", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
               Apagar
             </button>
