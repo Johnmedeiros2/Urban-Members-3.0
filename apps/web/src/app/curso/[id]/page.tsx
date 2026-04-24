@@ -119,6 +119,8 @@ export default function CursoPage() {
   if (!curso) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif" }}>Curso não encontrado</div>;
 
   const ehInstrutor = meuId === curso.instrutor_id;
+  const cursoGratis = Number(curso.preco) === 0;
+  const temAcesso = ehInstrutor || matriculado || cursoGratis;
   const concluidas = aulas.filter((a) => a.concluida).length;
   const percentual = aulas.length > 0 ? Math.round((concluidas / aulas.length) * 100) : 0;
 
@@ -152,12 +154,34 @@ export default function CursoPage() {
 
         {/* Player + Info */}
         <div>
-          <div style={{ background: "#000000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", marginBottom: "20px" }}>
-            {aulaAtual?.video_url ? (
+          <div style={{ background: "#000000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", marginBottom: "20px", position: "relative" }}>
+            {!temAcesso ? (
+              <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#FFFFFF", textAlign: "center", padding: "32px", gap: "14px", background: "linear-gradient(135deg, #111111, #1F1F1F)" }}>
+                <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "rgba(255,92,46,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF5C2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                <div>
+                  <p style={{ fontSize: "11px", fontWeight: 700, color: "#FF5C2E", letterSpacing: "0.1em", textTransform: "uppercase" }}>Conteúdo exclusivo</p>
+                  <h2 style={{ fontSize: "22px", fontWeight: 800, marginTop: "8px", letterSpacing: "-0.02em" }}>Matricule-se para assistir</h2>
+                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "6px", lineHeight: 1.5, maxWidth: "360px" }}>
+                    Este curso tem {aulas.length} {aulas.length === 1 ? "aula disponível" : "aulas disponíveis"} para alunos matriculados.
+                  </p>
+                </div>
+                <button onClick={handleMatricular}
+                  style={{ marginTop: "8px", height: "46px", padding: "0 28px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  {cursoGratis ? "Matricular grátis" : `Matricular por R$ ${Number(curso.preco).toFixed(2).replace(".", ",")}`}
+                </button>
+              </div>
+            ) : aulaAtual?.video_url ? (
               <video
                 key={aulaAtual.id}
                 src={aulaAtual.video_url}
                 controls playsInline preload="metadata"
+                controlsList="nodownload"
+                onContextMenu={(e) => e.preventDefault()}
                 onEnded={() => handleConcluida(aulaAtual)}
                 style={{ width: "100%", height: "100%", display: "block" }}
               />
@@ -185,7 +209,7 @@ export default function CursoPage() {
             )}
           </div>
 
-          {aulaAtual && (
+          {aulaAtual && temAcesso && (
             <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.05)" }}>
               <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#111111", letterSpacing: "-0.02em" }}>{aulaAtual.titulo}</h1>
               {aulaAtual.descricao && (
@@ -254,29 +278,31 @@ export default function CursoPage() {
                   </p>
                 ) : filtradas.map((a, i) => {
                 const ativa = aulaAtual?.id === a.id;
+                const bloqueada = !temAcesso;
                 return (
                   <div key={a.id}
-                    onClick={() => setAulaAtual(a)}
+                    onClick={() => { if (bloqueada) { handleMatricular(); return; } setAulaAtual(a); }}
                     style={{
                       padding: "10px 12px", borderRadius: "10px",
                       background: ativa ? "#FFF3EF" : "#F7F7F8",
                       border: `1px solid ${ativa ? "#FFD4C4" : "transparent"}`,
                       cursor: "pointer",
                       display: "flex", alignItems: "center", gap: "10px",
+                      opacity: bloqueada ? 0.7 : 1,
                     }}
                   >
                     <div style={{
                       width: "24px", height: "24px", borderRadius: "50%",
-                      background: a.concluida ? "#10B981" : ativa ? "#FF5C2E" : "#E5E5E5",
+                      background: bloqueada ? "#A3A3A3" : a.concluida ? "#10B981" : ativa ? "#FF5C2E" : "#E5E5E5",
                       color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: "11px", fontWeight: 800, flexShrink: 0,
                     }}>
-                      {a.concluida ? "✓" : i + 1}
+                      {bloqueada ? "🔒" : a.concluida ? "✓" : i + 1}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.titulo}</p>
                       <p style={{ fontSize: "10px", color: "#A3A3A3" }}>
-                        {a.ao_vivo ? "🔴 Ao vivo" : a.video_url ? "▶ Vídeo" : "Sem mídia"}
+                        {bloqueada ? "Exclusivo para matriculados" : a.ao_vivo ? "🔴 Ao vivo" : a.video_url ? "▶ Vídeo" : "Sem mídia"}
                       </p>
                     </div>
                     {ehInstrutor && (
