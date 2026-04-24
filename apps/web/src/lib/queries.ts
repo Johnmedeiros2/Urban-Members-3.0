@@ -231,6 +231,73 @@ export async function iniciarPagamento(params: {
   return { init_point: data.init_point, transacao_id: data.transacao_id };
 }
 
+// ── LIVES ───────────────────────────────────────────────────────────
+
+export interface Live {
+  id: string;
+  autor_id: string;
+  titulo: string;
+  descricao: string | null;
+  agendado_para: string | null;
+  link: string | null;
+  ao_vivo: boolean;
+  bairro_id: string | null;
+  criado_em: string;
+  autor?: { nome: string; cidade: string | null; foto_url: string | null; urban_score: number } | null;
+}
+
+export async function buscarLives(): Promise<Live[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("lives")
+    .select("*")
+    .order("ao_vivo", { ascending: false })
+    .order("agendado_para", { ascending: true });
+  if (!data || data.length === 0) return [];
+
+  const autorIds = [...new Set(data.map((l: { autor_id: string }) => l.autor_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, cidade, foto_url, urban_score")
+    .in("id", autorIds);
+  const map = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; foto_url: string | null; urban_score: number }) => [p.id, p]));
+  return (data as Live[]).map((l) => ({ ...l, autor: map.get(l.autor_id) ?? null }));
+}
+
+export async function criarLive(params: { titulo: string; descricao?: string; agendado_para?: string | null; link?: string; bairro_id?: string }) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  if (!params.titulo.trim()) throw new Error("Título obrigatório");
+
+  const { data, error } = await supabase
+    .from("lives")
+    .insert({
+      autor_id: user.id,
+      titulo: params.titulo.trim(),
+      descricao: params.descricao ?? null,
+      agendado_para: params.agendado_para ?? null,
+      link: params.link ?? null,
+      bairro_id: params.bairro_id ?? null,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function atualizarLiveStatus(id: string, ao_vivo: boolean) {
+  const supabase = createClient();
+  const { error } = await supabase.from("lives").update({ ao_vivo }).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deletarLive(id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("lives").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 // ── STORIES 24H ─────────────────────────────────────────────────────
 
 export interface Story {
