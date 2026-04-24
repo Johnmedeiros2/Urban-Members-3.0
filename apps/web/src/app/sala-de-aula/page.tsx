@@ -6,6 +6,7 @@ import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import { buscarCursos, criarCurso, matricularCurso, type Curso } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
+import BotaoWishlist from "@/components/ui/BotaoWishlist";
 
 export default function SalaDeAula() {
   const [cursos, setCursos] = useState<Curso[]>([]);
@@ -91,8 +92,11 @@ export default function SalaDeAula() {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
             {cursos.map((curso) => (
-              <div key={curso.id} style={{ background: "#FFFFFF", borderRadius: "18px", padding: "20px", display: "flex", flexDirection: "column", gap: "14px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              <div key={curso.id} style={{ background: "#FFFFFF", borderRadius: "18px", padding: "20px", display: "flex", flexDirection: "column", gap: "14px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", position: "relative" }}>
+                <div style={{ position: "absolute", top: "16px", right: "16px" }}>
+                  <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
+                </div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", paddingRight: "36px" }}>
                   <span style={{ fontSize: "11px", fontWeight: 600, color: "#A3A3A3", padding: "2px 10px", borderRadius: "999px", background: "#F5F5F5" }}>
                     {curso.nivel}
                   </span>

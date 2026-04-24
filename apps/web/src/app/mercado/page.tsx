@@ -7,6 +7,7 @@ import BotaoConvite from "@/components/ui/BotaoConvite";
 import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, produtosEmAlta, type Produto } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 import CarrinhoDrawer from "@/components/ui/CarrinhoDrawer";
+import BotaoWishlist from "@/components/ui/BotaoWishlist";
 import { useCarrinho } from "@/lib/carrinho";
 
 const categorias = ["Todos", "Digital", "Serviços", "Físico", "Cursos", "Consultoria"];
@@ -238,6 +239,9 @@ export default function Mercado() {
                       <span style={{ position: "absolute", top: "12px", right: "12px", background: "#FFFFFF", color: "#525252", fontSize: "11px", fontWeight: 600, padding: "3px 10px", borderRadius: "999px", border: "1px solid #E5E5E5" }}>
                         {produto.categoria}
                       </span>
+                      <div style={{ position: "absolute", top: "10px", left: "10px" }}>
+                        <BotaoWishlist tipo="produto" itemId={produto.id} tamanho="sm" />
+                      </div>
                     </div>
                     <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
                       <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111", lineHeight: 1.4 }}>{produto.nome}</h3>

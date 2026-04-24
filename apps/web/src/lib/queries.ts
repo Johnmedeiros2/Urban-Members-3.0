@@ -536,6 +536,111 @@ export async function deletarStory(id: string) {
   if (error) throw new Error(error.message);
 }
 
+// ── WISHLIST ────────────────────────────────────────────────────────
+
+export interface ItemWishlist {
+  id: string;
+  morador_id: string;
+  produto_id: string | null;
+  curso_id: string | null;
+  criado_em: string;
+  produto?: { id: string; nome: string; preco: number; categoria: string; loja?: { dono_id: string; dono?: { nome: string } | null } | null } | null;
+  curso?: { id: string; titulo: string; preco: number; nivel: string; instrutor_id: string; instrutor?: { nome: string } | null } | null;
+}
+
+export async function minhaWishlist(): Promise<ItemWishlist[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("wishlist")
+    .select("*")
+    .eq("morador_id", user.id)
+    .order("criado_em", { ascending: false });
+  if (!data || data.length === 0) return [];
+
+  const produtoIds = data.filter((w: { produto_id: string | null }) => w.produto_id).map((w: { produto_id: string }) => w.produto_id);
+  const cursoIds = data.filter((w: { curso_id: string | null }) => w.curso_id).map((w: { curso_id: string }) => w.curso_id);
+
+  const [prodRes, cursoRes] = await Promise.all([
+    produtoIds.length > 0
+      ? supabase.from("produtos").select("id, nome, preco, categoria, loja:lojas(dono_id)").in("id", produtoIds)
+      : Promise.resolve({ data: [] }),
+    cursoIds.length > 0
+      ? supabase.from("cursos").select("id, titulo, preco, nivel, instrutor_id").in("id", cursoIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  // Busca donos/instrutores para nome (Supabase retorna joins como array OU objeto)
+  type ProdRow = { id: string; nome: string; preco: number; categoria: string; loja: { dono_id: string }[] | { dono_id: string } | null };
+  type CursoRow = { id: string; titulo: string; preco: number; nivel: string; instrutor_id: string };
+  const prodRows = (prodRes.data ?? []) as ProdRow[];
+  const cursoRows = (cursoRes.data ?? []) as CursoRow[];
+
+  const donoIds = prodRows.map((p) => {
+    const l = Array.isArray(p.loja) ? p.loja[0] : p.loja;
+    return l?.dono_id;
+  }).filter(Boolean) as string[];
+  const instIds = cursoRows.map((c) => c.instrutor_id);
+  const perfilIds = [...new Set([...donoIds, ...instIds])];
+
+  const { data: perfis } = perfilIds.length > 0
+    ? await supabase.from("perfis").select("id, nome").in("id", perfilIds)
+    : { data: [] };
+  const pMap = new Map((perfis ?? []).map((p: { id: string; nome: string }) => [p.id, p]));
+
+  const prodMap = new Map(prodRows.map((p) => {
+    const lojaObj = Array.isArray(p.loja) ? p.loja[0] : p.loja;
+    return [p.id, { ...p, loja: lojaObj ? { ...lojaObj, dono: pMap.get(lojaObj.dono_id) ?? null } : null }];
+  }));
+  const cursoMap = new Map(cursoRows.map((c) => [c.id, { ...c, instrutor: pMap.get(c.instrutor_id) ?? null }]));
+
+  return (data as ItemWishlist[]).map((w) => ({
+    ...w,
+    produto: w.produto_id ? prodMap.get(w.produto_id) as ItemWishlist["produto"] : null,
+    curso: w.curso_id ? cursoMap.get(w.curso_id) as ItemWishlist["curso"] : null,
+  }));
+}
+
+export async function idsDaWishlist(): Promise<{ produtos: Set<string>; cursos: Set<string> }> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { produtos: new Set(), cursos: new Set() };
+  const { data } = await supabase
+    .from("wishlist")
+    .select("produto_id, curso_id")
+    .eq("morador_id", user.id);
+  return {
+    produtos: new Set((data ?? []).filter((w: { produto_id: string | null }) => w.produto_id).map((w: { produto_id: string }) => w.produto_id)),
+    cursos:   new Set((data ?? []).filter((w: { curso_id: string | null }) => w.curso_id).map((w: { curso_id: string }) => w.curso_id)),
+  };
+}
+
+export async function toggleWishlist(tipo: "produto" | "curso", itemId: string): Promise<boolean> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+
+  const col = tipo === "produto" ? "produto_id" : "curso_id";
+  const { data: existe } = await supabase
+    .from("wishlist")
+    .select("id")
+    .eq("morador_id", user.id)
+    .eq(col, itemId)
+    .maybeSingle();
+
+  if (existe) {
+    await supabase.from("wishlist").delete().eq("id", (existe as { id: string }).id);
+    return false;
+  } else {
+    const payload: Record<string, string> = { morador_id: user.id };
+    payload[col] = itemId;
+    await supabase.from("wishlist").insert(payload);
+    return true;
+  }
+}
+
 // ── CUPONS ──────────────────────────────────────────────────────────
 
 export interface Cupom {
