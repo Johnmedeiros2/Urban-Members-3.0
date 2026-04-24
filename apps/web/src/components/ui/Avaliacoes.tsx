@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { buscarAvaliacoes, criarAvaliacao, deletarAvaliacao, mediaAvaliacao, type Avaliacao, type MediaAvaliacao } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 import Avatar from "./Avatar";
@@ -27,6 +27,12 @@ export default function Avaliacoes({ produtoId, cursoId }: Props) {
   const [estrelas, setEstrelas] = useState(0);
   const [comentario, setComentario] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [foto, setFoto] = useState<File | null>(null);
+  const [previewFoto, setPreviewFoto] = useState<string | null>(null);
+  const [video, setVideo] = useState<File | null>(null);
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+  const fotoRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -49,15 +55,30 @@ export default function Avaliacoes({ produtoId, cursoId }: Props) {
     if (estrelas < 1 || enviando) return;
     setEnviando(true);
     try {
-      await criarAvaliacao({ produto_id: produtoId, curso_id: cursoId, estrelas, comentario });
+      await criarAvaliacao({ produto_id: produtoId, curso_id: cursoId, estrelas, comentario, foto, video });
       setEstrelas(0);
       setComentario("");
+      setFoto(null); setPreviewFoto(null);
+      setVideo(null); setPreviewVideo(null);
+      if (fotoRef.current) fotoRef.current.value = "";
+      if (videoRef.current) videoRef.current.value = "";
       await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
     } finally {
       setEnviando(false);
     }
+  }
+
+  function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f) return;
+    if (f.size > 5 * 1024 * 1024) { alert("Máx 5MB"); return; }
+    setFoto(f); setPreviewFoto(URL.createObjectURL(f));
+  }
+  function handleVideo(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = e.target.files?.[0]; if (!v) return;
+    if (v.size > 50 * 1024 * 1024) { alert("Máx 50MB"); return; }
+    setVideo(v); setPreviewVideo(URL.createObjectURL(v));
   }
 
   async function apagar(id: string) {
@@ -107,6 +128,35 @@ export default function Avaliacoes({ produtoId, cursoId }: Props) {
               boxSizing: "border-box",
             }}
           />
+
+          <input ref={fotoRef} type="file" accept="image/*" onChange={handleFoto} style={{ display: "none" }} />
+          <input ref={videoRef} type="file" accept="video/mp4,video/quicktime,video/webm" onChange={handleVideo} style={{ display: "none" }} />
+
+          <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+            <button onClick={() => fotoRef.current?.click()} style={{ height: "32px", padding: "0 12px", background: "#F5F5F5", color: "#111111", border: "none", borderRadius: "999px", fontSize: "11px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+              📷 Foto
+            </button>
+            <button onClick={() => videoRef.current?.click()} style={{ height: "32px", padding: "0 12px", background: "#F5F5F5", color: "#111111", border: "none", borderRadius: "999px", fontSize: "11px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+              🎬 Vídeo
+            </button>
+          </div>
+
+          {previewFoto && (
+            <div style={{ position: "relative", marginTop: "8px", borderRadius: "10px", overflow: "hidden", maxHeight: "200px" }}>
+              <img src={previewFoto} alt="preview" style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }} />
+              <button onClick={() => { setFoto(null); setPreviewFoto(null); if (fotoRef.current) fotoRef.current.value = ""; }}
+                style={{ position: "absolute", top: "6px", right: "6px", width: "24px", height: "24px", borderRadius: "50%", background: "rgba(0,0,0,0.7)", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: "12px" }}>×</button>
+            </div>
+          )}
+
+          {previewVideo && (
+            <div style={{ position: "relative", marginTop: "8px", borderRadius: "10px", overflow: "hidden", maxHeight: "240px", background: "#000000" }}>
+              <video src={previewVideo} controls style={{ width: "100%", maxHeight: "240px", display: "block" }} />
+              <button onClick={() => { setVideo(null); setPreviewVideo(null); if (videoRef.current) videoRef.current.value = ""; }}
+                style={{ position: "absolute", top: "6px", right: "6px", width: "24px", height: "24px", borderRadius: "50%", background: "rgba(0,0,0,0.7)", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: "12px" }}>×</button>
+            </div>
+          )}
+
           <button
             onClick={enviar}
             disabled={estrelas < 1 || enviando}
@@ -152,6 +202,16 @@ export default function Avaliacoes({ produtoId, cursoId }: Props) {
               </div>
               {a.comentario && (
                 <p style={{ fontSize: "13px", color: "#111111", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{a.comentario}</p>
+              )}
+              {a.foto_url && (
+                <div style={{ marginTop: "8px", borderRadius: "10px", overflow: "hidden", maxHeight: "280px" }}>
+                  <img src={a.foto_url} alt="Foto da avaliação" style={{ width: "100%", maxHeight: "280px", objectFit: "cover", display: "block" }} />
+                </div>
+              )}
+              {a.video_url && (
+                <div style={{ marginTop: "8px", borderRadius: "10px", overflow: "hidden", background: "#000000", maxHeight: "320px" }}>
+                  <video src={a.video_url} controls playsInline preload="metadata" style={{ width: "100%", maxHeight: "320px", display: "block" }} />
+                </div>
               )}
             </div>
           </div>

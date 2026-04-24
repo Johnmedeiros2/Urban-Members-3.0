@@ -581,6 +581,8 @@ export interface Avaliacao {
   autor_id: string;
   estrelas: number;
   comentario: string | null;
+  foto_url: string | null;
+  video_url: string | null;
   criado_em: string;
   autor?: { nome: string; foto_url: string | null } | null;
 }
@@ -619,12 +621,30 @@ export async function mediaAvaliacao(produto_id?: string, curso_id?: string): Pr
   return { media: soma / data.length, total: data.length };
 }
 
-export async function criarAvaliacao(params: { produto_id?: string; curso_id?: string; estrelas: number; comentario?: string }) {
+export async function criarAvaliacao(params: { produto_id?: string; curso_id?: string; estrelas: number; comentario?: string; foto?: File | null; video?: File | null }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
   if (params.estrelas < 1 || params.estrelas > 5) throw new Error("Avaliação inválida");
   if (!params.produto_id && !params.curso_id) throw new Error("Produto ou curso obrigatório");
+
+  let foto_url: string | null = null;
+  let video_url: string | null = null;
+
+  if (params.foto) {
+    const ext = params.foto.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/review-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("posts").upload(path, params.foto, { cacheControl: "3600" });
+    if (error) throw new Error(error.message);
+    foto_url = supabase.storage.from("posts").getPublicUrl(path).data.publicUrl;
+  }
+  if (params.video) {
+    const ext = params.video.name.split(".").pop() ?? "mp4";
+    const path = `${user.id}/review-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("videos").upload(path, params.video, { cacheControl: "3600", contentType: params.video.type });
+    if (error) throw new Error(`Vídeo: ${error.message}`);
+    video_url = supabase.storage.from("videos").getPublicUrl(path).data.publicUrl;
+  }
 
   const { data, error } = await supabase
     .from("avaliacoes")
@@ -634,6 +654,8 @@ export async function criarAvaliacao(params: { produto_id?: string; curso_id?: s
       autor_id: user.id,
       estrelas: params.estrelas,
       comentario: params.comentario?.trim() || null,
+      foto_url,
+      video_url,
     })
     .select()
     .single();
