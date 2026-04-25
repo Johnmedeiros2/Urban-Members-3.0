@@ -8,14 +8,48 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Urban Members",
-  description: "A primeira cidade digital brasileira.",
+  title: {
+    default: "Urban Members — A primeira cidade digital brasileira",
+    template: "%s · Urban Members",
+  },
+  description: "Urban Members é a primeira cidade digital brasileira. Conecte-se, aprenda, venda e cresça num só lugar.",
+  applicationName: "Urban Members",
+  authors: [{ name: "Urban Members" }],
+  keywords: ["cidade digital", "rede social", "educação", "marketplace", "Brasil", "criadores"],
+  metadataBase: new URL("https://urbanicsa.com"),
   icons: {
     icon: [
-      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/logo.svg", type: "image/svg+xml", sizes: "any" },
     ],
-    shortcut: "/logo.svg",
+    shortcut: "/icon.svg",
     apple: "/logo.svg",
+  },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://urbanicsa.com",
+    siteName: "Urban Members",
+    title: "Urban Members — A primeira cidade digital brasileira",
+    description: "Conecte-se, aprenda, venda e cresça num só lugar.",
+    images: [
+      {
+        url: "/logo.svg",
+        width: 1200,
+        height: 630,
+        alt: "Urban Members",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Urban Members",
+    description: "A primeira cidade digital brasileira.",
+    images: ["/logo.svg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
