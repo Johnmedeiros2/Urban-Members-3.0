@@ -270,6 +270,232 @@ export async function iniciarPagamento(params: {
   return { init_point: data.init_point, transacao_id: data.transacao_id };
 }
 
+// ── URBAN ACADEMY AI — Trilhas adaptativas ───────────────────────────
+
+export interface Trilha {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  publico_alvo: string | null;
+  area: string | null;
+  nivel: string;
+  total_atomos: number;
+  ativa: boolean;
+  capa_url: string | null;
+  criado_em: string;
+}
+
+export interface Atomo {
+  id: string;
+  trilha_id: string;
+  titulo: string;
+  descricao: string | null;
+  ordem: number;
+  nivel_bloom: string | null;
+  tempo_estimado_min: number;
+  video_url: string | null;
+  resumo_md: string | null;
+  pre_requisitos: string[];
+  ativo: boolean;
+  dominio_pct?: number;       // populado quando carrega pra um aluno específico
+}
+
+export interface Exercicio {
+  id: string;
+  atomo_id: string;
+  enunciado: string;
+  tipo: "multipla" | "input" | "verdadeiro_falso";
+  alternativas: { texto: string; correta: boolean }[] | null;
+  gabarito: string;
+  feedback_erro: string | null;
+  dificuldade: number;
+}
+
+export interface QuestaoDiagnostico {
+  id: string;
+  atomo_id: string;
+  enunciado: string;
+  alternativas: { texto: string; correta: boolean }[];
+  dificuldade: number;
+}
+
+export async function buscarTrilhas(): Promise<Trilha[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("trilhas")
+    .select("*")
+    .eq("ativa", true)
+    .order("criado_em", { ascending: false });
+  return (data ?? []) as Trilha[];
+}
+
+export async function buscarTrilha(id: string): Promise<Trilha | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("trilhas")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  return data as Trilha | null;
+}
+
+export async function buscarAtomos(trilha_id: string): Promise<Atomo[]> {
+  const supabase = createClient();
+  const { data: atomos } = await supabase
+    .from("atomos")
+    .select("*")
+    .eq("trilha_id", trilha_id)
+    .eq("ativo", true)
+    .order("ordem", { ascending: true });
+
+  if (!atomos) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return atomos as Atomo[];
+
+  const ids = atomos.map((a: { id: string }) => a.id);
+  const { data: progresso } = await supabase
+    .from("progresso_aluno_atomo")
+    .select("atomo_id, dominio_pct")
+    .eq("aluno_id", user.id)
+    .in("atomo_id", ids);
+
+  const map = new Map((progresso ?? []).map((p: { atomo_id: string; dominio_pct: number }) => [p.atomo_id, p.dominio_pct]));
+  return (atomos as Atomo[]).map((a) => ({ ...a, dominio_pct: map.get(a.id) ?? 0 }));
+}
+
+export async function buscarAtomo(atomo_id: string): Promise<Atomo | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("atomos")
+    .select("*")
+    .eq("id", atomo_id)
+    .maybeSingle();
+  if (!data) return null;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return data as Atomo;
+
+  const { data: progresso } = await supabase
+    .from("progresso_aluno_atomo")
+    .select("dominio_pct")
+    .eq("aluno_id", user.id)
+    .eq("atomo_id", atomo_id)
+    .maybeSingle();
+
+  return { ...(data as Atomo), dominio_pct: (progresso as { dominio_pct: number } | null)?.dominio_pct ?? 0 };
+}
+
+export async function buscarExercicios(atomo_id: string): Promise<Exercicio[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("exercicios")
+    .select("*")
+    .eq("atomo_id", atomo_id)
+    .order("dificuldade", { ascending: true });
+  return (data ?? []) as Exercicio[];
+}
+
+export async function buscarQuestoesDiagnostico(trilha_id: string, limite = 15): Promise<QuestaoDiagnostico[]> {
+  const supabase = createClient();
+  // pega questões dos átomos da trilha
+  const { data: atomos } = await supabase
+    .from("atomos")
+    .select("id")
+    .eq("trilha_id", trilha_id);
+  if (!atomos || atomos.length === 0) return [];
+  const ids = atomos.map((a: { id: string }) => a.id);
+
+  const { data } = await supabase
+    .from("questoes_diagnostico")
+    .select("*")
+    .in("atomo_id", ids)
+    .limit(limite);
+  return (data ?? []) as QuestaoDiagnostico[];
+}
+
+export async function matricularTrilha(trilha_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  const { error } = await supabase
+    .from("trilha_alunos")
+    .insert({ trilha_id, aluno_id: user.id });
+  if (error && !error.message.includes("duplicate")) throw new Error(error.message);
+}
+
+export async function registrarTentativa(exercicio_id: string, acertou: boolean, resposta: string, atomo_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+
+  // Salva tentativa
+  await supabase.from("tentativas_exercicio").insert({
+    aluno_id: user.id,
+    exercicio_id,
+    acertou,
+    resposta,
+  });
+
+  // Atualiza progresso (lógica simples: cada acerto sobe 20%, cada erro -10%, capa em [0, 100])
+  const { data: existente } = await supabase
+    .from("progresso_aluno_atomo")
+    .select("*")
+    .eq("aluno_id", user.id)
+    .eq("atomo_id", atomo_id)
+    .maybeSingle();
+
+  if (existente) {
+    const e = existente as { dominio_pct: number; tentativas_total: number; acertos_total: number };
+    const novoPct = Math.max(0, Math.min(100, e.dominio_pct + (acertou ? 20 : -10)));
+    await supabase
+      .from("progresso_aluno_atomo")
+      .update({
+        dominio_pct: novoPct,
+        tentativas_total: e.tentativas_total + 1,
+        acertos_total: e.acertos_total + (acertou ? 1 : 0),
+        ultima_atualizacao: new Date().toISOString(),
+      })
+      .eq("aluno_id", user.id)
+      .eq("atomo_id", atomo_id);
+  } else {
+    await supabase.from("progresso_aluno_atomo").insert({
+      aluno_id: user.id,
+      atomo_id,
+      dominio_pct: acertou ? 20 : 0,
+      tentativas_total: 1,
+      acertos_total: acertou ? 1 : 0,
+    });
+  }
+}
+
+export async function progressoTrilha(trilha_id: string): Promise<{ totalAtomos: number; dominados: number; em_progresso: number; percentual: number }> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { totalAtomos: 0, dominados: 0, em_progresso: 0, percentual: 0 };
+
+  const { data: atomos } = await supabase
+    .from("atomos")
+    .select("id")
+    .eq("trilha_id", trilha_id)
+    .eq("ativo", true);
+
+  if (!atomos || atomos.length === 0) return { totalAtomos: 0, dominados: 0, em_progresso: 0, percentual: 0 };
+  const ids = atomos.map((a: { id: string }) => a.id);
+
+  const { data: progresso } = await supabase
+    .from("progresso_aluno_atomo")
+    .select("dominio_pct")
+    .eq("aluno_id", user.id)
+    .in("atomo_id", ids);
+
+  const dominados = (progresso ?? []).filter((p: { dominio_pct: number }) => p.dominio_pct >= 80).length;
+  const em_progresso = (progresso ?? []).filter((p: { dominio_pct: number }) => p.dominio_pct > 0 && p.dominio_pct < 80).length;
+  const percentual = Math.round((dominados / atomos.length) * 100);
+
+  return { totalAtomos: atomos.length, dominados, em_progresso, percentual };
+}
+
 // ── AGENDA (Calendário do morador) ──────────────────────────────────
 
 export interface EventoAgenda {
