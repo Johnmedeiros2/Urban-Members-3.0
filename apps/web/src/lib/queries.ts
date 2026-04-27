@@ -1976,6 +1976,66 @@ export async function saldoComissoes() {
 
 // ── CONEXÕES ────────────────────────────────────────────────────────
 
+export interface BairroComContagem {
+  id: string;
+  label: string;
+  descricao: string | null;
+  total_membros: number;
+}
+
+export async function todosBairrosComContagem(busca = ""): Promise<BairroComContagem[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from("bairros")
+    .select("id, label, descricao");
+  if (busca.trim()) {
+    query = query.or(`label.ilike.%${busca}%,descricao.ilike.%${busca}%`);
+  }
+  const { data: bairros } = await query;
+  if (!bairros) return [];
+
+  // Conta membros de cada bairro
+  const ids = bairros.map((b: { id: string }) => b.id);
+  const { data: membros } = await supabase
+    .from("bairro_membros")
+    .select("bairro_id")
+    .in("bairro_id", ids);
+
+  const contagem = new Map<string, number>();
+  (membros ?? []).forEach((m: { bairro_id: string }) => {
+    contagem.set(m.bairro_id, (contagem.get(m.bairro_id) ?? 0) + 1);
+  });
+
+  return (bairros as { id: string; label: string; descricao: string | null }[]).map((b) => ({
+    ...b,
+    total_membros: contagem.get(b.id) ?? 0,
+  }));
+}
+
+export async function buscarLojasComBusca(termo = "") {
+  const supabase = createClient();
+  let query = supabase
+    .from("lojas")
+    .select("id, nome, descricao, total_vendas, dono_id");
+  if (termo.trim()) {
+    query = query.or(`nome.ilike.%${termo}%,descricao.ilike.%${termo}%`);
+  }
+  const { data } = await query.order("total_vendas", { ascending: false }).limit(50);
+  if (!data) return [];
+
+  const donoIds = data.map((l: { dono_id: string }) => l.dono_id);
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, foto_url, cidade")
+    .in("id", donoIds);
+  const map = new Map((perfis ?? []).map((p: { id: string; nome: string; foto_url: string | null; cidade: string | null }) => [p.id, p]));
+
+  return data.map((l: { id: string; nome: string; descricao: string | null; total_vendas: number; dono_id: string }) => ({
+    ...l,
+    dono: map.get(l.dono_id) ?? null,
+  }));
+}
+
 export async function todosMoradores(busca = "") {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

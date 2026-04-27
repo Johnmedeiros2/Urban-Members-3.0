@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase";
 
 const neighborhoods = [
   { label: "Início",       active: true,  href: "/feed"             },
-  { label: "Buscar",       active: false, href: "/moradores"        },
+  { label: "Buscar",       active: false, href: "/buscar"           },
   { label: "Bairros",      active: false, href: "/bairros/negocios" },
   { label: "Pulse",        active: false, href: "/pulse"            },
   { label: "Arte",         active: false, href: "/bairros/arte"     },
