@@ -15,15 +15,14 @@ import { createClient } from "@/lib/supabase";
 
 const neighborhoods = [
   { label: "Início",       active: true,  href: "/feed"             },
-  { label: "Moradores",    active: false, href: "/moradores"        },
+  { label: "Buscar",       active: false, href: "/moradores"        },
   { label: "Bairros",      active: false, href: "/bairros/negocios" },
   { label: "Pulse",        active: false, href: "/pulse"            },
+  { label: "Arte",         active: false, href: "/bairros/arte"     },
   { label: "Trilhas",      active: false, href: "/trilhas"          },
   { label: "Lives",        active: false, href: "/lives"            },
   { label: "Agenda",       active: false, href: "/agenda"           },
   { label: "Mercado",      active: false, href: "/mercado"          },
-  { label: "Negócios",     active: false, href: "/bairros/negocios" },
-  { label: "Arte",         active: false, href: "/bairros/arte"     },
   { label: "Sala de Aula", active: false, href: "/sala-de-aula"     },
 ];
 
