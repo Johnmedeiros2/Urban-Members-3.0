@@ -263,6 +263,11 @@ export default function Perfil() {
                     Salvos
                   </button>
                 </a>
+                <a href="/empresa/nova" style={{ textDecoration: "none" }}>
+                  <button style={{ height: "36px", padding: "0 16px", background: "#F5F5F5", color: "#111111", border: "1.5px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    + Empresa
+                  </button>
+                </a>
                 <BotaoConvite variant="ghost" />
                 <button onClick={() => { setEditando(!editando); setNomeEdit(perfil.nome); }} style={{ height: "36px", padding: "0 20px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
                   {editando ? "Cancelar" : "Editar perfil"}

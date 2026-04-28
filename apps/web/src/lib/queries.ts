@@ -1976,6 +1976,204 @@ export async function saldoComissoes() {
 
 // ── CONEXÕES ────────────────────────────────────────────────────────
 
+// ── EMPRESAS — Pessoa Jurídica ──────────────────────────────────────
+
+export interface Empresa {
+  id: string;
+  dono_id: string;
+  nome_fantasia: string;
+  razao_social: string | null;
+  cnpj: string | null;
+  segmento: string | null;
+  descricao: string | null;
+  foto_url: string | null;
+  capa_url: string | null;
+  cidade: string | null;
+  estado: string | null;
+  pais: string | null;
+  site: string | null;
+  email_contato: string | null;
+  telefone: string | null;
+  ativa: boolean;
+  total_seguidores: number;
+  total_produtos: number;
+  total_cursos: number;
+  urban_score: number;
+  criado_em: string;
+  dono?: { id: string; nome: string; foto_url: string | null } | null;
+}
+
+export const SEGMENTOS_EMPRESA = [
+  "Tecnologia",
+  "Educação",
+  "Comércio",
+  "Serviços",
+  "Saúde",
+  "Alimentação",
+  "Moda",
+  "Beleza",
+  "Construção",
+  "Marketing",
+  "Consultoria",
+  "Arte e Cultura",
+  "Esporte",
+  "Outro",
+];
+
+export async function buscarEmpresas(termo = ""): Promise<Empresa[]> {
+  const supabase = createClient();
+  let query = supabase
+    .from("empresas")
+    .select("*")
+    .eq("ativa", true);
+  if (termo.trim()) {
+    query = query.or(`nome_fantasia.ilike.%${termo}%,razao_social.ilike.%${termo}%,segmento.ilike.%${termo}%,descricao.ilike.%${termo}%`);
+  }
+  const { data } = await query.order("total_seguidores", { ascending: false }).limit(50);
+  if (!data) return [];
+
+  const donoIds = [...new Set(data.map((e: { dono_id: string }) => e.dono_id))];
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, foto_url")
+    .in("id", donoIds);
+  const map = new Map((perfis ?? []).map((p: { id: string; nome: string; foto_url: string | null }) => [p.id, p]));
+  return (data as Empresa[]).map((e) => ({ ...e, dono: map.get(e.dono_id) ?? null }));
+}
+
+export async function buscarEmpresa(id: string): Promise<Empresa | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("empresas")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (!data) return null;
+  const empresa = data as Empresa;
+  const { data: dono } = await supabase
+    .from("perfis")
+    .select("id, nome, foto_url")
+    .eq("id", empresa.dono_id)
+    .maybeSingle();
+  return { ...empresa, dono: dono as { id: string; nome: string; foto_url: string | null } | null };
+}
+
+export async function minhasEmpresas(): Promise<Empresa[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data } = await supabase
+    .from("empresas")
+    .select("*")
+    .eq("dono_id", user.id)
+    .order("criado_em", { ascending: false });
+  return (data ?? []) as Empresa[];
+}
+
+export async function criarEmpresa(params: {
+  nome_fantasia: string;
+  razao_social?: string;
+  cnpj?: string;
+  segmento?: string;
+  descricao?: string;
+  cidade?: string;
+  estado?: string;
+  site?: string;
+  email_contato?: string;
+  telefone?: string;
+  foto?: File | null;
+}): Promise<Empresa> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+  if (!params.nome_fantasia.trim()) throw new Error("Nome fantasia obrigatório");
+
+  let foto_url: string | null = null;
+  if (params.foto) {
+    const ext = params.foto.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/logo-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("empresas").upload(path, params.foto, { cacheControl: "3600" });
+    if (error) throw new Error(`Logo: ${error.message}`);
+    foto_url = supabase.storage.from("empresas").getPublicUrl(path).data.publicUrl;
+  }
+
+  const { data, error } = await supabase
+    .from("empresas")
+    .insert({
+      dono_id: user.id,
+      nome_fantasia: params.nome_fantasia.trim(),
+      razao_social: params.razao_social?.trim() || null,
+      cnpj: params.cnpj?.trim() || null,
+      segmento: params.segmento || null,
+      descricao: params.descricao?.trim() || null,
+      cidade: params.cidade?.trim() || null,
+      estado: params.estado?.trim() || null,
+      site: params.site?.trim() || null,
+      email_contato: params.email_contato?.trim() || null,
+      telefone: params.telefone?.trim() || null,
+      foto_url,
+    })
+    .select()
+    .single();
+  if (error) {
+    if (error.message.includes("idx_empresas_cnpj_unique") || error.code === "23505") {
+      throw new Error("Esse CNPJ já está cadastrado");
+    }
+    throw new Error(error.message);
+  }
+  return data as Empresa;
+}
+
+export async function atualizarEmpresa(id: string, params: Partial<Empresa>) {
+  const supabase = createClient();
+  const { error } = await supabase.from("empresas").update(params).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deletarEmpresa(id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("empresas").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function seguirEmpresa(empresa_id: string): Promise<boolean> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado");
+
+  const { data: existe } = await supabase
+    .from("empresa_seguidores")
+    .select("empresa_id")
+    .eq("empresa_id", empresa_id)
+    .eq("morador_id", user.id)
+    .maybeSingle();
+
+  if (existe) {
+    await supabase
+      .from("empresa_seguidores")
+      .delete()
+      .eq("empresa_id", empresa_id)
+      .eq("morador_id", user.id);
+    return false;
+  } else {
+    await supabase
+      .from("empresa_seguidores")
+      .insert({ empresa_id, morador_id: user.id });
+    return true;
+  }
+}
+
+export async function meusSeguindoEmpresas(): Promise<Set<string>> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return new Set();
+  const { data } = await supabase
+    .from("empresa_seguidores")
+    .select("empresa_id")
+    .eq("morador_id", user.id);
+  return new Set((data ?? []).map((e: { empresa_id: string }) => e.empresa_id));
+}
+
 export interface BairroComContagem {
   id: string;
   label: string;

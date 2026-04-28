@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { todosMoradores, buscarLojasComBusca, todosBairrosComContagem, minhasConexoesIds, conectarCom, desconectarDe, type BairroComContagem } from "@/lib/queries";
+import { todosMoradores, buscarEmpresas, todosBairrosComContagem, minhasConexoesIds, conectarCom, desconectarDe, seguirEmpresa, meusSeguindoEmpresas, type BairroComContagem, type Empresa } from "@/lib/queries";
 
 interface Morador {
   id: string;
@@ -17,39 +17,33 @@ interface Morador {
   foto_url: string | null;
 }
 
-interface Loja {
-  id: string;
-  nome: string;
-  descricao: string | null;
-  total_vendas: number;
-  dono_id: string;
-  dono: { id: string; nome: string; foto_url: string | null; cidade: string | null } | null;
-}
-
 type Aba = "pessoas" | "empresas" | "grupos";
 
 export default function BuscarPage() {
   const [aba, setAba] = useState<Aba>("pessoas");
   const [busca, setBusca] = useState("");
   const [moradores, setMoradores] = useState<Morador[]>([]);
-  const [lojas, setLojas] = useState<Loja[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [bairros, setBairros] = useState<BairroComContagem[]>([]);
   const [conexoes, setConexoes] = useState<Set<string>>(new Set());
+  const [seguindoEmpresas, setSeguindoEmpresas] = useState<Set<string>>(new Set());
   const [carregando, setCarregando] = useState(true);
   const [acao, setAcao] = useState<string | null>(null);
 
   const carregar = useCallback(async (termo = "") => {
     setCarregando(true);
-    const [m, l, b, c] = await Promise.all([
+    const [m, e, b, c, sE] = await Promise.all([
       todosMoradores(termo),
-      buscarLojasComBusca(termo),
+      buscarEmpresas(termo),
       todosBairrosComContagem(termo),
       minhasConexoesIds(),
+      meusSeguindoEmpresas(),
     ]);
     setMoradores(m as Morador[]);
-    setLojas(l as Loja[]);
+    setEmpresas(e);
     setBairros(b);
     setConexoes(c);
+    setSeguindoEmpresas(sE);
     setCarregando(false);
   }, []);
 
@@ -82,7 +76,21 @@ export default function BuscarPage() {
     }
   }
 
-  const totalResultados = moradores.length + lojas.length + bairros.length;
+  async function toggleSeguirEmpresa(id: string) {
+    setAcao(id);
+    try {
+      const novo = await seguirEmpresa(id);
+      setSeguindoEmpresas((prev) => {
+        const nova = new Set(prev);
+        if (novo) nova.add(id); else nova.delete(id);
+        return nova;
+      });
+    } finally {
+      setAcao(null);
+    }
+  }
+
+  const totalResultados = moradores.length + empresas.length + bairros.length;
 
   return (
     <div style={{ minHeight: "100vh", background: "#F7F7F8", fontFamily: "Inter, sans-serif" }}>
@@ -133,7 +141,7 @@ export default function BuscarPage() {
         <div style={{ display: "flex", gap: "6px", marginBottom: "20px", borderBottom: "1px solid #E5E5E5", overflowX: "auto" }}>
           {([
             { id: "pessoas"  as const, label: "👤 Pessoas",  count: moradores.length },
-            { id: "empresas" as const, label: "🏪 Empresas", count: lojas.length     },
+            { id: "empresas" as const, label: "🏢 Empresas", count: empresas.length  },
             { id: "grupos"   as const, label: "🏘️ Grupos",   count: bairros.length   },
           ]).map((t) => (
             <button key={t.id} onClick={() => setAba(t.id)} style={{
@@ -192,30 +200,59 @@ export default function BuscarPage() {
             </div>
           )
         ) : aba === "empresas" ? (
-          lojas.length === 0 ? (
-            <p style={{ fontSize: "13px", color: "#A3A3A3", textAlign: "center", padding: "32px" }}>Nenhuma empresa encontrada.</p>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
-              {lojas.map((l) => (
-                <a key={l.id} href="/mercado" style={{ textDecoration: "none" }}>
-                  <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "18px", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px", cursor: "pointer", height: "100%" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "#FFF3EF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🏪</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.nome}</p>
-                        <p style={{ fontSize: "11px", color: "#A3A3A3" }}>por {l.dono?.nome ?? "Vendedor"}</p>
+          <>
+            <div style={{ marginBottom: "16px", display: "flex", justifyContent: "flex-end" }}>
+              <a href="/empresa/nova" style={{ textDecoration: "none" }}>
+                <button style={{ height: "36px", padding: "0 16px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  + Cadastrar empresa
+                </button>
+              </a>
+            </div>
+            {empresas.length === 0 ? (
+              <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "40px 24px", textAlign: "center", border: "1px solid rgba(0,0,0,0.05)" }}>
+                <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "#FFF3EF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", margin: "0 auto 14px" }}>🏢</div>
+                <p style={{ fontSize: "15px", fontWeight: 700, color: "#111111" }}>Nenhuma empresa cadastrada</p>
+                <p style={{ fontSize: "13px", color: "#A3A3A3", marginTop: "6px" }}>Seja o primeiro a cadastrar sua empresa na cidade.</p>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
+                {empresas.map((e) => {
+                  const seguindo = seguindoEmpresas.has(e.id);
+                  return (
+                    <div key={e.id} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "18px", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px", height: "100%" }}>
+                      <a href={`/empresa/${e.id}`} style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}>
+                        {e.foto_url ? (
+                          <img src={e.foto_url} alt={e.nome_fantasia} style={{ width: "44px", height: "44px", borderRadius: "10px", objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "linear-gradient(135deg, #FF5C2E, #FF8C5A)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", color: "#FFFFFF", fontWeight: 800 }}>
+                            {e.nome_fantasia.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.nome_fantasia}</p>
+                          <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{e.segmento || "Empresa"}{e.cidade ? ` · ${e.cidade}` : ""}</p>
+                        </div>
+                      </a>
+                      {e.descricao && <p style={{ fontSize: "12px", color: "#525252", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{e.descricao}</p>}
+                      <div style={{ marginTop: "auto", paddingTop: "10px", borderTop: "1px solid #F5F5F5", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: "11px", color: "#A3A3A3" }}>{e.total_seguidores} {e.total_seguidores === 1 ? "seguidor" : "seguidores"}</span>
+                        <button onClick={() => toggleSeguirEmpresa(e.id)} disabled={acao === e.id} style={{
+                          height: "30px", padding: "0 12px",
+                          background: seguindo ? "#F5F5F5" : "#111111",
+                          color: seguindo ? "#111111" : "#FFFFFF",
+                          border: seguindo ? "1.5px solid #E5E5E5" : "none",
+                          borderRadius: "999px", fontSize: "11px", fontWeight: 700,
+                          cursor: "pointer", fontFamily: "Inter, sans-serif",
+                        }}>
+                          {acao === e.id ? "..." : seguindo ? "✓ Seguindo" : "Seguir"}
+                        </button>
                       </div>
                     </div>
-                    {l.descricao && <p style={{ fontSize: "12px", color: "#525252", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{l.descricao}</p>}
-                    <div style={{ marginTop: "auto", paddingTop: "8px", borderTop: "1px solid #F5F5F5", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: "11px", color: "#A3A3A3" }}>{l.total_vendas} vendas</span>
-                      <span style={{ fontSize: "11px", color: "#FF5C2E", fontWeight: 700 }}>Ver loja →</span>
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )
+                  );
+                })}
+              </div>
+            )}
+          </>
         ) : (
           // Grupos / Bairros
           bairros.length === 0 ? (
