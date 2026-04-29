@@ -10,7 +10,7 @@ import CarrinhoDrawer from "@/components/ui/CarrinhoDrawer";
 import BotaoWishlist from "@/components/ui/BotaoWishlist";
 import { useCarrinho } from "@/lib/carrinho";
 
-const categorias = ["Todos", "Digital", "Serviços", "Físico", "Cursos", "Consultoria"];
+const categorias = ["Todos", "Digital", "Serviços", "Físico", "Cursos", "Consultoria", "Arte"];
 
 interface LojaComDono {
   id: string;
@@ -383,7 +383,7 @@ export default function Mercado() {
                 style={{ flex: 1, height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }} />
               <select value={catProd} onChange={(e) => setCatProd(e.target.value)}
                 style={{ flex: 1, height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }}>
-                {["Digital", "Serviços", "Físico", "Cursos", "Consultoria"].map((c) => <option key={c} value={c}>{c}</option>)}
+                {["Digital", "Serviços", "Físico", "Cursos", "Consultoria", "Arte"].map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div style={{ display: "flex", gap: "8px" }}>
