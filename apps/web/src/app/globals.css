@@ -245,6 +245,115 @@ body {
 .um-icon-btn:hover { background: var(--um-bg-muted); color: var(--um-ink); }
 .um-icon-btn:active { transform: scale(0.94); }
 
+/* Card destaque — borda gradiente animada (ex: NOW com novidade) */
+@keyframes um-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.um-card-live {
+  position: relative;
+  background: var(--um-bg);
+  border-radius: 20px;
+  padding: 1.5px;
+  background-image: linear-gradient(120deg, #FF5C2E, #FF8C5A, #FF5C2E, #FFB088, #FF5C2E);
+  background-size: 200% 100%;
+  animation: um-shimmer 3s linear infinite;
+}
+.um-card-live > .um-card-live-inner {
+  background: var(--um-bg);
+  border-radius: 18.5px;
+  padding: 16px;
+}
+
+/* Tag de bairro — pílula com punch */
+.um-tag-bairro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FF5C2E, #FF8C5A);
+  color: #FFFFFF;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform var(--um-transition-fast), box-shadow var(--um-transition-fast);
+}
+.um-tag-bairro:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--um-shadow-glow);
+}
+
+/* Composer com gradiente sutil */
+.um-composer {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF8F5 100%);
+  border: 1px solid var(--um-border-subtle);
+  border-radius: 20px;
+  padding: 18px 22px;
+  box-shadow: var(--um-shadow-base);
+  transition: border-color var(--um-transition-base), box-shadow var(--um-transition-base);
+}
+.um-composer:focus-within {
+  border-color: var(--um-accent);
+  box-shadow: 0 0 0 3px rgba(255,92,46,0.10);
+}
+
+/* Pulse sutil pra atrair olhar */
+@keyframes um-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+.um-pulse-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--um-accent);
+  animation: um-pulse 1.6s ease-in-out infinite;
+}
+
+/* Missão (checkbox de gameficação) */
+.um-mission {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--um-bg-soft);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--um-text);
+  transition: background var(--um-transition-fast), transform var(--um-transition-fast);
+}
+.um-mission:hover {
+  background: var(--um-accent-soft);
+  transform: translateX(2px);
+}
+.um-mission-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 2px solid var(--um-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--um-bg);
+  font-size: 11px;
+  font-weight: 700;
+  transition: all var(--um-transition-fast);
+}
+.um-mission.done .um-mission-check {
+  background: var(--um-accent);
+  border-color: var(--um-accent);
+  color: #FFFFFF;
+}
+.um-mission.done {
+  opacity: 0.55;
+}
+
 /* Respeitar usuários que pediram menos animação */
 @media (prefers-reduced-motion: reduce) {
   .um-clickable,
@@ -257,8 +366,13 @@ body {
   .um-btn-secondary:hover,
   .um-nav-item,
   .um-nav-item:hover,
-  .um-image-zoom img {
+  .um-image-zoom img,
+  .um-card-live,
+  .um-pulse-dot,
+  .um-mission,
+  .um-tag-bairro {
     transition: none !important;
     transform: none !important;
+    animation: none !important;
   }
 }

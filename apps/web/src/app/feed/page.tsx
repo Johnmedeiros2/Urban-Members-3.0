@@ -14,17 +14,35 @@ import { buscarPosts, buscarPostsPersonalizado, criarPost, curtirPost, descurtir
 import { createClient } from "@/lib/supabase";
 
 const neighborhoods = [
-  { label: "Início",       active: true,  href: "/feed"             },
-  { label: "Buscar",       active: false, href: "/buscar"           },
-  { label: "Bairros",      active: false, href: "/bairros/negocios" },
-  { label: "Pulse",        active: false, href: "/pulse"            },
-  { label: "Arte",         active: false, href: "/bairros/arte"     },
-  { label: "Trilhas",      active: false, href: "/trilhas"          },
-  { label: "Lives",        active: false, href: "/lives"            },
-  { label: "Agenda",       active: false, href: "/agenda"           },
-  { label: "Mercado",      active: false, href: "/mercado"          },
-  { label: "Sala de Aula", active: false, href: "/sala-de-aula"     },
+  { label: "Início",       active: true,  href: "/feed",              icon: "home"     },
+  { label: "Buscar",       active: false, href: "/buscar",            icon: "search"   },
+  { label: "Bairros",      active: false, href: "/bairros/negocios",  icon: "map"      },
+  { label: "Pulse",        active: false, href: "/pulse",             icon: "pulse"    },
+  { label: "Arte",         active: false, href: "/bairros/arte",      icon: "art"      },
+  { label: "Trilhas",      active: false, href: "/trilhas",           icon: "trail"    },
+  { label: "Lives",        active: false, href: "/lives",             icon: "live"     },
+  { label: "Agenda",       active: false, href: "/agenda",            icon: "agenda"   },
+  { label: "Mercado",      active: false, href: "/mercado",           icon: "market"   },
+  { label: "Sala de Aula", active: false, href: "/sala-de-aula",      icon: "school"   },
 ];
+
+function NavIcon({ name }: { name: string }) {
+  const c = "currentColor";
+  const s = { width: 17, height: 17 };
+  switch (name) {
+    case "home":   return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V21H3V9.5z"/><path d="M9 21v-7h6v7"/></svg>;
+    case "search": return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>;
+    case "map":    return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v16M15 6v16"/></svg>;
+    case "pulse":  return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>;
+    case "art":    return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="16" cy="14" r="1"/><path d="M8 16c1 1 2.5 1 4 1"/></svg>;
+    case "trail":  return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19l5-9 5 5 6-10"/><circle cx="4" cy="19" r="1.5"/><circle cx="20" cy="5" r="1.5"/></svg>;
+    case "live":   return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" fill={c}/><path d="M5 12a7 7 0 0 1 14 0"/><path d="M2 12a10 10 0 0 1 20 0"/></svg>;
+    case "agenda": return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>;
+    case "market": return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16l-1.5 12a2 2 0 0 1-2 1.7H7.5a2 2 0 0 1-2-1.7L4 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>;
+    case "school": return <svg {...s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10l9-5 9 5-9 5-9-5z"/><path d="M7 12v5c2 1.5 8 1.5 10 0v-5"/></svg>;
+    default:       return null;
+  }
+}
 
 const BAIRROS = [
   { id: "negocios",    label: "Negócios"    },
@@ -240,14 +258,12 @@ export default function Feed() {
             <p style={{ fontSize: "10px", fontWeight: 600, color: "#A3A3A3", letterSpacing: "0.08em", textTransform: "uppercase", padding: "10px 14px 6px" }}>Navegação</p>
             {neighborhoods.map((n) => (
               <a key={n.label} href={n.href} style={{ textDecoration: "none" }}>
-                <button style={{
-                  width: "100%", display: "flex", alignItems: "center", padding: "10px 14px",
-                  borderRadius: "10px", border: "none", cursor: "pointer",
-                  background: n.active ? "#111111" : "transparent",
-                  color: n.active ? "#FFFFFF" : "#6B6B6B",
-                  fontSize: "13.5px", fontWeight: n.active ? 600 : 400,
-                  fontFamily: "Inter, sans-serif", textAlign: "left",
-                }}>{n.label}</button>
+                <button className={`um-nav-item${n.active ? " active" : ""}`} style={{ gap: "10px" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px" }}>
+                    <NavIcon name={n.icon} />
+                  </span>
+                  {n.label}
+                </button>
               </a>
             ))}
             <div style={{ margin: "10px 6px 6px", background: "#F7F7F8", borderRadius: "12px", padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -301,13 +317,16 @@ export default function Feed() {
           )}
 
           {/* Composer */}
-          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div className="um-composer" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {/* Inputs de arquivo sempre presentes no DOM */}
             <input ref={fotoInputRef} type="file" accept="image/*" onChange={handleSelecionarFoto} style={{ display: "none" }} />
             <input ref={videoInputRef} type="file" accept="video/mp4,video/quicktime,video/webm" onChange={handleSelecionarVideo} style={{ display: "none" }} />
 
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-              <Avatar name={meuNome} foto={usuario?.foto_url} size={40} />
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
+              <div style={{ position: "relative", flexShrink: 0 }}>
+                <Avatar name={meuNome} foto={usuario?.foto_url} size={44} />
+                <span style={{ position: "absolute", bottom: -2, right: -2, background: "#FF5C2E", color: "#FFFFFF", fontSize: "9px", fontWeight: 800, padding: "2px 6px", borderRadius: "999px", border: "2px solid #FFFFFF", whiteSpace: "nowrap" }}>+5</span>
+              </div>
               <textarea
                 value={conteudo}
                 onChange={(e) => setConteudo(e.target.value)}
@@ -315,9 +334,9 @@ export default function Feed() {
                 rows={1}
                 style={{
                   flex: 1, border: "none", outline: "none", resize: "none",
-                  fontSize: "14px", color: "#111111",
+                  fontSize: "15px", color: "#111111",
                   fontFamily: "Inter, sans-serif", background: "transparent",
-                  padding: "8px 0", minHeight: "32px",
+                  padding: "10px 0", minHeight: "36px", fontWeight: 500,
                 }}
               />
               {/* Ícone de foto sutil sempre visível ao lado do campo */}
@@ -397,8 +416,8 @@ export default function Feed() {
                     </select>
                   )}
                 </div>
-                <button onClick={handlePostar} disabled={postando}
-                  style={{ background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", padding: "8px 18px", fontSize: "13px", fontWeight: 700, cursor: postando ? "not-allowed" : "pointer", opacity: postando ? 0.6 : 1, fontFamily: "Inter, sans-serif" }}>
+                <button onClick={handlePostar} disabled={postando} className="um-btn-accent"
+                  style={{ padding: "10px 22px", fontSize: "13px" }}>
                   {postando ? "Postando..." : "Postar"}
                 </button>
               </div>
@@ -449,9 +468,9 @@ export default function Feed() {
                         ) : (
                           <span style={{ fontSize: "12px", color: "#525252" }}>{post.autor?.cidade ?? ""}</span>
                         )}
-                        <span style={{ fontSize: "11px", color: "#FF5C2E", fontWeight: 600, background: "#FFF3EF", padding: "1px 7px", borderRadius: "999px" }}>
+                        <a href={`/bairros/${post.bairro_id}`} className="um-tag-bairro" style={{ textDecoration: "none" }}>
                           {post.bairro_id}
-                        </span>
+                        </a>
                         <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{tempoRelativo(post.criado_em)}</span>
                       </div>
                     </div>
@@ -524,22 +543,54 @@ export default function Feed() {
         {/* Sidebar direita */}
         <aside style={{ display: "flex", flexDirection: "column", gap: "16px", position: "sticky", top: "84px", alignSelf: "flex-start" }}>
 
-          {/* Now — coluna lateral */}
-          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "16px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <Stories layout="lateral" />
+          {/* Comece por aqui — missões pra novos moradores */}
+          {meuScore < 100 && (
+            <div className="um-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "16px" }}>🏙️</span>
+                <p style={{ fontSize: "14px", fontWeight: 800, color: "#111111", letterSpacing: "-0.01em" }}>Comece por aqui</p>
+              </div>
+              <p style={{ fontSize: "12px", color: "#A3A3A3", lineHeight: 1.5, marginTop: "-4px" }}>3 passos pra entrar de vez na cidade.</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <a href="#composer" className={`um-mission${meuScore >= 15 ? " done" : ""}`} onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+                  <span className="um-mission-check">{meuScore >= 15 ? "✓" : "1"}</span>
+                  <span style={{ flex: 1, fontSize: "13px", fontWeight: 600 }}>Faz seu primeiro post</span>
+                  <span style={{ fontSize: "10px", color: "#FF5C2E", fontWeight: 700 }}>+5</span>
+                </a>
+                <a href="/buscar" className="um-mission">
+                  <span className="um-mission-check">2</span>
+                  <span style={{ flex: 1, fontSize: "13px", fontWeight: 600 }}>Conecta com moradores</span>
+                  <span style={{ fontSize: "10px", color: "#FF5C2E", fontWeight: 700 }}>+3</span>
+                </a>
+                <a href="/mercado" className="um-mission">
+                  <span className="um-mission-check">3</span>
+                  <span style={{ flex: 1, fontSize: "13px", fontWeight: 600 }}>Visita o Mercado</span>
+                  <span style={{ fontSize: "10px", color: "#FF5C2E", fontWeight: 700 }}>↗</span>
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* NOW — destaque com gradiente animado */}
+          <div className="um-card-live">
+            <div className="um-card-live-inner">
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+                <span className="um-pulse-dot" />
+                <span style={{ fontSize: "10px", fontWeight: 800, color: "#FF5C2E", letterSpacing: "0.08em", textTransform: "uppercase" }}>Now</span>
+              </div>
+              <Stories layout="lateral" />
+            </div>
           </div>
 
-          {/* Boas-vindas */}
-          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "16px" }}>
-            <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Bem-vindo, {meuNome}</p>
-            <p style={{ fontSize: "12px", color: "#A3A3A3", lineHeight: 1.5 }}>
-              Seu feed mostra posts reais da cidade. Curta, comente e poste para subir seu Urban Score.
-            </p>
-            <div style={{ borderTop: "1px solid #F5F5F5", paddingTop: "14px" }}>
-              <p style={{ fontSize: "12px", color: "#6B6B6B" }}>
-                <strong style={{ color: "#111111" }}>Dica:</strong> cada post dá <span style={{ color: "#FF5C2E", fontWeight: 700 }}>+5 pontos</span>. Cada curtida recebida: <span style={{ color: "#FF5C2E", fontWeight: 700 }}>+2</span>.
-              </p>
+          {/* Score / dicas */}
+          <div className="um-card" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "#A3A3A3", letterSpacing: "0.06em", textTransform: "uppercase" }}>Seu Urban Score</p>
+              <span style={{ fontSize: "18px", fontWeight: 800, color: "#FF5C2E" }}>{meuScore}</span>
             </div>
+            <p style={{ fontSize: "12px", color: "#6B6B6B", lineHeight: 1.55 }}>
+              Cada post: <strong style={{ color: "#FF5C2E" }}>+5</strong> · cada curtida recebida: <strong style={{ color: "#FF5C2E" }}>+2</strong> · cada conexão: <strong style={{ color: "#FF5C2E" }}>+3</strong>.
+            </p>
           </div>
         </aside>
 
