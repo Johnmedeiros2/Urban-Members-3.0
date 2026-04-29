@@ -24,3 +24,241 @@ body {
   font-family: "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* ─── Urban Members — Design System utilities ─────────────────────── */
+
+:root {
+  --um-ink: #111111;
+  --um-text: #262626;
+  --um-text-muted: #525252;
+  --um-text-subtle: #A3A3A3;
+  --um-bg: #FFFFFF;
+  --um-bg-soft: #F7F7F8;
+  --um-bg-muted: #F5F5F5;
+  --um-border: #E5E5E5;
+  --um-border-subtle: rgba(0,0,0,0.06);
+  --um-border-hover: #D4D4D4;
+  --um-accent: #FF5C2E;
+  --um-accent-hover: #E64A1E;
+  --um-accent-soft: #FFF3EF;
+  --um-shadow-base: 0 1px 3px rgba(0,0,0,0.06);
+  --um-shadow-hover: 0 6px 18px rgba(17,17,17,0.10);
+  --um-shadow-lg: 0 8px 24px rgba(17,17,17,0.08);
+  --um-shadow-glow: 0 4px 16px rgba(255,92,46,0.25);
+  --um-transition-fast: 150ms cubic-bezier(0.2, 0, 0, 1);
+  --um-transition-base: 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Foco visível e acessível em qualquer elemento clicável que use as classes */
+.um-card:focus-visible,
+.um-clickable:focus-visible,
+.um-btn-primary:focus-visible,
+.um-btn-secondary:focus-visible,
+.um-btn-ghost:focus-visible,
+.um-row:focus-visible,
+.um-link:focus-visible {
+  outline: 2px solid var(--um-accent);
+  outline-offset: 2px;
+}
+
+/* Cards — base */
+.um-card {
+  background: var(--um-bg);
+  border: 1px solid var(--um-border-subtle);
+  border-radius: 20px;
+  box-shadow: var(--um-shadow-base);
+  transition: box-shadow var(--um-transition-base), transform var(--um-transition-base), border-color var(--um-transition-base);
+}
+
+/* Card que pode ser clicado — sobe e ganha sombra no hover */
+.um-clickable {
+  cursor: pointer;
+  transition: box-shadow var(--um-transition-base), transform var(--um-transition-base), border-color var(--um-transition-base), background var(--um-transition-base);
+}
+.um-clickable:hover {
+  border-color: var(--um-border-hover);
+  box-shadow: var(--um-shadow-hover);
+  transform: translateY(-2px);
+}
+.um-clickable:active {
+  transform: translateY(0);
+  box-shadow: var(--um-shadow-base);
+}
+
+.um-card.um-clickable:hover {
+  border-color: var(--um-border-hover);
+}
+
+/* Botão primário — preto */
+.um-btn-primary {
+  background: var(--um-ink);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+  transition: background var(--um-transition-fast), transform var(--um-transition-fast), box-shadow var(--um-transition-fast);
+}
+.um-btn-primary:hover:not(:disabled) {
+  background: #1F1F1F;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  transform: translateY(-1px);
+}
+.um-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.um-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Botão de destaque — laranja Urban */
+.um-btn-accent {
+  background: var(--um-accent);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+  transition: background var(--um-transition-fast), transform var(--um-transition-fast), box-shadow var(--um-transition-fast);
+}
+.um-btn-accent:hover:not(:disabled) {
+  background: var(--um-accent-hover);
+  box-shadow: var(--um-shadow-glow);
+  transform: translateY(-1px);
+}
+.um-btn-accent:active:not(:disabled) { transform: translateY(0); box-shadow: 0 1px 3px rgba(255,92,46,0.18); }
+
+/* Botão secundário — claro com borda */
+.um-btn-secondary {
+  background: var(--um-bg);
+  color: var(--um-ink);
+  border: 1.5px solid var(--um-border);
+  border-radius: 999px;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+  transition: border-color var(--um-transition-fast), background var(--um-transition-fast), transform var(--um-transition-fast);
+}
+.um-btn-secondary:hover:not(:disabled) {
+  border-color: var(--um-ink);
+  background: var(--um-bg-muted);
+  transform: translateY(-1px);
+}
+.um-btn-secondary:active:not(:disabled) { transform: translateY(0); }
+
+/* Botão fantasma — sem fundo, só hover sutil */
+.um-btn-ghost {
+  background: transparent;
+  color: var(--um-text-muted);
+  border: none;
+  border-radius: 999px;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+  transition: background var(--um-transition-fast), color var(--um-transition-fast);
+}
+.um-btn-ghost:hover:not(:disabled) {
+  background: var(--um-bg-muted);
+  color: var(--um-ink);
+}
+
+/* Linha de lista — hover preenche fundo */
+.um-row {
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background var(--um-transition-fast), transform var(--um-transition-fast);
+}
+.um-row:hover {
+  background: var(--um-bg-muted);
+}
+
+/* Link de texto */
+.um-link {
+  color: var(--um-text-muted);
+  text-decoration: none;
+  transition: color var(--um-transition-fast);
+  cursor: pointer;
+}
+.um-link:hover { color: var(--um-accent); }
+
+/* Item de menu lateral / nav */
+.um-nav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--um-text-muted);
+  font-family: "Inter", sans-serif;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--um-transition-fast), color var(--um-transition-fast), transform var(--um-transition-fast);
+}
+.um-nav-item:hover { background: var(--um-bg-muted); color: var(--um-ink); transform: translateX(2px); }
+.um-nav-item.active { background: var(--um-ink); color: #FFFFFF; font-weight: 600; }
+.um-nav-item.active:hover { background: #1F1F1F; color: #FFFFFF; transform: none; }
+
+/* Chip / pill */
+.um-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--um-bg-muted);
+  color: var(--um-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--um-transition-fast), color var(--um-transition-fast), border-color var(--um-transition-fast);
+}
+.um-chip:hover { background: var(--um-accent-soft); color: var(--um-accent); border-color: var(--um-accent); }
+.um-chip.active { background: var(--um-ink); color: #FFFFFF; }
+
+/* Image overlay (ex: foto de produto) — pequeno zoom no hover */
+.um-image-zoom {
+  overflow: hidden;
+}
+.um-image-zoom img {
+  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
+}
+.um-image-zoom:hover img { transform: scale(1.04); }
+
+/* Ícone redondo (ex: botão de notificações) */
+.um-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--um-text-muted);
+  cursor: pointer;
+  transition: background var(--um-transition-fast), color var(--um-transition-fast), transform var(--um-transition-fast);
+}
+.um-icon-btn:hover { background: var(--um-bg-muted); color: var(--um-ink); }
+.um-icon-btn:active { transform: scale(0.94); }
+
+/* Respeitar usuários que pediram menos animação */
+@media (prefers-reduced-motion: reduce) {
+  .um-clickable,
+  .um-clickable:hover,
+  .um-btn-primary,
+  .um-btn-primary:hover,
+  .um-btn-accent,
+  .um-btn-accent:hover,
+  .um-btn-secondary,
+  .um-btn-secondary:hover,
+  .um-nav-item,
+  .um-nav-item:hover,
+  .um-image-zoom img {
+    transition: none !important;
+    transform: none !important;
+  }
+}
