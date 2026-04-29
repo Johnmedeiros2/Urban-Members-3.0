@@ -72,7 +72,7 @@ export default function AtomoPage() {
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <a href={`/trilha/${trilhaId}`} style={{ textDecoration: "none" }}>
-              <button style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>←</button>
+              <button className="um-icon-btn" aria-label="Voltar">←</button>
             </a>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#525252" }}>{atomo.titulo}</span>
           </div>
@@ -147,7 +147,8 @@ export default function AtomoPage() {
 
             {!respondido ? (
               <button onClick={handleResponder} disabled={!resposta}
-                style={{ marginTop: "16px", height: "44px", padding: "0 22px", background: resposta ? "#111111" : "#E5E5E5", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: resposta ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}>
+                className="um-btn-primary"
+                style={{ marginTop: "16px", height: "44px", padding: "0 22px", fontSize: "13px" }}>
                 Responder
               </button>
             ) : (
@@ -163,7 +164,7 @@ export default function AtomoPage() {
                 {todosExerciciosFeitos ? (
                   proximoAtomo ? (
                     <a href={`/trilha/${trilhaId}/atomo/${proximoAtomo.id}`} style={{ textDecoration: "none" }}>
-                      <button style={{ height: "44px", padding: "0 22px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                      <button className="um-btn-accent" style={{ height: "44px", padding: "0 22px", fontSize: "13px" }}>
                         Próximo tópico: {proximoAtomo.titulo} →
                       </button>
                     </a>
@@ -176,7 +177,8 @@ export default function AtomoPage() {
                   )
                 ) : (
                   <button onClick={proximoExercicio}
-                    style={{ height: "44px", padding: "0 22px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    className="um-btn-primary"
+                    style={{ height: "44px", padding: "0 22px", fontSize: "13px" }}>
                     Próximo exercício →
                   </button>
                 )}

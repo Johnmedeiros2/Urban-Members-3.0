@@ -74,7 +74,7 @@ export default function EmpresaPage() {
         <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <a href="/buscar" style={{ textDecoration: "none" }}>
-              <button style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>←</button>
+              <button className="um-icon-btn" style={{ background: "#F5F5F5" }}>←</button>
             </a>
             <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
               <img src="/logo.svg" alt="Urban" width={32} height={32} />
@@ -109,25 +109,18 @@ export default function EmpresaPage() {
               <div style={{ display: "flex", gap: "8px", marginTop: "56px" }}>
                 <BotaoCompartilhar texto={`${empresa.nome_fantasia} no Urban Members`} autor={empresa.dono?.nome} />
                 {!ehDono && (
-                  <button onClick={toggleSeguir} disabled={acao} style={{
-                    height: "38px", padding: "0 20px",
-                    background: seguindo ? "#F5F5F5" : "#111111",
-                    color: seguindo ? "#111111" : "#FFFFFF",
-                    border: seguindo ? "1.5px solid #E5E5E5" : "none",
-                    borderRadius: "999px", fontSize: "13px", fontWeight: 700,
-                    cursor: "pointer", fontFamily: "Inter, sans-serif",
-                  }}>
+                  <button onClick={toggleSeguir} disabled={acao}
+                    className={seguindo ? "um-btn-secondary" : "um-btn-accent"}
+                    style={{ height: "38px", padding: "0 20px", fontSize: "13px" }}>
                     {acao ? "..." : seguindo ? "✓ Seguindo" : "Seguir"}
                   </button>
                 )}
                 {ehDono && (
-                  <>
-                    <a href={`/empresa/${id}/editar`} style={{ textDecoration: "none" }}>
-                      <button style={{ height: "38px", padding: "0 20px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                        Editar
-                      </button>
-                    </a>
-                  </>
+                  <a href={`/empresa/${id}/editar`} style={{ textDecoration: "none" }}>
+                    <button className="um-btn-primary" style={{ height: "38px", padding: "0 20px", fontSize: "13px" }}>
+                      Editar
+                    </button>
+                  </a>
                 )}
               </div>
             </div>
@@ -224,7 +217,7 @@ export default function EmpresaPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {lojas.map((l) => (
-                <a key={l.id} href={`/mercado?loja=${l.id}`} style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", padding: "12px 14px", borderRadius: "12px", background: "#F7F7F8", transition: "background 0.15s" }}>
+                <a key={l.id} href={`/mercado?loja=${l.id}`} className="um-row" style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", padding: "12px 14px", background: "#F7F7F8" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{l.nome}</span>
                     {l.descricao && <span style={{ fontSize: "11px", color: "#A3A3A3", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.descricao}</span>}

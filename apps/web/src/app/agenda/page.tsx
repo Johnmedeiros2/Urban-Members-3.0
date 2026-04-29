@@ -78,15 +78,9 @@ export default function Agenda() {
             { id: "todos" as const, label: "Toda a cidade" },
             { id: "meus"  as const, label: "Só meus"      },
           ]).map((f) => (
-            <button key={f.id} onClick={() => setEscopo(f.id)} style={{
-              height: "36px", padding: "0 16px",
-              background: escopo === f.id ? "#111111" : "#FFFFFF",
-              color: escopo === f.id ? "#FFFFFF" : "#525252",
-              border: `1px solid ${escopo === f.id ? "#111111" : "#E5E5E5"}`,
-              borderRadius: "999px", fontSize: "12px",
-              fontWeight: escopo === f.id ? 700 : 500,
-              cursor: "pointer", fontFamily: "Inter, sans-serif",
-            }}>
+            <button key={f.id} onClick={() => setEscopo(f.id)}
+              className={`um-chip ${escopo === f.id ? "active" : ""}`}
+              style={{ height: "36px", padding: "0 16px", fontSize: "12px" }}>
               {f.label}
             </button>
           ))}
@@ -103,12 +97,12 @@ export default function Agenda() {
             </p>
             <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "18px" }}>
               <a href="/lives" style={{ textDecoration: "none" }}>
-                <button style={{ height: "40px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button className="um-btn-accent" style={{ height: "40px", padding: "0 18px", fontSize: "13px" }}>
                   Criar live
                 </button>
               </a>
               <a href="/sala-de-aula" style={{ textDecoration: "none" }}>
-                <button style={{ height: "40px", padding: "0 18px", background: "#F5F5F5", color: "#111111", border: "1px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button className="um-btn-secondary" style={{ height: "40px", padding: "0 18px", fontSize: "13px" }}>
                   Criar curso
                 </button>
               </a>
@@ -126,10 +120,7 @@ export default function Agenda() {
                     const t = TIPO_COR[ev.tipo];
                     return (
                       <a key={ev.id} href={ev.href} style={{ textDecoration: "none" }}>
-                        <div style={{ background: "#FFFFFF", borderRadius: "14px", padding: "14px 16px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", gap: "12px", cursor: "pointer", transition: "transform 0.15s" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
-                        >
+                        <div className="um-card um-clickable" style={{ padding: "14px 16px", display: "flex", gap: "12px" }}>
                           <div style={{ width: "48px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                             <span style={{ fontSize: "15px", fontWeight: 800, color: "#111111", lineHeight: 1 }}>{formatarHora(ev.data)}</span>
                           </div>

@@ -133,7 +133,10 @@ export default function BuscarPage() {
               borderRadius: "14px", fontSize: "14px",
               fontFamily: "Inter, sans-serif", color: "#111111",
               outline: "none", boxSizing: "border-box",
+              transition: "border-color 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms cubic-bezier(0.2, 0, 0, 1)",
             }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "#FF5C2E"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,92,46,0.10)"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E5E5"; e.currentTarget.style.boxShadow = "none"; }}
           />
         </div>
 
@@ -175,7 +178,7 @@ export default function BuscarPage() {
               {moradores.map((m) => {
                 const conectado = conexoes.has(m.id);
                 return (
-                  <div key={m.id} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "18px", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div key={m.id} className="um-card" style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "12px" }}>
                     <a href={`/morador/${m.id}`} style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}>
                       <Avatar name={m.nome} foto={m.foto_url} size={44} />
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -184,14 +187,9 @@ export default function BuscarPage() {
                       </div>
                       <ScoreBadge score={m.urban_score} compact />
                     </a>
-                    <button onClick={() => toggleConexao(m.id)} disabled={acao === m.id} style={{
-                      height: "36px", padding: "0 16px",
-                      background: conectado ? "#F5F5F5" : "#111111",
-                      color: conectado ? "#111111" : "#FFFFFF",
-                      border: conectado ? "1.5px solid #E5E5E5" : "none",
-                      borderRadius: "999px", fontSize: "12px", fontWeight: 700,
-                      cursor: "pointer", fontFamily: "Inter, sans-serif",
-                    }}>
+                    <button onClick={() => toggleConexao(m.id)} disabled={acao === m.id}
+                      className={conectado ? "um-btn-secondary" : "um-btn-accent"}
+                      style={{ height: "36px", padding: "0 16px", fontSize: "12px" }}>
                       {acao === m.id ? "..." : conectado ? "✓ Conectado" : "Conectar"}
                     </button>
                   </div>
@@ -203,7 +201,7 @@ export default function BuscarPage() {
           <>
             <div style={{ marginBottom: "16px", display: "flex", justifyContent: "flex-end" }}>
               <a href="/empresa/nova" style={{ textDecoration: "none" }}>
-                <button style={{ height: "36px", padding: "0 16px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button className="um-btn-accent" style={{ height: "36px", padding: "0 16px", fontSize: "12px" }}>
                   + Cadastrar empresa
                 </button>
               </a>
@@ -219,7 +217,7 @@ export default function BuscarPage() {
                 {empresas.map((e) => {
                   const seguindo = seguindoEmpresas.has(e.id);
                   return (
-                    <div key={e.id} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "18px", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px", height: "100%" }}>
+                    <div key={e.id} className="um-card" style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "10px", height: "100%" }}>
                       <a href={`/empresa/${e.id}`} style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}>
                         {e.foto_url ? (
                           <img src={e.foto_url} alt={e.nome_fantasia} style={{ width: "44px", height: "44px", borderRadius: "10px", objectFit: "cover" }} />
@@ -236,14 +234,9 @@ export default function BuscarPage() {
                       {e.descricao && <p style={{ fontSize: "12px", color: "#525252", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{e.descricao}</p>}
                       <div style={{ marginTop: "auto", paddingTop: "10px", borderTop: "1px solid #F5F5F5", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <span style={{ fontSize: "11px", color: "#A3A3A3" }}>{e.total_seguidores} {e.total_seguidores === 1 ? "seguidor" : "seguidores"}</span>
-                        <button onClick={() => toggleSeguirEmpresa(e.id)} disabled={acao === e.id} style={{
-                          height: "30px", padding: "0 12px",
-                          background: seguindo ? "#F5F5F5" : "#111111",
-                          color: seguindo ? "#111111" : "#FFFFFF",
-                          border: seguindo ? "1.5px solid #E5E5E5" : "none",
-                          borderRadius: "999px", fontSize: "11px", fontWeight: 700,
-                          cursor: "pointer", fontFamily: "Inter, sans-serif",
-                        }}>
+                        <button onClick={() => toggleSeguirEmpresa(e.id)} disabled={acao === e.id}
+                          className={seguindo ? "um-btn-secondary" : "um-btn-accent"}
+                          style={{ height: "30px", padding: "0 12px", fontSize: "11px" }}>
                           {acao === e.id ? "..." : seguindo ? "✓ Seguindo" : "Seguir"}
                         </button>
                       </div>
@@ -261,10 +254,7 @@ export default function BuscarPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
               {bairros.map((b) => (
                 <a key={b.id} href={`/bairros/${b.id}`} style={{ textDecoration: "none" }}>
-                  <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px", cursor: "pointer", height: "100%", transition: "transform 0.15s" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
-                  >
+                  <div className="um-card um-clickable" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "10px", height: "100%" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                       <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "linear-gradient(135deg, #FFF3EF, #FFD4C4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🏘️</div>
                       <div style={{ flex: 1 }}>

@@ -173,15 +173,8 @@ export default function Login() {
           <button
             onClick={handleLogin}
             disabled={!email || !senha || loading}
-            style={{
-              width: "100%", height: "52px",
-              background: email && senha && !loading ? "#111111" : "#E5E5E5",
-              color: email && senha && !loading ? "#FFFFFF" : "#A3A3A3",
-              border: "none", borderRadius: "999px",
-              fontSize: "15px", fontWeight: 700,
-              cursor: email && senha && !loading ? "pointer" : "not-allowed",
-              transition: "all 0.2s", fontFamily: "Inter, sans-serif",
-            }}
+            className="um-btn-accent"
+            style={{ width: "100%", height: "52px", fontSize: "15px" }}
           >
             {loading ? "Entrando..." : "Entrar →"}
           </button>

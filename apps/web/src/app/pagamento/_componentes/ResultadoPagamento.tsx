@@ -25,20 +25,12 @@ export default function ResultadoPagamento({ icone, cor, titulo, mensagem }: Pro
 
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           <a href="/feed" style={{ textDecoration: "none" }}>
-            <button style={{
-              width: "100%", height: "48px", background: "#111111", color: "#FFFFFF",
-              border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700,
-              cursor: "pointer", fontFamily: "Inter, sans-serif",
-            }}>
+            <button className="um-btn-primary" style={{ width: "100%", height: "48px", fontSize: "14px" }}>
               Voltar para o feed
             </button>
           </a>
           <a href="/mercado" style={{ textDecoration: "none" }}>
-            <button style={{
-              width: "100%", height: "44px", background: "transparent", color: "#525252",
-              border: "1.5px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 600,
-              cursor: "pointer", fontFamily: "Inter, sans-serif",
-            }}>
+            <button className="um-btn-secondary" style={{ width: "100%", height: "44px", fontSize: "13px" }}>
               Ir para o Mercado
             </button>
           </a>

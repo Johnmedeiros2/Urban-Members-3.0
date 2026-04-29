@@ -13,16 +13,19 @@ import Stories from "@/components/ui/Stories";
 import { buscarPosts, buscarPostsPersonalizado, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, minhasEmpresas, type PostReal, type Empresa } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
-const neighborhoods = [
+type NavItem = { label: string; active: boolean; href: string; icon: string; children?: NavItem[] };
+
+const neighborhoods: NavItem[] = [
   { label: "Início",       active: true,  href: "/feed",              icon: "home"     },
   { label: "Buscar",       active: false, href: "/buscar",            icon: "search"   },
-  { label: "Bairros",      active: false, href: "/bairros/negocios",  icon: "map"      },
-  { label: "Pulse",        active: false, href: "/pulse",             icon: "pulse"    },
-  { label: "Arte",         active: false, href: "/bairros/arte",      icon: "art"      },
   { label: "Trilhas",      active: false, href: "/trilhas",           icon: "trail"    },
   { label: "Lives",        active: false, href: "/lives",             icon: "live"     },
   { label: "Agenda",       active: false, href: "/agenda",            icon: "agenda"   },
-  { label: "Mercado",      active: false, href: "/mercado",           icon: "market"   },
+  { label: "Mercado",      active: false, href: "/mercado",           icon: "market",
+    children: [
+      { label: "Arte",     active: false, href: "/bairros/arte",      icon: "art"      },
+    ],
+  },
   { label: "Sala de Aula", active: false, href: "/sala-de-aula",      icon: "school"   },
 ];
 
@@ -257,14 +260,26 @@ export default function Feed() {
           <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "6px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", position: "sticky", top: "84px" }}>
             <p style={{ fontSize: "10px", fontWeight: 600, color: "#A3A3A3", letterSpacing: "0.08em", textTransform: "uppercase", padding: "10px 14px 6px" }}>Navegação</p>
             {neighborhoods.map((n) => (
-              <a key={n.label} href={n.href} style={{ textDecoration: "none" }}>
-                <button className={`um-nav-item${n.active ? " active" : ""}`} style={{ gap: "10px" }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px" }}>
-                    <NavIcon name={n.icon} />
-                  </span>
-                  {n.label}
-                </button>
-              </a>
+              <div key={n.label}>
+                <a href={n.href} style={{ textDecoration: "none" }}>
+                  <button className={`um-nav-item${n.active ? " active" : ""}`} style={{ gap: "10px" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px" }}>
+                      <NavIcon name={n.icon} />
+                    </span>
+                    {n.label}
+                  </button>
+                </a>
+                {n.children?.map((c) => (
+                  <a key={c.label} href={c.href} style={{ textDecoration: "none" }}>
+                    <button className={`um-nav-item${c.active ? " active" : ""}`} style={{ gap: "10px", paddingLeft: "32px", fontSize: "12.5px" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "16px", height: "16px", color: "#A3A3A3" }}>
+                        <NavIcon name={c.icon} />
+                      </span>
+                      {c.label}
+                    </button>
+                  </a>
+                ))}
+              </div>
             ))}
             <div style={{ margin: "10px 6px 6px", background: "#F7F7F8", borderRadius: "12px", padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

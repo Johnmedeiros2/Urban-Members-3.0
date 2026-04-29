@@ -119,7 +119,7 @@ export default function PerfilPublico() {
         <div style={{ maxWidth: "720px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <a href="/moradores" style={{ textDecoration: "none" }}>
-              <button style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>←</button>
+              <button className="um-icon-btn" style={{ background: "#F5F5F5" }}>←</button>
             </a>
             <a href="/feed" style={{ textDecoration: "none" }}>
               <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
@@ -151,21 +151,16 @@ export default function PerfilPublico() {
 
               {!souEu && (
                 <div style={{ display: "flex", gap: "8px", marginTop: "56px" }}>
-                  <button onClick={toggleConexao} disabled={acao} style={{
-                    height: "38px", padding: "0 20px",
-                    background: conectado ? "#F5F5F5" : "#111111",
-                    color: conectado ? "#111111" : "#FFFFFF",
-                    border: conectado ? "1.5px solid #E5E5E5" : "none",
-                    borderRadius: "999px", fontSize: "13px", fontWeight: 700,
-                    cursor: "pointer", fontFamily: "Inter, sans-serif",
-                  }}>
+                  <button onClick={toggleConexao} disabled={acao}
+                    className={conectado ? "um-btn-secondary" : "um-btn-accent"}
+                    style={{ height: "38px", padding: "0 20px", fontSize: "13px" }}>
                     {acao ? "..." : conectado ? "✓ Conectado" : "Conectar"}
                   </button>
                 </div>
               )}
               {souEu && (
                 <a href="/perfil" style={{ textDecoration: "none", marginTop: "56px" }}>
-                  <button style={{ height: "38px", padding: "0 20px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-primary" style={{ height: "38px", padding: "0 20px", fontSize: "13px" }}>
                     Editar perfil
                   </button>
                 </a>
@@ -200,16 +195,10 @@ export default function PerfilPublico() {
               <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
                 {loja && (
                   <a href="/mercado" style={{ textDecoration: "none", flex: 1, minWidth: "200px" }}>
-                    <div style={{
-                      background: "#F7F7F8", borderRadius: "14px",
+                    <div className="um-card um-clickable" style={{
                       padding: "12px 16px",
                       display: "flex", alignItems: "center", justifyContent: "space-between",
-                      cursor: "pointer", transition: "background 0.15s",
-                      border: "1px solid transparent",
-                    }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "#F0F0F0"; e.currentTarget.style.borderColor = "#E5E5E5"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "#F7F7F8"; e.currentTarget.style.borderColor = "transparent"; }}
-                    >
+                    }}>
                       <div>
                         <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
                           Loja no Mercado
@@ -218,22 +207,16 @@ export default function PerfilPublico() {
                           {loja.nome}
                         </p>
                       </div>
-                      <span style={{ fontSize: "14px", color: "#A3A3A3" }}>→</span>
+                      <span style={{ fontSize: "14px", color: "#FF5C2E" }}>→</span>
                     </div>
                   </a>
                 )}
                 {temCursos && (
                   <a href="/sala-de-aula" style={{ textDecoration: "none", flex: 1, minWidth: "200px" }}>
-                    <div style={{
-                      background: "#F7F7F8", borderRadius: "14px",
+                    <div className="um-card um-clickable" style={{
                       padding: "12px 16px",
                       display: "flex", alignItems: "center", justifyContent: "space-between",
-                      cursor: "pointer", transition: "background 0.15s",
-                      border: "1px solid transparent",
-                    }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "#F0F0F0"; e.currentTarget.style.borderColor = "#E5E5E5"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "#F7F7F8"; e.currentTarget.style.borderColor = "transparent"; }}
-                    >
+                    }}>
                       <div>
                         <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
                           Ensina na cidade
@@ -242,7 +225,7 @@ export default function PerfilPublico() {
                           Ver cursos
                         </p>
                       </div>
-                      <span style={{ fontSize: "14px", color: "#A3A3A3" }}>→</span>
+                      <span style={{ fontSize: "14px", color: "#FF5C2E" }}>→</span>
                     </div>
                   </a>
                 )}
@@ -276,11 +259,11 @@ export default function PerfilPublico() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {posts.map((p) => (
-                <div key={p.id} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "16px 20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <div key={p.id} className="um-card um-clickable" style={{ padding: "16px 20px" }}>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px" }}>
-                    <span style={{ fontSize: "11px", color: "#FF5C2E", background: "#FFF3EF", padding: "2px 8px", borderRadius: "999px", fontWeight: 600 }}>
+                    <a href={`/bairros/${p.bairro_id}`} className="um-tag-bairro" style={{ textDecoration: "none" }}>
                       {p.bairro_id}
-                    </span>
+                    </a>
                     <span style={{ fontSize: "11px", color: "#A3A3A3" }}>
                       {new Date(p.criado_em).toLocaleDateString("pt-BR")}
                     </span>

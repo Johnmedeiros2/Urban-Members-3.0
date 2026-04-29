@@ -68,7 +68,7 @@ export default function SalaDeAula() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <BotaoConvite variant="ghost" />
-            <button onClick={() => setModal(true)} style={{ height: "36px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+            <button onClick={() => setModal(true)} className="um-btn-accent" style={{ height: "36px", padding: "0 18px", fontSize: "13px" }}>
               + Criar curso
             </button>
           </div>
@@ -92,7 +92,7 @@ export default function SalaDeAula() {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
             {cursos.map((curso) => (
-              <div key={curso.id} style={{ background: "#FFFFFF", borderRadius: "18px", padding: "20px", display: "flex", flexDirection: "column", gap: "14px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", position: "relative" }}>
+              <div key={curso.id} className="um-card um-clickable" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
                 <div style={{ position: "absolute", top: "16px", right: "16px" }}>
                   <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
                 </div>
@@ -128,7 +128,7 @@ export default function SalaDeAula() {
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
                   <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{curso.total_alunos} alunos</span>
-                  <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} style={{ background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", padding: "8px 16px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
                     {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
                   </button>
                 </div>
@@ -168,8 +168,8 @@ export default function SalaDeAula() {
                 style={{ flex: 1, height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }} />
             </div>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={() => setModal(false)} style={{ flex: 1, height: "44px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancelar</button>
-              <button onClick={handleCriar} style={{ flex: 1, height: "44px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Criar</button>
+              <button onClick={() => setModal(false)} className="um-btn-secondary" style={{ flex: 1, height: "44px", fontSize: "13px" }}>Cancelar</button>
+              <button onClick={handleCriar} className="um-btn-accent" style={{ flex: 1, height: "44px", fontSize: "13px" }}>Criar</button>
             </div>
           </div>
         </div>

@@ -118,11 +118,11 @@ export default function Mercado() {
             <CarrinhoDrawer />
             <BotaoConvite variant="ghost" />
             {minhaLoja ? (
-              <button onClick={() => setModalProduto(true)} style={{ height: "36px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+              <button onClick={() => setModalProduto(true)} className="um-btn-accent" style={{ height: "36px", padding: "0 18px", fontSize: "13px" }}>
                 + Novo produto
               </button>
             ) : (
-              <button onClick={() => setModalLoja(true)} style={{ height: "36px", padding: "0 18px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+              <button onClick={() => setModalLoja(true)} className="um-btn-accent" style={{ height: "36px", padding: "0 18px", fontSize: "13px" }}>
                 Abrir minha loja
               </button>
             )}
@@ -166,7 +166,7 @@ export default function Mercado() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
               {emAlta.map((p, i) => (
-                <div key={p.id} style={{ background: "#FFFFFF", borderRadius: "14px", padding: "14px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
+                <div key={p.id} className="um-card um-clickable" style={{ borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
                   <div style={{ position: "absolute", top: "10px", right: "10px", background: i < 3 ? "#111111" : "#F5F5F5", color: i < 3 ? "#FFFFFF" : "#525252", fontSize: "10px", fontWeight: 800, padding: "2px 8px", borderRadius: "999px" }}>
                     #{i + 1}
                   </div>
@@ -188,7 +188,7 @@ export default function Mercado() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "12px" }}>
               {lojas.filter((l) => l.total_vendas > 0).slice(0, 3).map((l, i) => (
-                <div key={l.id} style={{
+                <div key={l.id} className="um-clickable" style={{
                   background: i === 0 ? "linear-gradient(135deg, #111111, #1F1F1F)" : "#FFFFFF",
                   color: i === 0 ? "#FFFFFF" : "#111111",
                   borderRadius: "14px", padding: "16px", border: "1px solid rgba(0,0,0,0.05)",
@@ -210,14 +210,9 @@ export default function Mercado() {
         {/* Filtros */}
         <div style={{ display: "flex", gap: "8px", marginBottom: "28px", flexWrap: "wrap" }}>
           {categorias.map((cat) => (
-            <button key={cat} onClick={() => setCategoria(cat)} style={{
-              height: "40px", padding: "0 18px",
-              background: categoria === cat ? "#111111" : "#FFFFFF",
-              color: categoria === cat ? "#FFFFFF" : "#525252",
-              border: `1px solid ${categoria === cat ? "#111111" : "#E5E5E5"}`,
-              borderRadius: "999px", fontSize: "13px", fontWeight: categoria === cat ? 700 : 400,
-              cursor: "pointer", fontFamily: "Inter, sans-serif",
-            }}>
+            <button key={cat} onClick={() => setCategoria(cat)}
+              className={`um-chip${categoria === cat ? " active" : ""}`}
+              style={{ height: "40px", padding: "0 18px", fontSize: "13px", fontWeight: categoria === cat ? 700 : 500 }}>
               {cat}
             </button>
           ))}
@@ -239,7 +234,7 @@ export default function Mercado() {
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
                 {filtrados.map((produto) => (
-                  <div key={produto.id} style={{ background: "#FFFFFF", borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }}>
+                  <div key={produto.id} className="um-card um-clickable" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
                     <div style={{ height: "100px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                       <span style={{ fontSize: "32px", opacity: 0.15 }}>📦</span>
                       <span style={{ position: "absolute", top: "12px", right: "12px", background: "#FFFFFF", color: "#525252", fontSize: "11px", fontWeight: 600, padding: "3px 10px", borderRadius: "999px", border: "1px solid #E5E5E5" }}>
@@ -292,11 +287,9 @@ export default function Mercado() {
                           >
                             {adicionadoFeedback === produto.id ? "✓ Adicionado" : "+ Carrinho"}
                           </button>
-                          <button onClick={() => handleComprar(produto)} disabled={comprando === produto.id} style={{
-                            background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px",
-                            padding: "10px 16px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif",
-                            opacity: comprando === produto.id ? 0.5 : 1,
-                          }}>
+                          <button onClick={() => handleComprar(produto)} disabled={comprando === produto.id}
+                            className="um-btn-accent"
+                            style={{ padding: "10px 16px", fontSize: "12px" }}>
                             {comprando === produto.id ? "..." : "Comprar"}
                           </button>
                         </div>
@@ -330,7 +323,7 @@ export default function Mercado() {
               {lojas.length === 0 ? (
                 <p style={{ fontSize: "12px", color: "#A3A3A3" }}>Ainda não há lojas abertas. Seja o primeiro!</p>
               ) : lojas.map((loja) => (
-                <div key={loja.id} style={{ padding: "14px", borderRadius: "14px", border: "1px solid #F5F5F5" }}>
+                <div key={loja.id} className="um-row" style={{ padding: "14px", border: "1px solid #F5F5F5" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
                     <Avatar name={loja.dono?.nome ?? "Lojista"} size={36} />
                     <div style={{ flex: 1 }}>
@@ -369,8 +362,8 @@ export default function Mercado() {
               </div>
             )}
             <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={() => setModalLoja(false)} style={{ flex: 1, height: "44px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancelar</button>
-              <button onClick={handleCriarLoja} style={{ flex: 1, height: "44px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Abrir loja</button>
+              <button onClick={() => setModalLoja(false)} className="um-btn-secondary" style={{ flex: 1, height: "44px", fontSize: "13px" }}>Cancelar</button>
+              <button onClick={handleCriarLoja} className="um-btn-accent" style={{ flex: 1, height: "44px", fontSize: "13px" }}>Abrir loja</button>
             </div>
           </div>
         </div>
@@ -394,8 +387,8 @@ export default function Mercado() {
               </select>
             </div>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={() => setModalProduto(false)} style={{ flex: 1, height: "44px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancelar</button>
-              <button onClick={handleCriarProduto} style={{ flex: 1, height: "44px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Publicar</button>
+              <button onClick={() => setModalProduto(false)} className="um-btn-secondary" style={{ flex: 1, height: "44px", fontSize: "13px" }}>Cancelar</button>
+              <button onClick={handleCriarProduto} className="um-btn-accent" style={{ flex: 1, height: "44px", fontSize: "13px" }}>Publicar</button>
             </div>
           </div>
         </div>

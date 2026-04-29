@@ -83,7 +83,7 @@ export default function UrbanPulse() {
           <p style={{ fontSize: "18px", fontWeight: 700 }}>Nenhum vídeo ainda</p>
           <p style={{ fontSize: "13px", color: "#A3A3A3" }}>Seja o primeiro morador a publicar um vídeo curto na cidade.</p>
           <a href="/feed" style={{ textDecoration: "none", marginTop: "12px" }}>
-            <button style={{ height: "42px", padding: "0 22px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+            <button className="um-btn-accent" style={{ height: "42px", padding: "0 22px", fontSize: "13px" }}>
               Voltar ao feed
             </button>
           </a>

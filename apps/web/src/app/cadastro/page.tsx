@@ -83,7 +83,7 @@ function Cadastro() {
               Este é um link de convite. Para testar o cadastro como novo usuário, abra em outro navegador ou use navegação anônima.
             </p>
           </div>
-          <button onClick={() => router.push("/feed")} style={{ height: "44px", padding: "0 24px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+          <button onClick={() => router.push("/feed")} className="um-btn-primary" style={{ height: "44px", padding: "0 24px", fontSize: "14px" }}>
             Voltar para o feed
           </button>
           <a href="/convite" style={{ fontSize: "13px", color: "#A3A3A3", textDecoration: "none" }}>
@@ -290,15 +290,8 @@ function Cadastro() {
           )}
 
           <button onClick={handleCadastro} disabled={!podeCadastrar || loading}
-            style={{
-              width: "100%", height: "52px",
-              background: podeCadastrar && !loading ? "#111111" : "#E5E5E5",
-              color: podeCadastrar && !loading ? "#FFFFFF" : "#A3A3A3",
-              border: "none", borderRadius: "999px",
-              fontSize: "15px", fontWeight: 700,
-              cursor: podeCadastrar && !loading ? "pointer" : "not-allowed",
-              transition: "all 0.2s", fontFamily: "Inter, sans-serif",
-            }}>
+            className="um-btn-accent"
+            style={{ width: "100%", height: "52px", fontSize: "15px" }}>
             {loading ? "Criando conta..." : "Criar conta →"}
           </button>
         </div>

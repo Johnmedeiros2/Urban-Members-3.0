@@ -62,7 +62,7 @@ export default function TrilhaPage() {
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <a href="/trilhas" style={{ textDecoration: "none" }}>
-              <button style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>←</button>
+              <button className="um-icon-btn" aria-label="Voltar">←</button>
             </a>
             <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
               <img src="/logo.svg" alt="Urban" width={32} height={32} />
@@ -106,13 +106,13 @@ export default function TrilhaPage() {
           )}
 
           {!matriculado ? (
-            <button onClick={handleMatricular} style={{ height: "48px", padding: "0 24px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+            <button onClick={handleMatricular} className="um-btn-accent" style={{ height: "48px", padding: "0 24px", fontSize: "14px" }}>
               Começar trilha grátis
             </button>
           ) : (
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               <a href={`/trilha/${trilha.id}/atomo/${atomos[0]?.id}`} style={{ textDecoration: "none" }}>
-                <button style={{ height: "44px", padding: "0 22px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button className="um-btn-primary" style={{ height: "44px", padding: "0 22px", fontSize: "13px" }}>
                   {progresso.dominados > 0 ? "Continuar trilha" : "Começar a primeira aula"}
                 </button>
               </a>
@@ -140,10 +140,7 @@ export default function TrilhaPage() {
                 <a key={a.id} href={matriculado ? `/trilha/${trilha.id}/atomo/${a.id}` : "#"} style={{ textDecoration: "none" }}
                   onClick={(e) => { if (!matriculado) { e.preventDefault(); handleMatricular(); } }}
                 >
-                  <div style={{ background: "#FFFFFF", borderRadius: "14px", padding: "14px 18px", display: "flex", alignItems: "center", gap: "14px", border: "1px solid rgba(0,0,0,0.05)", cursor: "pointer", transition: "transform 0.15s" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(2px)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
-                  >
+                  <div className="um-card um-clickable" style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: "14px" }}>
                     <div style={{
                       width: "36px", height: "36px", borderRadius: "50%",
                       background: cor, color: "#FFFFFF",

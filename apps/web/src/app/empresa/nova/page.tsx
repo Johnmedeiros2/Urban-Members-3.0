@@ -79,7 +79,7 @@ export default function NovaEmpresa() {
         <div style={{ maxWidth: "640px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <a href="/perfil" style={{ textDecoration: "none" }}>
-              <button style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>←</button>
+              <button className="um-icon-btn" aria-label="Voltar">←</button>
             </a>
             <span style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>Nova empresa</span>
           </div>
@@ -186,12 +186,13 @@ export default function NovaEmpresa() {
 
           <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
             <a href="/perfil" style={{ textDecoration: "none", flex: 1 }}>
-              <button style={{ width: "100%", height: "48px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+              <button className="um-btn-secondary" style={{ width: "100%", height: "48px", fontSize: "14px" }}>
                 Cancelar
               </button>
             </a>
             <button onClick={salvar} disabled={!nomeFantasia.trim() || salvando}
-              style={{ flex: 1, height: "48px", background: nomeFantasia.trim() && !salvando ? "#111111" : "#E5E5E5", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: nomeFantasia.trim() && !salvando ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}>
+              className="um-btn-accent"
+              style={{ flex: 1, height: "48px", fontSize: "14px" }}>
               {salvando ? "Criando..." : "Criar empresa"}
             </button>
           </div>

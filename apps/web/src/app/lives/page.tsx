@@ -80,7 +80,7 @@ export default function Lives() {
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
             <BotaoConvite variant="ghost" />
-            <button onClick={() => setModal(true)} style={{ height: "36px", padding: "0 18px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+            <button onClick={() => setModal(true)} className="um-btn-accent" style={{ height: "36px", padding: "0 18px", fontSize: "13px" }}>
               + Nova live
             </button>
           </div>
@@ -131,9 +131,8 @@ export default function Lives() {
             <input placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)}
               style={{ height: "44px", border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "0 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif" }} />
             <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-              <button onClick={() => setModal(false)} style={{ flex: 1, height: "42px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancelar</button>
-              <button onClick={salvar} disabled={!titulo.trim() || salvando}
-                style={{ flex: 1, height: "42px", background: titulo.trim() && !salvando ? "#111111" : "#E5E5E5", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: titulo.trim() && !salvando ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}>
+              <button onClick={() => setModal(false)} className="um-btn-secondary" style={{ flex: 1, height: "42px", fontSize: "13px" }}>Cancelar</button>
+              <button onClick={salvar} disabled={!titulo.trim() || salvando} className="um-btn-accent" style={{ flex: 1, height: "42px", fontSize: "13px" }}>
                 {salvando ? "Salvando..." : "Criar live"}
               </button>
             </div>
@@ -154,20 +153,18 @@ function Secao({ titulo, lives, meuId, onToggle, onApagar, destaque, atenuado }:
       <h2 style={{ fontSize: "16px", fontWeight: 800, color: "#111111", marginBottom: "12px" }}>{titulo}</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "12px" }}>
         {lives.map((l) => (
-          <div key={l.id} style={{
-            background: destaque ? "linear-gradient(135deg, #111111, #1F1F1F)" : "#FFFFFF",
+          <div key={l.id} className={destaque ? "um-clickable" : "um-card um-clickable"} style={{
+            background: destaque ? "linear-gradient(135deg, #111111, #1F1F1F)" : undefined,
             color: destaque ? "#FFFFFF" : "#111111",
-            borderRadius: "16px", padding: "16px", border: "1px solid rgba(0,0,0,0.05)",
+            borderRadius: destaque ? "16px" : undefined,
+            padding: "16px",
             opacity: atenuado ? 0.6 : 1,
             display: "flex", flexDirection: "column", gap: "10px",
-            cursor: "pointer", transition: "transform 0.15s",
           }}
             onClick={(e) => {
               if ((e.target as HTMLElement).tagName === "BUTTON" || (e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("a")) return;
               window.location.href = `/live/${l.id}`;
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
           >
             {destaque && (
               <span style={{ fontSize: "10px", fontWeight: 800, color: "#FFFFFF", background: "#FF5C2E", padding: "3px 10px", borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.08em", alignSelf: "flex-start" }}>
@@ -188,7 +185,7 @@ function Secao({ titulo, lives, meuId, onToggle, onApagar, destaque, atenuado }:
             <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
               {l.link && l.ao_vivo && (
                 <a href={l.link} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textDecoration: "none" }}>
-                  <button style={{ width: "100%", height: "36px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-accent" style={{ width: "100%", height: "36px", fontSize: "12px" }}>
                     Entrar →
                   </button>
                 </a>

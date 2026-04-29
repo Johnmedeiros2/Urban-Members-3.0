@@ -85,7 +85,7 @@ export default function UrbanPay() {
                 </p>
                 <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>Urban Pay · urbanicsa.com</p>
                 <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-                  <button onClick={() => setTela("enviar")} style={{ flex: 1, height: "44px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button onClick={() => setTela("enviar")} className="um-btn-accent" style={{ flex: 1, height: "44px", fontSize: "14px" }}>
                     Enviar pagamento
                   </button>
                 </div>
@@ -135,7 +135,7 @@ export default function UrbanPay() {
         {tela === "enviar" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <button onClick={() => setTela("home")} style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "16px" }}>←</button>
+              <button onClick={() => setTela("home")} className="um-icon-btn" aria-label="Voltar">←</button>
               <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#111111" }}>Enviar pagamento</h2>
             </div>
 
@@ -191,7 +191,8 @@ export default function UrbanPay() {
                 )}
 
                 <button onClick={handleConfirmar} disabled={!valor || !descricao || processando}
-                  style={{ width: "100%", height: "52px", background: valor && descricao ? "#111111" : "#E5E5E5", color: valor && descricao ? "#FFFFFF" : "#A3A3A3", border: "none", borderRadius: "999px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  className="um-btn-accent"
+                  style={{ width: "100%", height: "52px", fontSize: "15px" }}>
                   {processando ? "Processando..." : "Confirmar pagamento →"}
                 </button>
               </div>
@@ -210,7 +211,8 @@ export default function UrbanPay() {
               </p>
             </div>
             <button onClick={() => { setTela("home"); setValor(""); setDescricao(""); setContatoSelecionado(null); }}
-              style={{ height: "52px", padding: "0 32px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+              className="um-btn-primary"
+              style={{ height: "52px", padding: "0 32px", fontSize: "15px" }}>
               Voltar
             </button>
           </div>

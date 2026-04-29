@@ -70,16 +70,9 @@ export default function TrilhasPage() {
         {publicos.length > 2 && (
           <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
             {publicos.map((p) => (
-              <button key={p} onClick={() => setFiltro(p)} style={{
-                height: "36px", padding: "0 16px",
-                background: filtro === p ? "#111111" : "#FFFFFF",
-                color: filtro === p ? "#FFFFFF" : "#525252",
-                border: `1px solid ${filtro === p ? "#111111" : "#E5E5E5"}`,
-                borderRadius: "999px", fontSize: "12px",
-                fontWeight: filtro === p ? 700 : 500,
-                cursor: "pointer", fontFamily: "Inter, sans-serif",
-                textTransform: "capitalize",
-              }}>
+              <button key={p} onClick={() => setFiltro(p)}
+                className={`um-chip ${filtro === p ? "active" : ""}`}
+                style={{ height: "36px", padding: "0 16px", fontSize: "12px", textTransform: "capitalize" }}>
                 {p === "todos" ? "Todas" : p}
               </button>
             ))}
@@ -103,10 +96,7 @@ export default function TrilhasPage() {
               const cor = AREA_COR[t.area ?? ""] ?? { bg: "#F5F5F5", cor: "#525252", emoji: "📚" };
               return (
                 <a key={t.id} href={`/trilha/${t.id}`} style={{ textDecoration: "none" }}>
-                  <div style={{ background: "#FFFFFF", borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", height: "100%", cursor: "pointer", transition: "transform 0.15s" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
-                  >
+                  <div className="um-card um-clickable" style={{ overflow: "hidden", display: "flex", flexDirection: "column", height: "100%" }}>
                     <div style={{ height: "100px", background: cor.bg, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                       <span style={{ fontSize: "44px" }}>{cor.emoji}</span>
                       {t.publico_alvo && (

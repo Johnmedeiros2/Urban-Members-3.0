@@ -158,14 +158,14 @@ export default function BairroPage() {
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {MEMBROS_DESTAQUE.map((m) => (
-                  <div key={m.nome} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", borderRadius: "12px", border: "1px solid #F5F5F5" }}>
+                  <div key={m.nome} className="um-row" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", border: "1px solid #F5F5F5" }}>
                     <Avatar name={m.nome} size={44} />
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{m.nome}</p>
                       <p style={{ fontSize: "12px", color: "#A3A3A3" }}>{m.cidade} · {m.role}</p>
                     </div>
                     <ScoreBadge score={m.score} compact />
-                    <button style={{ height: "32px", padding: "0 16px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    <button className="um-btn-accent" style={{ height: "32px", padding: "0 16px", fontSize: "12px" }}>
                       Conectar
                     </button>
                   </div>
@@ -177,7 +177,7 @@ export default function BairroPage() {
           {aba === "Lojas & Cursos" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {LOJAS.map((loja) => (
-                <div key={loja.nome} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "16px 20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: "14px" }}>
+                <div key={loja.nome} className="um-card um-clickable" style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
                   <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Avatar name={loja.nome} size={48} />
                   </div>
@@ -186,7 +186,7 @@ export default function BairroPage() {
                     <p style={{ fontSize: "12px", color: "#A3A3A3" }}>{loja.tipo} · {loja.vendas} vendas</p>
                   </div>
                   <ScoreBadge score={loja.score} compact />
-                  <button style={{ height: "36px", padding: "0 18px", background: "#F5F5F5", color: "#111111", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-secondary" style={{ height: "36px", padding: "0 18px", fontSize: "13px" }}>
                     Visitar
                   </button>
                 </div>
@@ -214,7 +214,7 @@ export default function BairroPage() {
             <div style={{ borderTop: "1px solid #F5F5F5", paddingTop: "16px" }}>
               <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "8px" }}>Outros bairros</p>
               {Object.keys(BAIRROS_DATA).filter(b => b !== nomeParam).slice(0, 4).map((b) => (
-                <a key={b} href={`/bairros/${b}`} style={{ display: "block", fontSize: "13px", color: "#525252", padding: "6px 0", textDecoration: "none", borderBottom: "1px solid #F5F5F5" }}>
+                <a key={b} href={`/bairros/${b}`} className="um-link" style={{ display: "block", fontSize: "13px", padding: "6px 0", borderBottom: "1px solid #F5F5F5" }}>
                   {b.charAt(0).toUpperCase() + b.slice(1).replace("-", " ")}
                 </a>
               ))}

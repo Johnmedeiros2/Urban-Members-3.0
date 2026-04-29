@@ -254,22 +254,22 @@ export default function Perfil() {
 
               <div style={{ display: "flex", gap: "8px", marginTop: "56px" }}>
                 <a href="/compras" style={{ textDecoration: "none" }}>
-                  <button style={{ height: "36px", padding: "0 16px", background: "#F5F5F5", color: "#111111", border: "1.5px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-secondary" style={{ height: "36px", padding: "0 16px", fontSize: "13px" }}>
                     Minhas compras
                   </button>
                 </a>
                 <a href="/wishlist" style={{ textDecoration: "none" }}>
-                  <button style={{ height: "36px", padding: "0 16px", background: "#F5F5F5", color: "#111111", border: "1.5px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-secondary" style={{ height: "36px", padding: "0 16px", fontSize: "13px" }}>
                     Salvos
                   </button>
                 </a>
                 <a href="/empresa/nova" style={{ textDecoration: "none" }}>
-                  <button style={{ height: "36px", padding: "0 16px", background: "#F5F5F5", color: "#111111", border: "1.5px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-secondary" style={{ height: "36px", padding: "0 16px", fontSize: "13px" }}>
                     + Empresa
                   </button>
                 </a>
                 <BotaoConvite variant="ghost" />
-                <button onClick={() => { setEditando(!editando); setNomeEdit(perfil.nome); }} style={{ height: "36px", padding: "0 20px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button onClick={() => { setEditando(!editando); setNomeEdit(perfil.nome); }} className="um-btn-primary" style={{ height: "36px", padding: "0 20px", fontSize: "13px" }}>
                   {editando ? "Cancelar" : "Editar perfil"}
                 </button>
               </div>
@@ -280,7 +280,7 @@ export default function Perfil() {
               <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
                 <input value={nomeEdit} onChange={(e) => setNomeEdit(e.target.value)}
                   style={{ flex: 1, height: "40px", border: "1.5px solid #111111", borderRadius: "10px", padding: "0 12px", fontSize: "16px", fontWeight: 700, color: "#111111", outline: "none", fontFamily: "Inter, sans-serif" }} />
-                <button onClick={salvarNome} disabled={salvando} style={{ height: "40px", padding: "0 18px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button onClick={salvarNome} disabled={salvando} className="um-btn-accent" style={{ height: "40px", padding: "0 18px", fontSize: "13px", borderRadius: "10px" }}>
                   {salvando ? "..." : "Salvar"}
                 </button>
               </div>
@@ -511,11 +511,13 @@ export default function Perfil() {
               </p>
             </div>
             <button onClick={copiarLinkConvite}
+              className={linkCopiado ? undefined : "um-btn-accent"}
               style={{
-                background: linkCopiado ? "#10B981" : "#FF5C2E",
-                color: "#FFFFFF", border: "none", borderRadius: "999px",
+                background: linkCopiado ? "#10B981" : undefined,
+                color: "#FFFFFF",
                 padding: "8px 16px", fontSize: "12px", fontWeight: 700,
-                cursor: "pointer", fontFamily: "Inter, sans-serif", whiteSpace: "nowrap",
+                whiteSpace: "nowrap",
+                ...(linkCopiado ? { border: "none", borderRadius: "999px", cursor: "pointer", fontFamily: "Inter, sans-serif" } : {}),
               }}>
               {linkCopiado ? "✓ Copiado" : "Copiar"}
             </button>
@@ -586,12 +588,14 @@ export default function Perfil() {
               </p>
               <div style={{ display: "flex", gap: "8px" }}>
                 <a href="/mercado" style={{ textDecoration: "none", flex: 1 }}>
-                  <button style={{ width: "100%", height: "40px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-accent" style={{ width: "100%", height: "40px", fontSize: "13px" }}>
                     Abrir loja
                   </button>
                 </a>
                 <a href="/sala-de-aula" style={{ textDecoration: "none", flex: 1 }}>
-                  <button style={{ width: "100%", height: "40px", background: "rgba(255,255,255,0.1)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button style={{ width: "100%", height: "40px", background: "rgba(255,255,255,0.1)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif", transition: "background 150ms cubic-bezier(0.2, 0, 0, 1)" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.18)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}>
                     Criar curso
                   </button>
                 </a>
@@ -604,7 +608,7 @@ export default function Perfil() {
         <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
           <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Posts recentes</h3>
           {recentPosts.map((post) => (
-            <div key={post.id} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div key={post.id} className="um-card um-clickable" style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "10px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <Avatar name={perfil.nome} size={36} />
                 <div>

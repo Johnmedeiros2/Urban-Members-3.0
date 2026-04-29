@@ -108,7 +108,10 @@ export default function Moradores() {
               border: "1.5px solid #E5E5E5", borderRadius: "999px",
               padding: "0 20px", fontSize: "14px", color: "#111111", outline: "none",
               fontFamily: "Inter, sans-serif", background: "#FFFFFF",
+              transition: "border-color 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms cubic-bezier(0.2, 0, 0, 1)",
             }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "#FF5C2E"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,92,46,0.10)"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E5E5"; e.currentTarget.style.boxShadow = "none"; }}
           />
         </div>
 
@@ -130,22 +133,7 @@ export default function Moradores() {
             {moradores.map((m) => {
               const conectado = conexoes.has(m.id);
               return (
-                <div key={m.id} style={{
-                  background: "#FFFFFF", borderRadius: "16px", padding: "18px",
-                  border: "1px solid rgba(0,0,0,0.05)",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  display: "flex", flexDirection: "column", gap: "14px",
-                  transition: "transform 0.15s, box-shadow 0.15s",
-                }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-                    (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                    (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
-                  }}
-                >
+                <div key={m.id} className="um-card" style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "14px" }}>
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                     <a href={`/morador/${m.id}`} style={{ textDecoration: "none", display: "flex", gap: "12px", alignItems: "center", flex: 1 }}>
                       <Avatar name={m.nome} foto={m.foto_url} size={48} />
@@ -168,15 +156,8 @@ export default function Moradores() {
                   <button
                     onClick={() => toggleConexao(m.id)}
                     disabled={acao === m.id}
-                    style={{
-                      width: "100%", height: "38px",
-                      background: conectado ? "#F5F5F5" : "#111111",
-                      color: conectado ? "#111111" : "#FFFFFF",
-                      border: conectado ? "1.5px solid #E5E5E5" : "none",
-                      borderRadius: "999px", fontSize: "13px", fontWeight: 700,
-                      cursor: "pointer", fontFamily: "Inter, sans-serif",
-                      transition: "all 0.15s",
-                    }}
+                    className={conectado ? "um-btn-secondary" : "um-btn-accent"}
+                    style={{ width: "100%", height: "38px", fontSize: "13px" }}
                   >
                     {acao === m.id ? "..." : conectado ? "✓ Conectado" : "Conectar"}
                   </button>

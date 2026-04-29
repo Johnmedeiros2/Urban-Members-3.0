@@ -177,7 +177,7 @@ export default function CursoPage() {
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <a href="/sala-de-aula" style={{ textDecoration: "none" }}>
-              <button style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>←</button>
+              <button className="um-icon-btn" aria-label="Voltar">←</button>
             </a>
             <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
               <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
@@ -189,10 +189,10 @@ export default function CursoPage() {
           <div style={{ display: "flex", gap: "10px" }}>
             {ehInstrutor && (
               <>
-                <button onClick={() => setModal(true)} style={{ height: "36px", padding: "0 16px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button onClick={() => setModal(true)} className="um-btn-accent" style={{ height: "36px", padding: "0 16px", fontSize: "13px" }}>
                   + Nova aula
                 </button>
-                <button onClick={() => setModalMaterial(true)} style={{ height: "36px", padding: "0 16px", background: "#F5F5F5", color: "#111111", border: "1px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button onClick={() => setModalMaterial(true)} className="um-btn-secondary" style={{ height: "36px", padding: "0 16px", fontSize: "13px" }}>
                   + Material
                 </button>
               </>
@@ -223,7 +223,8 @@ export default function CursoPage() {
                   </p>
                 </div>
                 <button onClick={handleMatricular}
-                  style={{ marginTop: "8px", height: "46px", padding: "0 28px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  className="um-btn-accent"
+                  style={{ marginTop: "8px", height: "46px", padding: "0 28px", fontSize: "14px" }}>
                   {cursoGratis ? "Matricular grátis" : `Matricular por R$ ${Number(curso.preco).toFixed(2).replace(".", ",")}`}
                 </button>
               </div>
@@ -248,7 +249,7 @@ export default function CursoPage() {
                 )}
                 {aulaAtual.link_ao_vivo && (
                   <a href={aulaAtual.link_ao_vivo} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                    <button style={{ height: "42px", padding: "0 24px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    <button className="um-btn-accent" style={{ height: "42px", padding: "0 24px", fontSize: "13px" }}>
                       Entrar na live →
                     </button>
                   </a>
@@ -269,7 +270,8 @@ export default function CursoPage() {
               )}
               {!aulaAtual.concluida && matriculado && aulaAtual.video_url && (
                 <button onClick={() => handleConcluida(aulaAtual)}
-                  style={{ marginTop: "14px", height: "36px", padding: "0 16px", background: "#F5F5F5", color: "#111111", border: "1px solid #E5E5E5", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  className="um-btn-secondary"
+                  style={{ marginTop: "14px", height: "36px", padding: "0 16px", fontSize: "12px" }}>
                   ✓ Marcar como concluída
                 </button>
               )}
@@ -288,7 +290,7 @@ export default function CursoPage() {
             </div>
             {curso.descricao && <p style={{ fontSize: "14px", color: "#525252", lineHeight: 1.6, marginTop: "14px" }}>{curso.descricao}</p>}
             {!matriculado && !ehInstrutor && (
-              <button onClick={handleMatricular} style={{ marginTop: "16px", height: "44px", padding: "0 24px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+              <button onClick={handleMatricular} className="um-btn-primary" style={{ marginTop: "16px", height: "44px", padding: "0 24px", fontSize: "13px" }}>
                 {Number(curso.preco) === 0 ? "Matricular grátis" : `Matricular por R$ ${Number(curso.preco).toFixed(2)}`}
               </button>
             )}
@@ -300,7 +302,8 @@ export default function CursoPage() {
               <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#111111" }}>📎 Materiais de apoio</h3>
               {ehInstrutor && (
                 <button onClick={() => setModalMaterial(true)}
-                  style={{ height: "30px", padding: "0 12px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  className="um-btn-primary"
+                  style={{ height: "30px", padding: "0 12px", fontSize: "11px" }}>
                   + Adicionar
                 </button>
               )}
@@ -337,13 +340,14 @@ export default function CursoPage() {
                         </p>
                       </div>
                       <a href={m.arquivo_url} download={m.nome_arquivo} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                        <button style={{ height: "34px", padding: "0 14px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                        <button className="um-btn-primary" style={{ height: "34px", padding: "0 14px", fontSize: "12px" }}>
                           Baixar
                         </button>
                       </a>
                       {ehInstrutor && (
                         <button onClick={() => handleDeletarMaterial(m)}
-                          style={{ width: "30px", height: "30px", background: "transparent", color: "#A3A3A3", border: "none", borderRadius: "50%", fontSize: "14px", cursor: "pointer" }}>
+                          className="um-icon-btn"
+                          aria-label="Apagar material">
                           ✕
                         </button>
                       )}
@@ -420,7 +424,9 @@ export default function CursoPage() {
                     {ehInstrutor && (
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDeletarAula(a); }}
-                        style={{ background: "none", border: "none", color: "#A3A3A3", fontSize: "12px", cursor: "pointer" }}
+                        className="um-icon-btn"
+                        aria-label="Apagar aula"
+                        style={{ width: "28px", height: "28px", fontSize: "12px" }}
                       >✕</button>
                     )}
                   </div>
@@ -459,9 +465,10 @@ export default function CursoPage() {
             )}
 
             <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-              <button onClick={() => setModal(false)} style={{ flex: 1, height: "42px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancelar</button>
+              <button onClick={() => setModal(false)} className="um-btn-secondary" style={{ flex: 1, height: "42px", fontSize: "13px" }}>Cancelar</button>
               <button onClick={salvarAula} disabled={!titulo.trim() || salvando}
-                style={{ flex: 1, height: "42px", background: titulo.trim() && !salvando ? "#111111" : "#E5E5E5", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: titulo.trim() && !salvando ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}>
+                className="um-btn-primary"
+                style={{ flex: 1, height: "42px", fontSize: "13px" }}>
                 {salvando ? "Salvando..." : "Criar aula"}
               </button>
             </div>
@@ -501,11 +508,13 @@ export default function CursoPage() {
 
             <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
               <button onClick={() => { setModalMaterial(false); setMTitulo(""); setMDescricao(""); setMAulaId(null); setMArquivo(null); }}
-                style={{ flex: 1, height: "42px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                className="um-btn-secondary"
+                style={{ flex: 1, height: "42px", fontSize: "13px" }}>
                 Cancelar
               </button>
               <button onClick={handleSalvarMaterial} disabled={!mTitulo.trim() || !mArquivo || mSalvando}
-                style={{ flex: 1, height: "42px", background: mTitulo.trim() && mArquivo && !mSalvando ? "#111111" : "#E5E5E5", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: mTitulo.trim() && mArquivo && !mSalvando ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}>
+                className="um-btn-primary"
+                style={{ flex: 1, height: "42px", fontSize: "13px" }}>
                 {mSalvando ? "Enviando..." : "Adicionar"}
               </button>
             </div>

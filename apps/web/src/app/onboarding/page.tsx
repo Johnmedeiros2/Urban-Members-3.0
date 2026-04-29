@@ -281,7 +281,8 @@ export default function Onboarding() {
             )}
 
             <button onClick={() => name.trim() && locStatus === "success" && setStep(2)} disabled={!name.trim() || locStatus !== "success"}
-              style={{ width: "100%", height: "52px", background: name.trim() && locStatus === "success" ? "#111111" : "#E5E5E5", color: name.trim() && locStatus === "success" ? "#FFFFFF" : "#A3A3A3", border: "none", borderRadius: "999px", fontSize: "15px", fontWeight: 700, cursor: name.trim() && locStatus === "success" ? "pointer" : "not-allowed", transition: "all 0.2s", fontFamily: "Inter, sans-serif" }}>
+              className="um-btn-accent"
+              style={{ width: "100%", height: "52px", fontSize: "15px" }}>
               Continuar →
             </button>
           </div>
@@ -329,7 +330,8 @@ export default function Onboarding() {
 
             <div style={{ display: "flex", gap: "10px" }}>
               <button onClick={() => bioStep > 1 ? setBioStep((bioStep - 1) as 1 | 2 | 3 | 4) : setStep(1)}
-                style={{ height: "52px", padding: "0 24px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                className="um-btn-secondary"
+                style={{ height: "52px", padding: "0 24px", fontSize: "15px" }}>
                 ←
               </button>
               <button
@@ -340,7 +342,8 @@ export default function Onboarding() {
                   else { setStep(3); }
                 }}
                 disabled={!(bioStep === 1 ? bio.ocupacao : bioStep === 2 ? bio.objetivo : bioStep === 3 ? bio.momento : bio.estilo)}
-                style={{ flex: 1, height: "52px", background: (bioStep === 1 ? bio.ocupacao : bioStep === 2 ? bio.objetivo : bioStep === 3 ? bio.momento : bio.estilo) ? "#111111" : "#E5E5E5", color: (bioStep === 1 ? bio.ocupacao : bioStep === 2 ? bio.objetivo : bioStep === 3 ? bio.momento : bio.estilo) ? "#FFFFFF" : "#A3A3A3", border: "none", borderRadius: "999px", fontSize: "15px", fontWeight: 700, cursor: "pointer", transition: "all 0.2s", fontFamily: "Inter, sans-serif" }}>
+                className="um-btn-accent"
+                style={{ flex: 1, height: "52px", fontSize: "15px" }}>
                 {bioStep < 4 ? "Próximo →" : "Continuar →"}
               </button>
             </div>
@@ -450,9 +453,10 @@ export default function Onboarding() {
             </label>
 
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => setStep(2)} style={{ height: "56px", padding: "0 24px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>←</button>
+              <button onClick={() => setStep(2)} className="um-btn-secondary" style={{ height: "56px", padding: "0 24px", fontSize: "15px" }}>←</button>
               <button onClick={saveAndEnter} disabled={!lgpd}
-                style={{ flex: 1, height: "56px", background: lgpd ? "#111111" : "#E5E5E5", color: lgpd ? "#FFFFFF" : "#A3A3A3", border: "none", borderRadius: "999px", fontSize: "15px", fontWeight: 700, cursor: lgpd ? "pointer" : "not-allowed", transition: "all 0.2s", fontFamily: "Inter, sans-serif" }}>
+                className="um-btn-accent"
+                style={{ flex: 1, height: "56px", fontSize: "15px" }}>
                 Entrar na cidade →
               </button>
             </div>

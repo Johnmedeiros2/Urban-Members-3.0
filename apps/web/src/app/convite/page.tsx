@@ -86,17 +86,10 @@ export default function Convite() {
         {/* CTA principal */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "64px" }}>
           <a href="/cadastro" style={{ textDecoration: "none" }}>
-            <button style={{
+            <button className="um-btn-accent" style={{
               width: "100%", height: "60px",
-              background: "#FF5C2E", color: "#FFFFFF",
-              border: "none", borderRadius: "16px",
-              fontSize: "17px", fontWeight: 800,
-              cursor: "pointer", fontFamily: "Inter, sans-serif",
-              letterSpacing: "-0.02em", transition: "opacity 0.15s",
-            }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-            >
+              fontSize: "17px", letterSpacing: "-0.02em",
+            }}>
               Criar meu endereço — é grátis
             </button>
           </a>

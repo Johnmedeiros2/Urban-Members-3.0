@@ -84,15 +84,9 @@ export default function Compras() {
             { id: "concluida" as const,  label: "Concluídas" },
             { id: "pendente" as const,   label: "Pendentes"  },
           ]).map((f) => (
-            <button key={f.id} onClick={() => setFiltro(f.id)} style={{
-              height: "36px", padding: "0 16px",
-              background: filtro === f.id ? "#111111" : "#FFFFFF",
-              color: filtro === f.id ? "#FFFFFF" : "#525252",
-              border: `1px solid ${filtro === f.id ? "#111111" : "#E5E5E5"}`,
-              borderRadius: "999px", fontSize: "12px",
-              fontWeight: filtro === f.id ? 700 : 500,
-              cursor: "pointer", fontFamily: "Inter, sans-serif",
-            }}>
+            <button key={f.id} onClick={() => setFiltro(f.id)}
+              className={`um-chip ${filtro === f.id ? "active" : ""}`}
+              style={{ height: "36px", padding: "0 16px", fontSize: "12px" }}>
               {f.label}
             </button>
           ))}
@@ -111,7 +105,7 @@ export default function Compras() {
             </p>
             {compras.length === 0 && (
               <a href="/mercado" style={{ textDecoration: "none" }}>
-                <button style={{ marginTop: "18px", height: "40px", padding: "0 20px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button className="um-btn-accent" style={{ marginTop: "18px", height: "40px", padding: "0 20px", fontSize: "13px" }}>
                   Ir para o Mercado
                 </button>
               </a>

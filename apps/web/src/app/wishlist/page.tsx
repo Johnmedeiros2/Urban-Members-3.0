@@ -50,15 +50,9 @@ export default function Wishlist() {
             { id: "produtos" as const, label: "Produtos" },
             { id: "cursos" as const,   label: "Cursos"   },
           ]).map((f) => (
-            <button key={f.id} onClick={() => setFiltro(f.id)} style={{
-              height: "36px", padding: "0 16px",
-              background: filtro === f.id ? "#111111" : "#FFFFFF",
-              color: filtro === f.id ? "#FFFFFF" : "#525252",
-              border: `1px solid ${filtro === f.id ? "#111111" : "#E5E5E5"}`,
-              borderRadius: "999px", fontSize: "12px",
-              fontWeight: filtro === f.id ? 700 : 500,
-              cursor: "pointer", fontFamily: "Inter, sans-serif",
-            }}>
+            <button key={f.id} onClick={() => setFiltro(f.id)}
+              className={`um-chip ${filtro === f.id ? "active" : ""}`}
+              style={{ height: "36px", padding: "0 16px", fontSize: "12px" }}>
               {f.label}
             </button>
           ))}
@@ -78,12 +72,12 @@ export default function Wishlist() {
             {itens.length === 0 && (
               <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "18px" }}>
                 <a href="/mercado" style={{ textDecoration: "none" }}>
-                  <button style={{ height: "40px", padding: "0 20px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-accent" style={{ height: "40px", padding: "0 20px", fontSize: "13px" }}>
                     Mercado
                   </button>
                 </a>
                 <a href="/sala-de-aula" style={{ textDecoration: "none" }}>
-                  <button style={{ height: "40px", padding: "0 20px", background: "#F5F5F5", color: "#111111", border: "1px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-secondary" style={{ height: "40px", padding: "0 20px", fontSize: "13px" }}>
                     Sala de Aula
                   </button>
                 </a>
@@ -101,7 +95,7 @@ export default function Wishlist() {
 
               return (
                 <a key={w.id} href={href} style={{ textDecoration: "none" }}>
-                  <div style={{ background: "#FFFFFF", borderRadius: "14px", padding: "16px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "10px", height: "100%", cursor: "pointer" }}>
+                  <div className="um-card um-clickable" style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "10px", height: "100%" }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
                       <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: ehProduto ? "#FFF3EF" : "#E0F2FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>
                         {ehProduto ? "🛒" : "📚"}

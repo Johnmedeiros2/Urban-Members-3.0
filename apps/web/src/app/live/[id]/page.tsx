@@ -139,7 +139,7 @@ export default function LivePage() {
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <a href="/lives" style={{ textDecoration: "none" }}>
-              <button style={{ width: "36px", height: "36px", borderRadius: "999px", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>←</button>
+              <button className="um-icon-btn" aria-label="Voltar">←</button>
             </a>
             <a href="/feed" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
               <img src="/logo.svg" alt="Urban" width={32} height={32} />
@@ -168,7 +168,7 @@ export default function LivePage() {
               <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#FFFFFF", textAlign: "center", padding: "24px", gap: "12px" }}>
                 <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)" }}>Esta live acontece em uma plataforma externa.</p>
                 <a href={live.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                  <button style={{ height: "44px", padding: "0 24px", background: "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                  <button className="um-btn-accent" style={{ height: "44px", padding: "0 24px", fontSize: "13px" }}>
                     Entrar na live →
                   </button>
                 </a>
@@ -234,7 +234,7 @@ export default function LivePage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Itens da live</h3>
               {ehAutor && (
-                <button onClick={abrirVincular} style={{ height: "30px", padding: "0 12px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                <button onClick={abrirVincular} className="um-btn-primary" style={{ height: "30px", padding: "0 12px", fontSize: "11px" }}>
                   + Vincular
                 </button>
               )}
@@ -266,13 +266,14 @@ export default function LivePage() {
                           <button
                             onClick={() => comprar(item)}
                             disabled={comprando === item.id}
-                            style={{ flex: 1, height: "34px", background: comprando === item.id ? "#A3A3A3" : "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: comprando === item.id ? "not-allowed" : "pointer", fontFamily: "Inter, sans-serif" }}
+                            className="um-btn-accent"
+                            style={{ flex: 1, height: "34px", fontSize: "12px" }}
                           >
                             {comprando === item.id ? "..." : item.produto ? "Comprar" : "Matricular"}
                           </button>
                         )}
                         {ehAutor && (
-                          <button onClick={() => desvincular(item.id)} style={{ height: "34px", padding: "0 12px", background: "transparent", color: "#A3A3A3", border: "1px solid #E5E5E5", borderRadius: "999px", fontSize: "11px", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                          <button onClick={() => desvincular(item.id)} className="um-btn-ghost" style={{ height: "34px", padding: "0 12px", fontSize: "11px" }}>
                             Remover
                           </button>
                         )}
@@ -291,7 +292,7 @@ export default function LivePage() {
           <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "24px", maxWidth: "520px", width: "100%", display: "flex", flexDirection: "column", gap: "14px", maxHeight: "80vh" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111" }}>Vincular à live</h2>
-              <button onClick={() => setModalVincular(false)} style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#F5F5F5", border: "none", cursor: "pointer", fontSize: "14px" }}>✕</button>
+              <button onClick={() => setModalVincular(false)} className="um-icon-btn" aria-label="Fechar">✕</button>
             </div>
             <div style={{ display: "flex", gap: "6px", borderBottom: "1px solid #F5F5F5" }}>
               {(["produtos", "cursos"] as const).map((aba) => (
