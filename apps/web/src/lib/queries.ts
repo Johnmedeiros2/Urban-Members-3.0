@@ -3,6 +3,7 @@ import { createClient } from "./supabase";
 export interface PostReal {
   id: string;
   autor_id: string;
+  empresa_id: string | null;
   bairro_id: string;
   conteudo: string;
   total_curtidas: number;
@@ -11,6 +12,7 @@ export interface PostReal {
   foto_url: string | null;
   video_url: string | null;
   autor?: { nome: string; cidade: string | null; urban_score: number; foto_url: string | null } | null;
+  empresa?: { id: string; nome_fantasia: string; foto_url: string | null; segmento: string | null } | null;
 }
 
 // ── POSTS ───────────────────────────────────────────────────────────
@@ -39,9 +41,21 @@ export async function buscarPosts(limite = 20, tag?: string | null): Promise<Pos
 
   const perfisMap = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number; foto_url: string | null }) => [p.id, p]));
 
+  // 3. Busca empresas dos posts vinculados
+  const empresaIds = [...new Set(posts.map((p: { empresa_id: string | null }) => p.empresa_id).filter(Boolean) as string[])];
+  let empresasMap = new Map<string, { id: string; nome_fantasia: string; foto_url: string | null; segmento: string | null }>();
+  if (empresaIds.length > 0) {
+    const { data: empresas } = await supabase
+      .from("empresas")
+      .select("id, nome_fantasia, foto_url, segmento")
+      .in("id", empresaIds);
+    empresasMap = new Map((empresas ?? []).map((e: { id: string; nome_fantasia: string; foto_url: string | null; segmento: string | null }) => [e.id, e]));
+  }
+
   return posts.map((p: PostReal) => ({
     ...p,
     autor: perfisMap.get(p.autor_id) ?? null,
+    empresa: p.empresa_id ? (empresasMap.get(p.empresa_id) ?? null) : null,
   }));
 }
 
@@ -81,10 +95,25 @@ export async function buscarPostsPersonalizado(limite = 30): Promise<PostReal[]>
     .select("id, nome, cidade, urban_score, foto_url")
     .in("id", autorIds);
   const map = new Map((perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number; foto_url: string | null }) => [p.id, p]));
-  return top.map((p: PostReal) => ({ ...p, autor: map.get(p.autor_id) ?? null }));
+
+  const empresaIds = [...new Set(top.map((p: PostReal) => p.empresa_id).filter(Boolean) as string[])];
+  let empresasMap = new Map<string, { id: string; nome_fantasia: string; foto_url: string | null; segmento: string | null }>();
+  if (empresaIds.length > 0) {
+    const { data: empresas } = await supabase
+      .from("empresas")
+      .select("id, nome_fantasia, foto_url, segmento")
+      .in("id", empresaIds);
+    empresasMap = new Map((empresas ?? []).map((e: { id: string; nome_fantasia: string; foto_url: string | null; segmento: string | null }) => [e.id, e]));
+  }
+
+  return top.map((p: PostReal) => ({
+    ...p,
+    autor: map.get(p.autor_id) ?? null,
+    empresa: p.empresa_id ? (empresasMap.get(p.empresa_id) ?? null) : null,
+  }));
 }
 
-export async function criarPost(conteudo: string, bairro_id = "negocios", foto?: File | null, video?: File | null) {
+export async function criarPost(conteudo: string, bairro_id = "negocios", foto?: File | null, video?: File | null, empresa_id?: string | null) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado. Faça login novamente.");
@@ -133,7 +162,7 @@ export async function criarPost(conteudo: string, bairro_id = "negocios", foto?:
 
   const { data, error } = await supabase
     .from("posts")
-    .insert({ autor_id: user.id, bairro_id, conteudo, foto_url, video_url })
+    .insert({ autor_id: user.id, bairro_id, conteudo, foto_url, video_url, empresa_id: empresa_id ?? null })
     .select()
     .single();
 
@@ -1426,17 +1455,27 @@ export async function buscarMinhaLoja() {
   return data;
 }
 
-export async function criarLoja(nome: string, descricao?: string) {
+export async function criarLoja(nome: string, descricao?: string, empresa_id?: string | null) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
   const { data, error } = await supabase
     .from("lojas")
-    .insert({ dono_id: user.id, nome, descricao })
+    .insert({ dono_id: user.id, nome, descricao, empresa_id: empresa_id ?? null })
     .select()
     .single();
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function lojasDaEmpresa(empresa_id: string) {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("lojas")
+    .select("*")
+    .eq("empresa_id", empresa_id)
+    .order("criado_em", { ascending: false });
+  return data ?? [];
 }
 
 export async function criarProduto(loja_id: string, nome: string, preco: number, descricao: string, categoria: string) {

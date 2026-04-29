@@ -5,8 +5,10 @@ import { useParams } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import BotaoCompartilhar from "@/components/ui/BotaoCompartilhar";
-import { buscarEmpresa, seguirEmpresa, meusSeguindoEmpresas, deletarEmpresa, type Empresa } from "@/lib/queries";
+import { buscarEmpresa, seguirEmpresa, meusSeguindoEmpresas, deletarEmpresa, lojasDaEmpresa, type Empresa } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
+
+interface LojaSimples { id: string; nome: string; descricao: string | null; total_vendas: number }
 
 export default function EmpresaPage() {
   const params = useParams();
@@ -17,19 +19,22 @@ export default function EmpresaPage() {
   const [seguindo, setSeguindo] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [acao, setAcao] = useState(false);
+  const [lojas, setLojas] = useState<LojaSimples[]>([]);
 
   const carregar = useCallback(async () => {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [e, seguindoSet, userData] = await Promise.all([
+    const [e, seguindoSet, userData, lojasData] = await Promise.all([
       buscarEmpresa(id),
       meusSeguindoEmpresas(),
       supabase.auth.getUser(),
+      lojasDaEmpresa(id),
     ]);
     setEmpresa(e);
     setSeguindo(seguindoSet.has(id));
     setMeuId(userData.data.user?.id ?? null);
+    setLojas(lojasData as unknown as LojaSimples[]);
     setCarregando(false);
   }, [id]);
 
@@ -207,6 +212,27 @@ export default function EmpresaPage() {
               <span style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{empresa.dono.nome}</span>
               <span style={{ fontSize: "13px", color: "#A3A3A3" }}>→</span>
             </a>
+          </div>
+        )}
+
+        {/* Lojas vinculadas */}
+        {lojas.length > 0 && (
+          <div style={{ marginTop: "16px", background: "#FFFFFF", borderRadius: "16px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Lojas dessa empresa</p>
+              <span style={{ fontSize: "11px", color: "#A3A3A3" }}>{lojas.length} {lojas.length === 1 ? "loja" : "lojas"}</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {lojas.map((l) => (
+                <a key={l.id} href={`/mercado?loja=${l.id}`} style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", padding: "12px 14px", borderRadius: "12px", background: "#F7F7F8", transition: "background 0.15s" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{l.nome}</span>
+                    {l.descricao && <span style={{ fontSize: "11px", color: "#A3A3A3", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.descricao}</span>}
+                  </div>
+                  <span style={{ fontSize: "11px", color: "#525252", background: "#FFFFFF", padding: "3px 10px", borderRadius: "999px", fontWeight: 600 }}>{l.total_vendas} {l.total_vendas === 1 ? "venda" : "vendas"}</span>
+                </a>
+              ))}
+            </div>
           </div>
         )}
 

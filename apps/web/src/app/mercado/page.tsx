@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, produtosEmAlta, type Produto } from "@/lib/queries";
+import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, produtosEmAlta, minhasEmpresas, type Produto, type Empresa } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 import CarrinhoDrawer from "@/components/ui/CarrinhoDrawer";
 import BotaoWishlist from "@/components/ui/BotaoWishlist";
@@ -36,6 +36,8 @@ export default function Mercado() {
   // Form loja
   const [nomeLoja, setNomeLoja] = useState("");
   const [descLoja, setDescLoja] = useState("");
+  const [empresaLoja, setEmpresaLoja] = useState<string>("");
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   // Form produto
   const [nomeProd, setNomeProd] = useState("");
   const [descProd, setDescProd] = useState("");
@@ -54,14 +56,18 @@ export default function Mercado() {
 
   useEffect(() => { carregar(); }, [carregar]);
 
+  useEffect(() => {
+    minhasEmpresas().then(setEmpresas).catch(() => setEmpresas([]));
+  }, []);
+
   const filtrados = categoria === "Todos" ? produtos : produtos.filter((p) => p.categoria === categoria);
 
   async function handleCriarLoja() {
     if (!nomeLoja.trim()) return;
     try {
-      await criarLoja(nomeLoja, descLoja);
+      await criarLoja(nomeLoja, descLoja, empresaLoja || null);
       setModalLoja(false);
-      setNomeLoja(""); setDescLoja("");
+      setNomeLoja(""); setDescLoja(""); setEmpresaLoja("");
       await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
@@ -351,6 +357,17 @@ export default function Mercado() {
               style={{ width: "100%", height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }} />
             <textarea placeholder="Descrição (opcional)" value={descLoja} onChange={(e) => setDescLoja(e.target.value)} rows={3}
               style={{ width: "100%", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "12px 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif", resize: "none" }} />
+            {empresas.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ fontSize: "12px", fontWeight: 600, color: "#525252" }}>Vincular a uma empresa? (opcional)</label>
+                <select value={empresaLoja} onChange={(e) => setEmpresaLoja(e.target.value)}
+                  style={{ width: "100%", height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif", background: "#FFFFFF", cursor: "pointer" }}>
+                  <option value="">Loja pessoal (sem empresa)</option>
+                  {empresas.map((e) => <option key={e.id} value={e.id}>{e.nome_fantasia}</option>)}
+                </select>
+                <p style={{ fontSize: "11px", color: "#A3A3A3", lineHeight: 1.4 }}>Loja vinculada aparece no perfil da empresa e contribui pros contadores dela.</p>
+              </div>
+            )}
             <div style={{ display: "flex", gap: "8px" }}>
               <button onClick={() => setModalLoja(false)} style={{ flex: 1, height: "44px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Cancelar</button>
               <button onClick={handleCriarLoja} style={{ flex: 1, height: "44px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Abrir loja</button>

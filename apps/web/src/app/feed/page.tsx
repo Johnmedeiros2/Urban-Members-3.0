@@ -10,7 +10,7 @@ import Comentarios from "@/components/ui/Comentarios";
 import BotaoCompartilhar from "@/components/ui/BotaoCompartilhar";
 import ConteudoFormatado from "@/components/ui/ConteudoFormatado";
 import Stories from "@/components/ui/Stories";
-import { buscarPosts, buscarPostsPersonalizado, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, type PostReal } from "@/lib/queries";
+import { buscarPosts, buscarPostsPersonalizado, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, minhasEmpresas, type PostReal, type Empresa } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
 const neighborhoods = [
@@ -60,6 +60,8 @@ export default function Feed() {
   const [comentariosAbertos, setComentariosAbertos] = useState<Set<string>>(new Set());
   const [tagFiltro, setTagFiltro] = useState<string | null>(null);
   const [modoFeed, setModoFeed] = useState<"recente" | "voce">("voce");
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [postandoComoEmpresa, setPostandoComoEmpresa] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -108,6 +110,10 @@ export default function Feed() {
 
   useEffect(() => { carregar(); }, [carregar]);
 
+  useEffect(() => {
+    minhasEmpresas().then(setEmpresas).catch(() => setEmpresas([]));
+  }, []);
+
   // Realtime: novos posts aparecem automaticamente
   useEffect(() => {
     const supabase = createClient();
@@ -122,7 +128,7 @@ export default function Feed() {
     if ((!conteudo.trim() && !foto && !video) || postando) return;
     setPostando(true);
     try {
-      await criarPost(conteudo, bairroSelecionado, foto, video);
+      await criarPost(conteudo, bairroSelecionado, foto, video, postandoComoEmpresa);
       setConteudo("");
       setFoto(null);
       setPreviewFoto(null);
@@ -377,11 +383,20 @@ export default function Feed() {
             )}
 
             {(conteudo.trim() || foto || video) && (
-              <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
-                <select value={bairroSelecionado} onChange={(e) => setBairroSelecionado(e.target.value)}
-                  style={{ fontSize: "12px", color: "#525252", border: "1px solid #E5E5E5", borderRadius: "999px", padding: "6px 12px", background: "#FFFFFF", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                  {BAIRROS.map((b) => <option key={b.id} value={b.id}>📍 {b.label}</option>)}
-                </select>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <select value={bairroSelecionado} onChange={(e) => setBairroSelecionado(e.target.value)}
+                    style={{ fontSize: "12px", color: "#525252", border: "1px solid #E5E5E5", borderRadius: "999px", padding: "6px 12px", background: "#FFFFFF", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                    {BAIRROS.map((b) => <option key={b.id} value={b.id}>📍 {b.label}</option>)}
+                  </select>
+                  {empresas.length > 0 && (
+                    <select value={postandoComoEmpresa ?? ""} onChange={(e) => setPostandoComoEmpresa(e.target.value || null)}
+                      style={{ fontSize: "12px", color: postandoComoEmpresa ? "#FF5C2E" : "#525252", border: `1px solid ${postandoComoEmpresa ? "#FF5C2E" : "#E5E5E5"}`, borderRadius: "999px", padding: "6px 12px", background: "#FFFFFF", cursor: "pointer", fontFamily: "Inter, sans-serif", fontWeight: postandoComoEmpresa ? 600 : 400 }}>
+                      <option value="">Postar como você</option>
+                      {empresas.map((e) => <option key={e.id} value={e.id}>Como {e.nome_fantasia}</option>)}
+                    </select>
+                  )}
+                </div>
                 <button onClick={handlePostar} disabled={postando}
                   style={{ background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", padding: "8px 18px", fontSize: "13px", fontWeight: 700, cursor: postando ? "not-allowed" : "pointer", opacity: postando ? 0.6 : 1, fontFamily: "Inter, sans-serif" }}>
                   {postando ? "Postando..." : "Postar"}
@@ -408,15 +423,32 @@ export default function Feed() {
             const curtido = curtidas.has(post.id);
             const nome = post.autor?.nome ?? "Morador";
             const ehMeuPost = usuario?.id === post.autor_id;
+            const ehDeEmpresa = !!post.empresa;
+            const tituloPrincipal = ehDeEmpresa ? post.empresa!.nome_fantasia : nome;
+            const linkPrincipal = ehDeEmpresa ? `/empresa/${post.empresa!.id}` : `/morador/${post.autor_id}`;
+            const fotoPrincipal = ehDeEmpresa ? post.empresa!.foto_url : (post.autor?.foto_url ?? null);
             return (
               <article key={post.id} style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
-                  <a href={`/morador/${post.autor_id}`} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
-                    <Avatar name={nome} foto={post.autor?.foto_url} size={44} />
+                  <a href={linkPrincipal} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
+                    <Avatar name={tituloPrincipal} foto={fotoPrincipal} size={44} />
                     <div>
-                      <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{nome}</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{tituloPrincipal}</p>
+                        {ehDeEmpresa && (
+                          <span style={{ fontSize: "10px", fontWeight: 700, color: "#FFFFFF", background: "#111111", padding: "2px 7px", borderRadius: "999px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                            Empresa
+                          </span>
+                        )}
+                      </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "3px" }}>
-                        <span style={{ fontSize: "12px", color: "#525252" }}>{post.autor?.cidade ?? ""}</span>
+                        {ehDeEmpresa ? (
+                          <span style={{ fontSize: "12px", color: "#525252" }}>
+                            {post.empresa?.segmento ?? ""}{post.empresa?.segmento ? " · " : ""}por {nome}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: "12px", color: "#525252" }}>{post.autor?.cidade ?? ""}</span>
+                        )}
                         <span style={{ fontSize: "11px", color: "#FF5C2E", fontWeight: 600, background: "#FFF3EF", padding: "1px 7px", borderRadius: "999px" }}>
                           {post.bairro_id}
                         </span>
@@ -425,7 +457,7 @@ export default function Feed() {
                     </div>
                   </a>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <ScoreBadge score={post.autor?.urban_score ?? 10} compact />
+                    {!ehDeEmpresa && <ScoreBadge score={post.autor?.urban_score ?? 10} compact />}
                     {ehMeuPost && (
                       <button onClick={() => handleDeletar(post.id)}
                         title="Excluir post"
