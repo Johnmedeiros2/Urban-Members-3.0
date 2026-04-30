@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { estatisticasCompletas, buscarMoradores, minhasTransacoes } from "@/lib/queries";
+import { estatisticasCompletas, buscarMoradores, minhasTransacoes, ehAdmin, listarModeradores, adicionarModerador, removerModerador, type ModeradorInfo } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
 interface Morador {
@@ -22,7 +22,7 @@ interface Stats {
   transacoes: number; produtos: number; conexoes: number; notif: number; receita: number;
 }
 
-const ABAS = ["Visão Geral", "Moradores", "Transações", "Configurações"];
+const ABAS = ["Visão Geral", "Moradores", "Moderação", "Transações", "Configurações"];
 
 function Badge({ children, cor }: { children: React.ReactNode; cor: string }) {
   const bg = cor === "#16A34A" ? "#F0FDF4" : cor === "#EA580C" ? "#FFF7ED" : "#F5F5F5";
@@ -45,16 +45,26 @@ export default function Admin() {
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
 
+  const [souAdmin, setSouAdmin] = useState(false);
+  const [moderadores, setModeradores] = useState<ModeradorInfo[]>([]);
+  const [buscaMod, setBuscaMod] = useState("");
+  const [adicionando, setAdicionando] = useState<string | null>(null);
+  const [removendo, setRemovendo] = useState<string | null>(null);
+
   const carregar = useCallback(async () => {
     setCarregando(true);
     const supabase = createClient();
-    const [s, m, t] = await Promise.all([
+    const [s, m, t, admin, mods] = await Promise.all([
       estatisticasCompletas(),
       buscarMoradores(),
       supabase.from("transacoes").select("*").eq("status", "concluida").order("criado_em", { ascending: false }).limit(20),
+      ehAdmin(),
+      listarModeradores(),
     ]);
     setStats(s);
     setMoradores(m as Morador[]);
+    setSouAdmin(admin);
+    setModeradores(mods);
 
     // enriquece transações com nomes
     if (t.data && t.data.length > 0) {
@@ -78,6 +88,43 @@ export default function Admin() {
     u.nome.toLowerCase().includes(busca.toLowerCase()) ||
     (u.cidade ?? "").toLowerCase().includes(busca.toLowerCase())
   );
+
+  const idsModeradores = new Set(moderadores.map((m) => m.morador_id));
+
+  const candidatosModeracao = moradores
+    .filter((u) => !idsModeradores.has(u.id))
+    .filter((u) => {
+      if (!buscaMod.trim()) return false;
+      const q = buscaMod.toLowerCase();
+      return u.nome.toLowerCase().includes(q) || (u.cidade ?? "").toLowerCase().includes(q);
+    })
+    .slice(0, 8);
+
+  async function handleAdicionarMod(morador_id: string) {
+    setAdicionando(morador_id);
+    try {
+      await adicionarModerador(morador_id);
+      setBuscaMod("");
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro ao adicionar moderador");
+    } finally {
+      setAdicionando(null);
+    }
+  }
+
+  async function handleRemoverMod(morador_id: string, nome: string) {
+    if (!confirm(`Remover ${nome} da equipe de moderação?`)) return;
+    setRemovendo(morador_id);
+    try {
+      await removerModerador(morador_id);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro ao remover moderador");
+    } finally {
+      setRemovendo(null);
+    }
+  }
 
   const STATS_CARDS = stats ? [
     { label: "Moradores",        value: stats.moradores.toString(), cor: "#111111" },
@@ -203,6 +250,117 @@ export default function Admin() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {!carregando && aba === "Moderação" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.06)" }}>
+              <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Equipe de moderação</h3>
+              <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "4px" }}>
+                Moradores autorizados a remover conteúdo indevido. Você (admin) é moderador automaticamente.
+              </p>
+            </div>
+
+            {!souAdmin && (
+              <div style={{ background: "#FEF2F2", borderRadius: "12px", padding: "14px 18px", border: "1px solid #FECACA" }}>
+                <p style={{ fontSize: "13px", color: "#991B1B", fontWeight: 600 }}>
+                  Apenas o admin pode adicionar ou remover moderadores.
+                </p>
+              </div>
+            )}
+
+            {souAdmin && (
+              <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div>
+                  <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>Adicionar moderador</p>
+                  <p style={{ fontSize: "11px", color: "#A3A3A3", marginTop: "2px" }}>
+                    Busque por nome ou cidade. Clique em &quot;Promover&quot; pra adicionar à equipe.
+                  </p>
+                </div>
+                <input
+                  placeholder="Buscar morador..."
+                  value={buscaMod}
+                  onChange={(e) => setBuscaMod(e.target.value)}
+                  style={{ height: "40px", border: "1px solid #E5E5E5", borderRadius: "999px", padding: "0 16px", fontSize: "13px", color: "#111111", outline: "none", fontFamily: "Inter, sans-serif", background: "#FAFAFA" }}
+                />
+                {buscaMod.trim() && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {candidatosModeracao.length === 0 ? (
+                      <p style={{ fontSize: "12px", color: "#A3A3A3", padding: "8px 0" }}>Nenhum morador encontrado.</p>
+                    ) : candidatosModeracao.map((u) => (
+                      <div key={u.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 12px", background: "#FAFAFA", borderRadius: "10px" }}>
+                        <Avatar name={u.nome} size={32} />
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111" }}>{u.nome}</p>
+                          <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{u.cidade ?? "—"}</p>
+                        </div>
+                        <button
+                          onClick={() => handleAdicionarMod(u.id)}
+                          disabled={adicionando === u.id}
+                          className="um-btn-primary"
+                          style={{ height: "32px", padding: "0 14px", fontSize: "12px" }}
+                        >
+                          {adicionando === u.id ? "..." : "Promover"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ background: "#FFFFFF", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.06)", overflow: "hidden" }}>
+              <div style={{ padding: "16px 20px", borderBottom: "1px solid #F5F5F5", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>
+                  {moderadores.length} {moderadores.length === 1 ? "moderador ativo" : "moderadores ativos"}
+                </p>
+              </div>
+              {moderadores.length === 0 ? (
+                <p style={{ fontSize: "13px", color: "#A3A3A3", textAlign: "center", padding: "32px" }}>
+                  Nenhum moderador ainda. {souAdmin ? "Use a busca acima pra promover um morador." : ""}
+                </p>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #F5F5F5" }}>
+                      {["Moderador", "Cidade", "Promovido", souAdmin ? "Ação" : ""].filter(Boolean).map((h) => (
+                        <th key={h} style={{ fontSize: "11px", fontWeight: 700, color: "#A3A3A3", textAlign: "left", padding: "12px 16px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {moderadores.map((m) => (
+                      <tr key={m.morador_id} style={{ borderBottom: "1px solid #F5F5F5" }}>
+                        <td style={{ padding: "12px 16px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <Avatar name={m.morador?.nome ?? "?"} foto={m.morador?.foto_url ?? null} size={32} />
+                            <div>
+                              <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111" }}>{m.morador?.nome ?? "—"}</p>
+                              <ScoreBadge score={m.morador?.urban_score ?? 10} compact />
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "#525252" }}>{m.morador?.cidade ?? "—"}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "12px", color: "#A3A3A3" }}>{tempoRelativo(m.criado_em)}</td>
+                        {souAdmin && (
+                          <td style={{ padding: "12px 16px" }}>
+                            <button
+                              onClick={() => handleRemoverMod(m.morador_id, m.morador?.nome ?? "moderador")}
+                              disabled={removendo === m.morador_id}
+                              className="um-btn-ghost"
+                              style={{ height: "30px", padding: "0 12px", fontSize: "12px", color: "#DC2626" }}
+                            >
+                              {removendo === m.morador_id ? "..." : "Remover"}
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}

@@ -2474,3 +2474,77 @@ export async function estatisticasCompletas() {
     receita:   totalTaxa,
   };
 }
+
+// ── MODERAÇÃO ───────────────────────────────────────────────────
+
+export interface ModeradorInfo {
+  morador_id: string;
+  criado_em: string;
+  criado_por: string | null;
+  morador?: {
+    id: string;
+    nome: string;
+    cidade: string | null;
+    foto_url: string | null;
+    urban_score: number;
+  } | null;
+}
+
+export async function ehAdmin(): Promise<boolean> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data } = await supabase.rpc("is_admin");
+  return Boolean(data);
+}
+
+export async function ehModerador(): Promise<boolean> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data } = await supabase.rpc("is_moderador");
+  return Boolean(data);
+}
+
+export async function listarModeradores(): Promise<ModeradorInfo[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("moderadores")
+    .select("*")
+    .order("criado_em", { ascending: false });
+  if (error || !data) return [];
+  if (data.length === 0) return [];
+
+  const ids = data.map((m: { morador_id: string }) => m.morador_id);
+  const { data: perfis } = await supabase
+    .from("perfis")
+    .select("id, nome, cidade, foto_url, urban_score")
+    .in("id", ids);
+
+  type Perfil = { id: string; nome: string; cidade: string | null; foto_url: string | null; urban_score: number };
+  const map = new Map((perfis ?? []).map((p: Perfil) => [p.id, p]));
+
+  return data.map((m: { morador_id: string; criado_em: string; criado_por: string | null }) => ({
+    ...m,
+    morador: (map.get(m.morador_id) as Perfil | undefined) ?? null,
+  }));
+}
+
+export async function adicionarModerador(morador_id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autenticado");
+  const { error } = await supabase
+    .from("moderadores")
+    .insert({ morador_id, criado_por: user.id });
+  if (error) throw new Error(error.message);
+}
+
+export async function removerModerador(morador_id: string) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("moderadores")
+    .delete()
+    .eq("morador_id", morador_id);
+  if (error) throw new Error(error.message);
+}
