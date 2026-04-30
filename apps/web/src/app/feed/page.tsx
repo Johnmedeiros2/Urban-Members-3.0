@@ -511,7 +511,7 @@ export default function Feed() {
                         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#FEF2F2"; (e.currentTarget as HTMLElement).style.color = "#DC2626"; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#A3A3A3"; }}
                       >
-                        🛡
+                        ⋯
                       </button>
                     )}
                   </div>

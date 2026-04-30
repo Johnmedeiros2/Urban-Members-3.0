@@ -301,7 +301,7 @@ export default function CursoPage() {
                 title="Remover (moderação)"
                 style={{ height: "36px", padding: "0 12px", fontSize: "16px", color: "#525252" }}
               >
-                🛡
+                ⋯
               </button>
             )}
             <BotaoConvite variant="ghost" />

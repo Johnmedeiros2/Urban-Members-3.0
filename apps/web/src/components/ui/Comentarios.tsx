@@ -152,7 +152,7 @@ export default function Comentarios({ postId, onContagem }: Props) {
                         title="Remover (moderação)"
                         style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: "#A3A3A3", fontFamily: "Inter, sans-serif" }}
                       >
-                        🛡
+                        ⋯
                       </button>
                     )}
                   </div>
