@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { buscarAvaliacoes, criarAvaliacao, deletarAvaliacao, mediaAvaliacao, type Avaliacao, type MediaAvaliacao } from "@/lib/queries";
+import { buscarAvaliacoes, criarAvaliacao, deletarAvaliacao, mediaAvaliacao, ehModerador, removerAvaliacaoPorModeracao, type Avaliacao, type MediaAvaliacao } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 import Avatar from "./Avatar";
 import Estrelas from "./Estrelas";
+import ConteudoRemovido from "./ConteudoRemovido";
+import ModalMotivoRemocao from "./ModalMotivoRemocao";
 
 function tempoRelativo(iso: string) {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -33,17 +35,21 @@ export default function Avaliacoes({ produtoId, cursoId }: Props) {
   const [previewVideo, setPreviewVideo] = useState<string | null>(null);
   const fotoRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
+  const [souFiscal, setSouFiscal] = useState(false);
+  const [avaliacaoParaRemover, setAvaliacaoParaRemover] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [avals, med, { data: { user } }] = await Promise.all([
+    const [avals, med, { data: { user } }, fiscal] = await Promise.all([
       buscarAvaliacoes(produtoId, cursoId),
       mediaAvaliacao(produtoId, cursoId),
       createClient().auth.getUser(),
+      ehModerador(),
     ]);
     setLista(avals);
     setMedia(med);
     setMeuId(user?.id ?? null);
+    setSouFiscal(fiscal);
     setCarregando(false);
   }, [produtoId, cursoId]);
 
@@ -85,6 +91,17 @@ export default function Avaliacoes({ produtoId, cursoId }: Props) {
     if (!confirm("Apagar sua avaliação?")) return;
     try {
       await deletarAvaliacao(id);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  async function confirmarRemocaoMod(motivo: string) {
+    if (!avaliacaoParaRemover) return;
+    try {
+      await removerAvaliacaoPorModeracao(avaliacaoParaRemover, motivo);
+      setAvaliacaoParaRemover(null);
       await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
@@ -183,40 +200,67 @@ export default function Avaliacoes({ produtoId, cursoId }: Props) {
           Seja o primeiro a avaliar.
         </p>
       ) : (
-        lista.map((a) => (
-          <div key={a.id} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "12px 0", borderBottom: "1px solid #F5F5F5" }}>
-            <Avatar name={a.autor?.nome ?? "?"} foto={a.autor?.foto_url ?? null} size={32} />
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                <span style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{a.autor?.nome ?? "Morador"}</span>
-                <Estrelas valor={a.estrelas} tamanho={12} />
-                <span style={{ fontSize: "11px", color: "#A3A3A3" }}>· {tempoRelativo(a.criado_em)}</span>
-                {meuId === a.autor_id && (
-                  <button
-                    onClick={() => apagar(a.id)}
-                    style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "11px", color: "#A3A3A3", fontFamily: "Inter, sans-serif" }}
-                  >
-                    apagar
-                  </button>
+        lista.map((a) => {
+          const foiRemovida = !!a.apagado_em;
+          const ehMinha = meuId === a.autor_id;
+          const podeFiscalizar = souFiscal && !ehMinha && !foiRemovida;
+          return (
+            <div key={a.id} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "12px 0", borderBottom: "1px solid #F5F5F5" }}>
+              <Avatar name={a.autor?.nome ?? "?"} foto={a.autor?.foto_url ?? null} size={32} />
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>{a.autor?.nome ?? "Morador"}</span>
+                  {!foiRemovida && <Estrelas valor={a.estrelas} tamanho={12} />}
+                  <span style={{ fontSize: "11px", color: "#A3A3A3" }}>· {tempoRelativo(a.criado_em)}</span>
+                  {ehMinha && !foiRemovida && (
+                    <button
+                      onClick={() => apagar(a.id)}
+                      style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "11px", color: "#A3A3A3", fontFamily: "Inter, sans-serif" }}
+                    >
+                      apagar
+                    </button>
+                  )}
+                  {podeFiscalizar && (
+                    <button
+                      onClick={() => setAvaliacaoParaRemover(a.id)}
+                      title="Remover (moderação)"
+                      style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: "#A3A3A3", fontFamily: "Inter, sans-serif" }}
+                    >
+                      🛡
+                    </button>
+                  )}
+                </div>
+                {foiRemovida ? (
+                  <ConteudoRemovido motivo={a.motivo_remocao} removidoPor={a.removido_por?.nome ?? null} />
+                ) : (
+                  <>
+                    {a.comentario && (
+                      <p style={{ fontSize: "13px", color: "#111111", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{a.comentario}</p>
+                    )}
+                    {a.foto_url && (
+                      <div style={{ marginTop: "8px", borderRadius: "10px", overflow: "hidden", maxHeight: "280px" }}>
+                        <img src={a.foto_url} alt="Foto da avaliação" style={{ width: "100%", maxHeight: "280px", objectFit: "cover", display: "block" }} />
+                      </div>
+                    )}
+                    {a.video_url && (
+                      <div style={{ marginTop: "8px", borderRadius: "10px", overflow: "hidden", background: "#000000", maxHeight: "320px" }}>
+                        <video src={a.video_url} controls playsInline preload="metadata" style={{ width: "100%", maxHeight: "320px", display: "block" }} />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
-              {a.comentario && (
-                <p style={{ fontSize: "13px", color: "#111111", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{a.comentario}</p>
-              )}
-              {a.foto_url && (
-                <div style={{ marginTop: "8px", borderRadius: "10px", overflow: "hidden", maxHeight: "280px" }}>
-                  <img src={a.foto_url} alt="Foto da avaliação" style={{ width: "100%", maxHeight: "280px", objectFit: "cover", display: "block" }} />
-                </div>
-              )}
-              {a.video_url && (
-                <div style={{ marginTop: "8px", borderRadius: "10px", overflow: "hidden", background: "#000000", maxHeight: "320px" }}>
-                  <video src={a.video_url} controls playsInline preload="metadata" style={{ width: "100%", maxHeight: "320px", display: "block" }} />
-                </div>
-              )}
             </div>
-          </div>
-        ))
+          );
+        })
       )}
+
+      <ModalMotivoRemocao
+        aberto={avaliacaoParaRemover !== null}
+        titulo="Remover avaliação"
+        onConfirmar={confirmarRemocaoMod}
+        onCancelar={() => setAvaliacaoParaRemover(null)}
+      />
     </div>
   );
 }

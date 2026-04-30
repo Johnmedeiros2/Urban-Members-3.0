@@ -5,8 +5,10 @@ import { useParams } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarCurso, buscarAulas, criarAula, marcarAulaConcluida, deletarAula, matricularCurso, buscarMateriais, adicionarMaterial, deletarMaterial, atualizarCurso, deletarCurso, type Aula, type Material } from "@/lib/queries";
+import { buscarCurso, buscarAulas, criarAula, marcarAulaConcluida, deletarAula, matricularCurso, buscarMateriais, adicionarMaterial, deletarMaterial, atualizarCurso, deletarCurso, ehModerador, removerCursoPorModeracao, type Aula, type Material } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
+import ConteudoRemovido from "@/components/ui/ConteudoRemovido";
+import ModalMotivoRemocao from "@/components/ui/ModalMotivoRemocao";
 
 interface CursoInfo {
   id: string;
@@ -16,7 +18,11 @@ interface CursoInfo {
   nivel: string;
   preco: number;
   total_alunos: number;
+  apagado_em: string | null;
+  apagado_por: string | null;
+  motivo_remocao: string | null;
   instrutor: { id: string; nome: string; cidade: string | null; urban_score: number; foto_url: string | null } | null;
+  removido_por?: { nome: string } | null;
 }
 
 export default function CursoPage() {
@@ -55,16 +61,21 @@ export default function CursoPage() {
   const [eSalvando, setESalvando] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
 
+  const [souFiscal, setSouFiscal] = useState(false);
+  const [modalRemocaoMod, setModalRemocaoMod] = useState(false);
+
   const carregar = useCallback(async () => {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [c, a, m, userData] = await Promise.all([
+    const [c, a, m, userData, fiscal] = await Promise.all([
       buscarCurso(id),
       buscarAulas(id),
       buscarMateriais(id),
       supabase.auth.getUser(),
+      ehModerador(),
     ]);
+    setSouFiscal(fiscal);
     setMateriais(m);
     setCurso(c as CursoInfo | null);
     setAulas(a);
@@ -207,6 +218,16 @@ export default function CursoPage() {
     }
   }
 
+  async function confirmarRemocaoModeracao(motivo: string) {
+    try {
+      await removerCursoPorModeracao(id, motivo);
+      setModalRemocaoMod(false);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro ao remover");
+    }
+  }
+
   function formatarTamanho(bytes: number | null): string {
     if (!bytes) return "";
     if (bytes < 1024) return `${bytes} B`;
@@ -218,10 +239,23 @@ export default function CursoPage() {
   if (!curso) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif" }}>Curso não encontrado</div>;
 
   const ehInstrutor = meuId === curso.instrutor_id;
+  const foiRemovido = !!curso.apagado_em;
+  const podeFiscalizar = souFiscal && !ehInstrutor && !foiRemovido;
   const cursoGratis = Number(curso.preco) === 0;
   const temAcesso = ehInstrutor || matriculado || cursoGratis;
   const concluidas = aulas.filter((a) => a.concluida).length;
   const percentual = aulas.length > 0 ? Math.round((concluidas / aulas.length) * 100) : 0;
+
+  if (foiRemovido) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#F7F7F8", fontFamily: "Inter, sans-serif", padding: "60px 24px", display: "flex", alignItems: "flex-start", justifyContent: "center" }}>
+        <div style={{ maxWidth: "560px", width: "100%" }}>
+          <a href="/sala-de-aula" style={{ fontSize: "13px", color: "#A3A3A3", textDecoration: "none", display: "inline-block", marginBottom: "16px" }}>← Voltar para Sala de Aula</a>
+          <ConteudoRemovido motivo={curso.motivo_remocao} removidoPor={curso.removido_por?.nome ?? null} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#F7F7F8", fontFamily: "Inter, sans-serif" }}>
@@ -259,6 +293,16 @@ export default function CursoPage() {
                   {excluindo ? "Excluindo..." : "Excluir"}
                 </button>
               </>
+            )}
+            {podeFiscalizar && (
+              <button
+                onClick={() => setModalRemocaoMod(true)}
+                className="um-btn-ghost"
+                title="Remover (moderação)"
+                style={{ height: "36px", padding: "0 12px", fontSize: "16px", color: "#525252" }}
+              >
+                🛡
+              </button>
             )}
             <BotaoConvite variant="ghost" />
           </div>
@@ -612,6 +656,13 @@ export default function CursoPage() {
           </div>
         </div>
       )}
+
+      <ModalMotivoRemocao
+        aberto={modalRemocaoMod}
+        titulo="Remover curso"
+        onConfirmar={confirmarRemocaoModeracao}
+        onCancelar={() => setModalRemocaoMod(false)}
+      />
     </div>
   );
 }

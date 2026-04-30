@@ -1169,7 +1169,11 @@ export interface Avaliacao {
   foto_url: string | null;
   video_url: string | null;
   criado_em: string;
+  apagado_em: string | null;
+  apagado_por: string | null;
+  motivo_remocao: string | null;
   autor?: { nome: string; foto_url: string | null } | null;
+  removido_por?: { nome: string } | null;
 }
 
 export interface MediaAvaliacao {
@@ -1192,7 +1196,14 @@ export async function buscarAvaliacoes(produto_id?: string, curso_id?: string): 
     .select("id, nome, foto_url")
     .in("id", autorIds);
   const map = new Map((perfis ?? []).map((p: { id: string; nome: string; foto_url: string | null }) => [p.id, p]));
-  return data.map((a: Avaliacao) => ({ ...a, autor: map.get(a.autor_id) ?? null }));
+
+  const removedoresMap = await buscarRemovedores(data.map((a: Avaliacao) => a.apagado_por));
+
+  return data.map((a: Avaliacao) => ({
+    ...a,
+    autor: map.get(a.autor_id) ?? null,
+    removido_por: a.apagado_por ? (removedoresMap.get(a.apagado_por) ?? null) : null,
+  }));
 }
 
 export async function mediaAvaliacao(produto_id?: string, curso_id?: string): Promise<MediaAvaliacao> {
@@ -1262,7 +1273,11 @@ export interface Comentario {
   autor_id: string;
   conteudo: string;
   criado_em: string;
+  apagado_em: string | null;
+  apagado_por: string | null;
+  motivo_remocao: string | null;
   autor?: { nome: string; foto_url: string | null } | null;
+  removido_por?: { nome: string } | null;
 }
 
 export async function buscarComentarios(post_id: string): Promise<Comentario[]> {
@@ -1282,7 +1297,13 @@ export async function buscarComentarios(post_id: string): Promise<Comentario[]> 
     .in("id", autorIds);
   const map = new Map((perfis ?? []).map((p: { id: string; nome: string; foto_url: string | null }) => [p.id, p]));
 
-  return comentarios.map((c: Comentario) => ({ ...c, autor: map.get(c.autor_id) ?? null }));
+  const removedoresMap = await buscarRemovedores(comentarios.map((c: Comentario) => c.apagado_por));
+
+  return comentarios.map((c: Comentario) => ({
+    ...c,
+    autor: map.get(c.autor_id) ?? null,
+    removido_por: c.apagado_por ? (removedoresMap.get(c.apagado_por) ?? null) : null,
+  }));
 }
 
 export async function criarComentario(post_id: string, conteudo: string): Promise<Comentario> {
@@ -1552,7 +1573,11 @@ export interface Curso {
   total_alunos: number;
   ao_vivo: boolean;
   criado_em: string;
+  apagado_em: string | null;
+  apagado_por: string | null;
+  motivo_remocao: string | null;
   instrutor?: { nome: string; cidade: string | null; urban_score: number } | null;
+  removido_por?: { nome: string } | null;
 }
 
 export async function buscarCursos(limite = 20): Promise<Curso[]> {
@@ -1574,7 +1599,13 @@ export async function buscarCursos(limite = 20): Promise<Curso[]> {
     (perfis ?? []).map((p: { id: string; nome: string; cidade: string | null; urban_score: number }) => [p.id, p])
   );
 
-  return cursos.map((c: Curso) => ({ ...c, instrutor: perfisMap.get(c.instrutor_id) ?? null }));
+  const removedoresMap = await buscarRemovedores(cursos.map((c: Curso) => c.apagado_por));
+
+  return cursos.map((c: Curso) => ({
+    ...c,
+    instrutor: perfisMap.get(c.instrutor_id) ?? null,
+    removido_por: c.apagado_por ? (removedoresMap.get(c.apagado_por) ?? null) : null,
+  }));
 }
 
 export async function criarCurso(titulo: string, descricao: string, nivel: string, preco: number) {
@@ -1807,13 +1838,30 @@ export async function buscarCurso(curso_id: string) {
     .eq("id", curso_id)
     .maybeSingle();
   if (!data) return null;
-  const curso = data as { id: string; instrutor_id: string; titulo: string; descricao: string | null; nivel: string; preco: number; total_alunos: number };
+  const curso = data as {
+    id: string;
+    instrutor_id: string;
+    titulo: string;
+    descricao: string | null;
+    nivel: string;
+    preco: number;
+    total_alunos: number;
+    apagado_em: string | null;
+    apagado_por: string | null;
+    motivo_remocao: string | null;
+  };
   const { data: instrutor } = await supabase
     .from("perfis")
     .select("id, nome, cidade, urban_score, foto_url")
     .eq("id", curso.instrutor_id)
     .maybeSingle();
-  return { ...curso, instrutor };
+  let removido_por: { nome: string } | null = null;
+  if (curso.apagado_por) {
+    const { data: removedor } = await supabase
+      .from("perfis").select("nome").eq("id", curso.apagado_por).maybeSingle();
+    removido_por = removedor ? { nome: (removedor as { nome: string }).nome } : null;
+  }
+  return { ...curso, instrutor, removido_por };
 }
 
 export async function matricularCurso(curso_id: string) {
@@ -2580,4 +2628,33 @@ export async function removerPostPorModeracao(post_id: string, motivo: string) {
   const supabase = createClient();
   const { error } = await supabase.rpc("remover_post", { post_id, motivo });
   if (error) throw new Error(error.message);
+}
+
+export async function removerCursoPorModeracao(curso_id: string, motivo: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("remover_curso", { curso_id, motivo });
+  if (error) throw new Error(error.message);
+}
+
+export async function removerComentarioPorModeracao(comentario_id: string, motivo: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("remover_comentario", { comentario_id, motivo });
+  if (error) throw new Error(error.message);
+}
+
+export async function removerAvaliacaoPorModeracao(avaliacao_id: string, motivo: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("remover_avaliacao", { avaliacao_id, motivo });
+  if (error) throw new Error(error.message);
+}
+
+async function buscarRemovedores(ids: (string | null)[]): Promise<Map<string, { nome: string }>> {
+  const filtrados = [...new Set(ids.filter(Boolean) as string[])];
+  if (filtrados.length === 0) return new Map();
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("perfis")
+    .select("id, nome")
+    .in("id", filtrados);
+  return new Map((data ?? []).map((p: { id: string; nome: string }) => [p.id, { nome: p.nome }]));
 }

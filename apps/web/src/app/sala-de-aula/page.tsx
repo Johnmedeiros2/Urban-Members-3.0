@@ -4,9 +4,12 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarCursos, criarCurso, matricularCurso, type Curso } from "@/lib/queries";
+import { buscarCursos, criarCurso, matricularCurso, ehModerador, removerCursoPorModeracao, type Curso } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 import BotaoWishlist from "@/components/ui/BotaoWishlist";
+import ConteudoRemovido from "@/components/ui/ConteudoRemovido";
+import ModalMotivoRemocao from "@/components/ui/ModalMotivoRemocao";
+import { createClient } from "@/lib/supabase";
 
 export default function SalaDeAula() {
   const [cursos, setCursos] = useState<Curso[]>([]);
@@ -20,11 +23,33 @@ export default function SalaDeAula() {
   const [nivel, setNivel] = useState("Iniciante");
   const [preco, setPreco] = useState("");
 
+  const [meuId, setMeuId] = useState<string | null>(null);
+  const [souFiscal, setSouFiscal] = useState(false);
+  const [cursoParaRemover, setCursoParaRemover] = useState<string | null>(null);
+
   const carregar = useCallback(async () => {
     setCarregando(true);
-    setCursos(await buscarCursos());
+    const [lista, fiscal, user] = await Promise.all([
+      buscarCursos(),
+      ehModerador(),
+      createClient().auth.getUser(),
+    ]);
+    setCursos(lista);
+    setSouFiscal(fiscal);
+    setMeuId(user.data.user?.id ?? null);
     setCarregando(false);
   }, []);
+
+  async function confirmarRemocaoCurso(motivo: string) {
+    if (!cursoParaRemover) return;
+    try {
+      await removerCursoPorModeracao(cursoParaRemover, motivo);
+      setCursoParaRemover(null);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro");
+    }
+  }
 
   useEffect(() => { carregar(); }, [carregar]);
 
@@ -91,62 +116,86 @@ export default function SalaDeAula() {
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
-            {cursos.map((curso) => (
-              <div key={curso.id} className="um-card um-clickable" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
-                <div style={{ position: "absolute", top: "16px", right: "16px" }}>
-                  <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
-                </div>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", paddingRight: "36px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 600, color: "#A3A3A3", padding: "2px 10px", borderRadius: "999px", background: "#F5F5F5" }}>
-                    {curso.nivel}
-                  </span>
-                  {curso.preco > 0 && (
-                    <span style={{ fontSize: "11px", fontWeight: 600, color: "#10B981", background: "#F0FDF4", padding: "2px 10px", borderRadius: "999px" }}>
-                      R$ {Number(curso.preco).toFixed(2).replace(".", ",")}
-                    </span>
-                  )}
-                  {curso.preco === 0 && (
-                    <span style={{ fontSize: "11px", fontWeight: 600, color: "#FF5C2E", background: "#FFF3EF", padding: "2px 10px", borderRadius: "999px" }}>
-                      Gratuito
-                    </span>
-                  )}
-                </div>
+            {cursos.map((curso) => {
+              const foiRemovido = !!curso.apagado_em;
+              const ehMeu = meuId === curso.instrutor_id;
+              const podeFiscalizar = souFiscal && !ehMeu && !foiRemovido;
 
-                <a href={`/curso/${curso.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                  <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", lineHeight: 1.4, cursor: "pointer" }}>{curso.titulo}</h3>
-                </a>
-                {curso.descricao && <p style={{ fontSize: "13px", color: "#6B6B6B", lineHeight: 1.5 }}>{curso.descricao}</p>}
-
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Avatar name={curso.instrutor?.nome ?? "Instrutor"} size={28} />
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: "12px", fontWeight: 600, color: "#111111" }}>{curso.instrutor?.nome ?? "Instrutor"}</p>
-                    <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{curso.instrutor?.cidade ?? ""}</p>
+              if (foiRemovido) {
+                return (
+                  <div key={curso.id} className="um-card" style={{ padding: "20px" }}>
+                    <ConteudoRemovido motivo={curso.motivo_remocao} removidoPor={curso.removido_por?.nome ?? null} />
                   </div>
-                  <ScoreBadge score={curso.instrutor?.urban_score ?? 10} compact />
-                </div>
+                );
+              }
 
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
-                  <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{curso.total_alunos} alunos</span>
-                  <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
-                    {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
+              return (
+                <div key={curso.id} className="um-card um-clickable" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
+                  <div style={{ position: "absolute", top: "16px", right: "16px", display: "flex", gap: "6px", alignItems: "center" }}>
+                    {podeFiscalizar && (
+                      <button onClick={() => setCursoParaRemover(curso.id)}
+                        title="Remover (moderação)"
+                        style={{ width: "28px", height: "28px", borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", fontSize: "13px", color: "#A3A3A3" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#FEF2F2"; (e.currentTarget as HTMLElement).style.color = "#DC2626"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#A3A3A3"; }}
+                      >
+                        🛡
+                      </button>
+                    )}
+                    <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
+                  </div>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", paddingRight: "60px" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 600, color: "#A3A3A3", padding: "2px 10px", borderRadius: "999px", background: "#F5F5F5" }}>
+                      {curso.nivel}
+                    </span>
+                    {curso.preco > 0 && (
+                      <span style={{ fontSize: "11px", fontWeight: 600, color: "#10B981", background: "#F0FDF4", padding: "2px 10px", borderRadius: "999px" }}>
+                        R$ {Number(curso.preco).toFixed(2).replace(".", ",")}
+                      </span>
+                    )}
+                    {curso.preco === 0 && (
+                      <span style={{ fontSize: "11px", fontWeight: 600, color: "#FF5C2E", background: "#FFF3EF", padding: "2px 10px", borderRadius: "999px" }}>
+                        Gratuito
+                      </span>
+                    )}
+                  </div>
+
+                  <a href={`/curso/${curso.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                    <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", lineHeight: 1.4, cursor: "pointer" }}>{curso.titulo}</h3>
+                  </a>
+                  {curso.descricao && <p style={{ fontSize: "13px", color: "#6B6B6B", lineHeight: 1.5 }}>{curso.descricao}</p>}
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Avatar name={curso.instrutor?.nome ?? "Instrutor"} size={28} />
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: "12px", fontWeight: 600, color: "#111111" }}>{curso.instrutor?.nome ?? "Instrutor"}</p>
+                      <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{curso.instrutor?.cidade ?? ""}</p>
+                    </div>
+                    <ScoreBadge score={curso.instrutor?.urban_score ?? 10} compact />
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
+                    <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{curso.total_alunos} alunos</span>
+                    <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
+                      {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setAvaliacoesAbertas((prev) => {
+                      const n = new Set(prev);
+                      if (n.has(curso.id)) n.delete(curso.id); else n.add(curso.id);
+                      return n;
+                    })}
+                    style={{ background: "none", border: "none", padding: 0, color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left" }}
+                  >
+                    {avaliacoesAbertas.has(curso.id) ? "Ocultar avaliações ↑" : "Ver avaliações ↓"}
                   </button>
+                  {avaliacoesAbertas.has(curso.id) && (
+                    <Avaliacoes cursoId={curso.id} />
+                  )}
                 </div>
-                <button
-                  onClick={() => setAvaliacoesAbertas((prev) => {
-                    const n = new Set(prev);
-                    if (n.has(curso.id)) n.delete(curso.id); else n.add(curso.id);
-                    return n;
-                  })}
-                  style={{ background: "none", border: "none", padding: 0, color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left" }}
-                >
-                  {avaliacoesAbertas.has(curso.id) ? "Ocultar avaliações ↑" : "Ver avaliações ↓"}
-                </button>
-                {avaliacoesAbertas.has(curso.id) && (
-                  <Avaliacoes cursoId={curso.id} />
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -175,6 +224,12 @@ export default function SalaDeAula() {
         </div>
       )}
 
+      <ModalMotivoRemocao
+        aberto={cursoParaRemover !== null}
+        titulo="Remover curso"
+        onConfirmar={confirmarRemocaoCurso}
+        onCancelar={() => setCursoParaRemover(null)}
+      />
     </div>
   );
 }
