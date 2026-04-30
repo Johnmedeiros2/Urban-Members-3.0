@@ -10,7 +10,9 @@ import Comentarios from "@/components/ui/Comentarios";
 import BotaoCompartilhar from "@/components/ui/BotaoCompartilhar";
 import ConteudoFormatado from "@/components/ui/ConteudoFormatado";
 import Stories from "@/components/ui/Stories";
-import { buscarPosts, buscarPostsPersonalizado, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, minhasEmpresas, type PostReal, type Empresa } from "@/lib/queries";
+import ConteudoRemovido from "@/components/ui/ConteudoRemovido";
+import ModalMotivoRemocao from "@/components/ui/ModalMotivoRemocao";
+import { buscarPosts, buscarPostsPersonalizado, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, minhasEmpresas, ehModerador, removerPostPorModeracao, type PostReal, type Empresa } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
 const neighborhoods = [
@@ -78,6 +80,9 @@ export default function Feed() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [postandoComoEmpresa, setPostandoComoEmpresa] = useState<string | null>(null);
 
+  const [souFiscal, setSouFiscal] = useState(false);
+  const [postParaRemover, setPostParaRemover] = useState<string | null>(null);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -127,7 +132,20 @@ export default function Feed() {
 
   useEffect(() => {
     minhasEmpresas().then(setEmpresas).catch(() => setEmpresas([]));
+    ehModerador().then(setSouFiscal).catch(() => setSouFiscal(false));
   }, []);
+
+  async function confirmarRemocaoPost(motivo: string) {
+    if (!postParaRemover) return;
+    const id = postParaRemover;
+    try {
+      await removerPostPorModeracao(id, motivo);
+      setPostParaRemover(null);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro ao remover");
+    }
+  }
 
   // Realtime: novos posts aparecem automaticamente
   useEffect(() => {
@@ -443,6 +461,8 @@ export default function Feed() {
             const tituloPrincipal = ehDeEmpresa ? post.empresa!.nome_fantasia : nome;
             const linkPrincipal = ehDeEmpresa ? `/empresa/${post.empresa!.id}` : `/morador/${post.autor_id}`;
             const fotoPrincipal = ehDeEmpresa ? post.empresa!.foto_url : (post.autor?.foto_url ?? null);
+            const foiRemovido = !!post.apagado_em;
+            const podeFiscalizar = souFiscal && !ehMeuPost && !foiRemovido;
             return (
               <article key={post.id} style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
@@ -474,7 +494,7 @@ export default function Feed() {
                   </a>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     {!ehDeEmpresa && <ScoreBadge score={post.autor?.urban_score ?? 10} compact />}
-                    {ehMeuPost && (
+                    {ehMeuPost && !foiRemovido && (
                       <button onClick={() => handleDeletar(post.id)}
                         title="Excluir post"
                         style={{ width: "28px", height: "28px", borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", fontSize: "14px", color: "#A3A3A3" }}
@@ -484,53 +504,69 @@ export default function Feed() {
                         🗑
                       </button>
                     )}
+                    {podeFiscalizar && (
+                      <button onClick={() => setPostParaRemover(post.id)}
+                        title="Remover (moderação)"
+                        style={{ width: "28px", height: "28px", borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", fontSize: "14px", color: "#A3A3A3" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#FEF2F2"; (e.currentTarget as HTMLElement).style.color = "#DC2626"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#A3A3A3"; }}
+                      >
+                        🛡
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {post.conteudo && (
-                  <ConteudoFormatado texto={post.conteudo} style={{ fontSize: "15px", color: "#111111", lineHeight: 1.65 }} />
-                )}
+                {foiRemovido ? (
+                  <ConteudoRemovido motivo={post.motivo_remocao} removidoPor={post.removido_por?.nome ?? null} />
+                ) : (
+                  <>
+                    {post.conteudo && (
+                      <ConteudoFormatado texto={post.conteudo} style={{ fontSize: "15px", color: "#111111", lineHeight: 1.65 }} />
+                    )}
 
-                {post.foto_url && (
-                  <div style={{ borderRadius: "14px", overflow: "hidden", maxHeight: "500px" }}>
-                    <img src={post.foto_url} alt="Foto do post" style={{ width: "100%", objectFit: "cover", display: "block", maxHeight: "500px" }} />
-                  </div>
-                )}
+                    {post.foto_url && (
+                      <div style={{ borderRadius: "14px", overflow: "hidden", maxHeight: "500px" }}>
+                        <img src={post.foto_url} alt="Foto do post" style={{ width: "100%", objectFit: "cover", display: "block", maxHeight: "500px" }} />
+                      </div>
+                    )}
 
-                {post.video_url && (
-                  <div style={{ borderRadius: "14px", overflow: "hidden", maxHeight: "600px", background: "#000000" }}>
-                    <video src={post.video_url} controls playsInline preload="metadata"
-                      style={{ width: "100%", maxHeight: "600px", display: "block" }} />
-                  </div>
-                )}
+                    {post.video_url && (
+                      <div style={{ borderRadius: "14px", overflow: "hidden", maxHeight: "600px", background: "#000000" }}>
+                        <video src={post.video_url} controls playsInline preload="metadata"
+                          style={{ width: "100%", maxHeight: "600px", display: "block" }} />
+                      </div>
+                    )}
 
-                <div style={{ display: "flex", alignItems: "center", gap: "4px", paddingTop: "12px", borderTop: "1px solid #F5F5F5" }}>
-                  <button onClick={() => toggleCurtir(post.id)} style={{
-                    display: "flex", alignItems: "center", gap: "5px",
-                    padding: "7px 12px", borderRadius: "999px", border: "none", cursor: "pointer",
-                    fontSize: "13px", fontWeight: 600, background: "transparent",
-                    color: curtido ? "#FF5C2E" : "#A3A3A3", fontFamily: "Inter, sans-serif",
-                  }}>
-                    <span style={{ fontSize: "15px" }}>{curtido ? "♥" : "♡"}</span>
-                    {post.total_curtidas}
-                  </button>
-                  <button
-                    onClick={() => toggleComentarios(post.id)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: "5px",
-                      padding: "7px 12px", borderRadius: "999px", border: "none", cursor: "pointer",
-                      fontSize: "13px", fontWeight: 600, background: "transparent",
-                      color: comentariosAbertos.has(post.id) ? "#111111" : "#A3A3A3",
-                      fontFamily: "Inter, sans-serif",
-                    }}
-                  >
-                    <span>💬</span> {post.total_comentarios}
-                  </button>
-                  <BotaoCompartilhar texto={post.conteudo} autor={post.autor?.nome} />
-                </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", paddingTop: "12px", borderTop: "1px solid #F5F5F5" }}>
+                      <button onClick={() => toggleCurtir(post.id)} style={{
+                        display: "flex", alignItems: "center", gap: "5px",
+                        padding: "7px 12px", borderRadius: "999px", border: "none", cursor: "pointer",
+                        fontSize: "13px", fontWeight: 600, background: "transparent",
+                        color: curtido ? "#FF5C2E" : "#A3A3A3", fontFamily: "Inter, sans-serif",
+                      }}>
+                        <span style={{ fontSize: "15px" }}>{curtido ? "♥" : "♡"}</span>
+                        {post.total_curtidas}
+                      </button>
+                      <button
+                        onClick={() => toggleComentarios(post.id)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: "5px",
+                          padding: "7px 12px", borderRadius: "999px", border: "none", cursor: "pointer",
+                          fontSize: "13px", fontWeight: 600, background: "transparent",
+                          color: comentariosAbertos.has(post.id) ? "#111111" : "#A3A3A3",
+                          fontFamily: "Inter, sans-serif",
+                        }}
+                      >
+                        <span>💬</span> {post.total_comentarios}
+                      </button>
+                      <BotaoCompartilhar texto={post.conteudo} autor={post.autor?.nome} />
+                    </div>
 
-                {comentariosAbertos.has(post.id) && (
-                  <Comentarios postId={post.id} onContagem={(n) => atualizarContagem(post.id, n)} />
+                    {comentariosAbertos.has(post.id) && (
+                      <Comentarios postId={post.id} onContagem={(n) => atualizarContagem(post.id, n)} />
+                    )}
+                  </>
                 )}
               </article>
             );
@@ -592,6 +628,13 @@ export default function Feed() {
         </aside>
 
       </div>
+
+      <ModalMotivoRemocao
+        aberto={postParaRemover !== null}
+        titulo="Remover post"
+        onConfirmar={confirmarRemocaoPost}
+        onCancelar={() => setPostParaRemover(null)}
+      />
     </div>
   );
 }

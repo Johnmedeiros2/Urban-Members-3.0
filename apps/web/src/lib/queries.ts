@@ -11,8 +11,12 @@ export interface PostReal {
   criado_em: string;
   foto_url: string | null;
   video_url: string | null;
+  apagado_em: string | null;
+  apagado_por: string | null;
+  motivo_remocao: string | null;
   autor?: { nome: string; cidade: string | null; urban_score: number; foto_url: string | null } | null;
   empresa?: { id: string; nome_fantasia: string; foto_url: string | null; segmento: string | null } | null;
+  removido_por?: { nome: string } | null;
 }
 
 // ── POSTS ───────────────────────────────────────────────────────────
@@ -52,10 +56,22 @@ export async function buscarPosts(limite = 20, tag?: string | null): Promise<Pos
     empresasMap = new Map((empresas ?? []).map((e: { id: string; nome_fantasia: string; foto_url: string | null; segmento: string | null }) => [e.id, e]));
   }
 
+  // 4. Busca nome dos moderadores que removeram posts
+  const removidoPorIds = [...new Set(posts.map((p: { apagado_por: string | null }) => p.apagado_por).filter(Boolean) as string[])];
+  let removedoresMap = new Map<string, { nome: string }>();
+  if (removidoPorIds.length > 0) {
+    const { data: removedores } = await supabase
+      .from("perfis")
+      .select("id, nome")
+      .in("id", removidoPorIds);
+    removedoresMap = new Map((removedores ?? []).map((p: { id: string; nome: string }) => [p.id, { nome: p.nome }]));
+  }
+
   return posts.map((p: PostReal) => ({
     ...p,
     autor: perfisMap.get(p.autor_id) ?? null,
     empresa: p.empresa_id ? (empresasMap.get(p.empresa_id) ?? null) : null,
+    removido_por: p.apagado_por ? (removedoresMap.get(p.apagado_por) ?? null) : null,
   }));
 }
 
@@ -106,10 +122,21 @@ export async function buscarPostsPersonalizado(limite = 30): Promise<PostReal[]>
     empresasMap = new Map((empresas ?? []).map((e: { id: string; nome_fantasia: string; foto_url: string | null; segmento: string | null }) => [e.id, e]));
   }
 
+  const removidoPorIds = [...new Set(top.map((p: PostReal) => p.apagado_por).filter(Boolean) as string[])];
+  let removedoresMap = new Map<string, { nome: string }>();
+  if (removidoPorIds.length > 0) {
+    const { data: removedores } = await supabase
+      .from("perfis")
+      .select("id, nome")
+      .in("id", removidoPorIds);
+    removedoresMap = new Map((removedores ?? []).map((p: { id: string; nome: string }) => [p.id, { nome: p.nome }]));
+  }
+
   return top.map((p: PostReal) => ({
     ...p,
     autor: map.get(p.autor_id) ?? null,
     empresa: p.empresa_id ? (empresasMap.get(p.empresa_id) ?? null) : null,
+    removido_por: p.apagado_por ? (removedoresMap.get(p.apagado_por) ?? null) : null,
   }));
 }
 
@@ -2546,5 +2573,11 @@ export async function removerModerador(morador_id: string) {
     .from("moderadores")
     .delete()
     .eq("morador_id", morador_id);
+  if (error) throw new Error(error.message);
+}
+
+export async function removerPostPorModeracao(post_id: string, motivo: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("remover_post", { post_id, motivo });
   if (error) throw new Error(error.message);
 }

@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarMorador, contagemConexoes, conectarCom, desconectarDe, minhasConexoesIds } from "@/lib/queries";
+import ConteudoRemovido from "@/components/ui/ConteudoRemovido";
+import ModalMotivoRemocao from "@/components/ui/ModalMotivoRemocao";
+import { buscarMorador, contagemConexoes, conectarCom, desconectarDe, minhasConexoesIds, ehModerador, removerPostPorModeracao } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
 interface Perfil {
@@ -27,6 +29,9 @@ interface PostPublico {
   total_curtidas: number;
   bairro_id: string;
   foto_url: string | null;
+  apagado_em: string | null;
+  apagado_por: string | null;
+  motivo_remocao: string | null;
 }
 
 interface Loja {
@@ -48,6 +53,8 @@ export default function PerfilPublico() {
   const [souEu, setSouEu] = useState(false);
   const [loja, setLoja] = useState<Loja | null>(null);
   const [temCursos, setTemCursos] = useState(false);
+  const [souFiscal, setSouFiscal] = useState(false);
+  const [postParaRemover, setPostParaRemover] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     if (!id) return;
@@ -73,6 +80,21 @@ export default function PerfilPublico() {
   }, [id]);
 
   useEffect(() => { carregar(); }, [carregar]);
+
+  useEffect(() => {
+    ehModerador().then(setSouFiscal).catch(() => setSouFiscal(false));
+  }, []);
+
+  async function confirmarRemocaoPost(motivo: string) {
+    if (!postParaRemover) return;
+    try {
+      await removerPostPorModeracao(postParaRemover, motivo);
+      setPostParaRemover(null);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro ao remover");
+    }
+  }
 
   async function toggleConexao() {
     setAcao(true);
@@ -258,30 +280,59 @@ export default function PerfilPublico() {
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {posts.map((p) => (
-                <div key={p.id} className="um-card um-clickable" style={{ padding: "16px 20px" }}>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px" }}>
-                    <a href={`/bairros/${p.bairro_id}`} className="um-tag-bairro" style={{ textDecoration: "none" }}>
-                      {p.bairro_id}
-                    </a>
-                    <span style={{ fontSize: "11px", color: "#A3A3A3" }}>
-                      {new Date(p.criado_em).toLocaleDateString("pt-BR")}
-                    </span>
+              {posts.map((p) => {
+                const foiRemovido = !!p.apagado_em;
+                const podeFiscalizar = souFiscal && !souEu && !foiRemovido;
+                return (
+                  <div key={p.id} className="um-card" style={{ padding: "16px 20px" }}>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        <a href={`/bairros/${p.bairro_id}`} className="um-tag-bairro" style={{ textDecoration: "none" }}>
+                          {p.bairro_id}
+                        </a>
+                        <span style={{ fontSize: "11px", color: "#A3A3A3" }}>
+                          {new Date(p.criado_em).toLocaleDateString("pt-BR")}
+                        </span>
+                      </div>
+                      {podeFiscalizar && (
+                        <button onClick={() => setPostParaRemover(p.id)}
+                          title="Remover (moderação)"
+                          style={{ width: "26px", height: "26px", borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", fontSize: "13px", color: "#A3A3A3" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#FEF2F2"; (e.currentTarget as HTMLElement).style.color = "#DC2626"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#A3A3A3"; }}
+                        >
+                          🛡
+                        </button>
+                      )}
+                    </div>
+                    {foiRemovido ? (
+                      <ConteudoRemovido motivo={p.motivo_remocao} />
+                    ) : (
+                      <>
+                        <p style={{ fontSize: "14px", color: "#111111", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{p.conteudo}</p>
+                        {p.foto_url && (
+                          <img src={p.foto_url} alt="Foto do post" style={{ width: "100%", marginTop: "12px", borderRadius: "12px", display: "block", objectFit: "cover", maxHeight: "500px" }} />
+                        )}
+                        <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
+                          <span style={{ fontSize: "12px", color: "#A3A3A3", fontWeight: 600 }}>♡ {p.total_curtidas}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <p style={{ fontSize: "14px", color: "#111111", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{p.conteudo}</p>
-                  {p.foto_url && (
-                    <img src={p.foto_url} alt="Foto do post" style={{ width: "100%", marginTop: "12px", borderRadius: "12px", display: "block", objectFit: "cover", maxHeight: "500px" }} />
-                  )}
-                  <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
-                    <span style={{ fontSize: "12px", color: "#A3A3A3", fontWeight: 600 }}>♡ {p.total_curtidas}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
 
       </div>
+
+      <ModalMotivoRemocao
+        aberto={postParaRemover !== null}
+        titulo="Remover post"
+        onConfirmar={confirmarRemocaoPost}
+        onCancelar={() => setPostParaRemover(null)}
+      />
     </div>
   );
 }
