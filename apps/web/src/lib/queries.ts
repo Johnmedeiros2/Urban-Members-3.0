@@ -1563,6 +1563,27 @@ export async function criarCurso(titulo: string, descricao: string, nivel: strin
   return data;
 }
 
+export async function atualizarCurso(
+  curso_id: string,
+  campos: { titulo: string; descricao: string; nivel: string; preco: number },
+) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("cursos")
+    .update(campos)
+    .eq("id", curso_id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deletarCurso(curso_id: string) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("cursos")
+    .delete()
+    .eq("id", curso_id);
+  if (error) throw new Error(error.message);
+}
+
 // ── AULAS ───────────────────────────────────────────────────────────
 
 export interface Aula {

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
-import { buscarCurso, buscarAulas, criarAula, marcarAulaConcluida, deletarAula, matricularCurso, buscarMateriais, adicionarMaterial, deletarMaterial, type Aula, type Material } from "@/lib/queries";
+import { buscarCurso, buscarAulas, criarAula, marcarAulaConcluida, deletarAula, matricularCurso, buscarMateriais, adicionarMaterial, deletarMaterial, atualizarCurso, deletarCurso, type Aula, type Material } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
 interface CursoInfo {
@@ -46,6 +46,14 @@ export default function CursoPage() {
   const [agendado, setAgendado] = useState("");
   const [linkAoVivo, setLinkAoVivo] = useState("");
   const [salvando, setSalvando] = useState(false);
+
+  const [modalEditar, setModalEditar] = useState(false);
+  const [eTitulo, setETitulo] = useState("");
+  const [eDescricao, setEDescricao] = useState("");
+  const [eNivel, setENivel] = useState("Iniciante");
+  const [ePreco, setEPreco] = useState("");
+  const [eSalvando, setESalvando] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
 
   const carregar = useCallback(async () => {
     if (!id) return;
@@ -155,6 +163,50 @@ export default function CursoPage() {
     }
   }
 
+  function abrirEdicao() {
+    if (!curso) return;
+    setETitulo(curso.titulo);
+    setEDescricao(curso.descricao ?? "");
+    setENivel(curso.nivel);
+    setEPreco(String(curso.preco ?? ""));
+    setModalEditar(true);
+  }
+
+  async function handleSalvarEdicao() {
+    if (!eTitulo.trim()) return;
+    setESalvando(true);
+    try {
+      await atualizarCurso(id, {
+        titulo: eTitulo.trim(),
+        descricao: eDescricao.trim(),
+        nivel: eNivel,
+        preco: parseFloat(ePreco) || 0,
+      });
+      setModalEditar(false);
+      await carregar();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro ao salvar");
+    } finally {
+      setESalvando(false);
+    }
+  }
+
+  async function handleExcluirCurso() {
+    if (!curso) return;
+    const ok = confirm(
+      `Excluir o curso "${curso.titulo}"?\n\nIsso apaga também todas as aulas, materiais, avaliações e matrículas. Essa ação não pode ser desfeita.`,
+    );
+    if (!ok) return;
+    setExcluindo(true);
+    try {
+      await deletarCurso(id);
+      window.location.href = "/sala-de-aula";
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Erro ao excluir");
+      setExcluindo(false);
+    }
+  }
+
   function formatarTamanho(bytes: number | null): string {
     if (!bytes) return "";
     if (bytes < 1024) return `${bytes} B`;
@@ -194,6 +246,17 @@ export default function CursoPage() {
                 </button>
                 <button onClick={() => setModalMaterial(true)} className="um-btn-secondary" style={{ height: "36px", padding: "0 16px", fontSize: "13px" }}>
                   + Material
+                </button>
+                <button onClick={abrirEdicao} className="um-btn-ghost" style={{ height: "36px", padding: "0 14px", fontSize: "13px" }}>
+                  Editar
+                </button>
+                <button
+                  onClick={handleExcluirCurso}
+                  disabled={excluindo}
+                  className="um-btn-ghost"
+                  style={{ height: "36px", padding: "0 14px", fontSize: "13px", color: "#DC2626" }}
+                >
+                  {excluindo ? "Excluindo..." : "Excluir"}
                 </button>
               </>
             )}
@@ -516,6 +579,34 @@ export default function CursoPage() {
                 className="um-btn-primary"
                 style={{ flex: 1, height: "42px", fontSize: "13px" }}>
                 {mSalvando ? "Enviando..." : "Adicionar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalEditar && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "24px" }}>
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "28px", maxWidth: "440px", width: "100%", display: "flex", flexDirection: "column", gap: "14px", maxHeight: "90vh", overflowY: "auto" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#111111" }}>Editar curso</h2>
+            <input placeholder="Título" value={eTitulo} onChange={(e) => setETitulo(e.target.value)}
+              style={{ width: "100%", height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }} />
+            <textarea placeholder="Descrição" value={eDescricao} onChange={(e) => setEDescricao(e.target.value)} rows={3}
+              style={{ width: "100%", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "12px 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif", resize: "none" }} />
+            <div style={{ display: "flex", gap: "10px" }}>
+              <select value={eNivel} onChange={(e) => setENivel(e.target.value)}
+                style={{ flex: 1, height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }}>
+                {["Iniciante", "Intermediário", "Avançado", "Todos"].map((n) => <option key={n}>{n}</option>)}
+              </select>
+              <input type="number" placeholder="Preço R$ (0 = grátis)" value={ePreco} onChange={(e) => setEPreco(e.target.value)}
+                style={{ flex: 1, height: "48px", border: "1.5px solid #E5E5E5", borderRadius: "12px", padding: "0 14px", fontSize: "14px", outline: "none", fontFamily: "Inter, sans-serif" }} />
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button onClick={() => setModalEditar(false)} className="um-btn-secondary" style={{ flex: 1, height: "44px", fontSize: "13px" }}>
+                Cancelar
+              </button>
+              <button onClick={handleSalvarEdicao} disabled={!eTitulo.trim() || eSalvando} className="um-btn-primary" style={{ flex: 1, height: "44px", fontSize: "13px" }}>
+                {eSalvando ? "Salvando..." : "Salvar alterações"}
               </button>
             </div>
           </div>
