@@ -692,6 +692,8 @@ export interface Live {
   ao_vivo: boolean;
   bairro_id: string | null;
   criado_em: string;
+  tipo: "externa" | "nativa";
+  nome_sala: string | null;
   autor?: { nome: string; cidade: string | null; foto_url: string | null; urban_score: number } | null;
 }
 
@@ -713,11 +715,23 @@ export async function buscarLives(): Promise<Live[]> {
   return (data as Live[]).map((l) => ({ ...l, autor: map.get(l.autor_id) ?? null }));
 }
 
-export async function criarLive(params: { titulo: string; descricao?: string; agendado_para?: string | null; link?: string; bairro_id?: string }) {
+export async function criarLive(params: {
+  titulo: string;
+  descricao?: string;
+  agendado_para?: string | null;
+  link?: string;
+  bairro_id?: string;
+  tipo?: "externa" | "nativa";
+}) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
   if (!params.titulo.trim()) throw new Error("Título obrigatório");
+
+  const tipo = params.tipo ?? "externa";
+  const nome_sala = tipo === "nativa"
+    ? `urban-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+    : null;
 
   const { data, error } = await supabase
     .from("lives")
@@ -726,8 +740,10 @@ export async function criarLive(params: { titulo: string; descricao?: string; ag
       titulo: params.titulo.trim(),
       descricao: params.descricao ?? null,
       agendado_para: params.agendado_para ?? null,
-      link: params.link ?? null,
+      link: tipo === "externa" ? (params.link ?? null) : null,
       bairro_id: params.bairro_id ?? null,
+      tipo,
+      nome_sala,
     })
     .select()
     .single();

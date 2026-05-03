@@ -16,6 +16,7 @@ export default function Lives() {
   const [descricao, setDescricao] = useState("");
   const [agendado, setAgendado] = useState("");
   const [link, setLink] = useState("");
+  const [tipo, setTipo] = useState<"nativa" | "externa">("nativa");
   const [salvando, setSalvando] = useState(false);
 
   const carregar = useCallback(async () => {
@@ -33,6 +34,10 @@ export default function Lives() {
 
   async function salvar() {
     if (!titulo.trim()) return;
+    if (tipo === "externa" && !link.trim()) {
+      alert("Cole o link da transmissão (Zoom, Meet, YouTube, IG Live).");
+      return;
+    }
     setSalvando(true);
     try {
       await criarLive({
@@ -40,8 +45,9 @@ export default function Lives() {
         descricao,
         agendado_para: agendado ? new Date(agendado).toISOString() : null,
         link,
+        tipo,
       });
-      setTitulo(""); setDescricao(""); setAgendado(""); setLink("");
+      setTitulo(""); setDescricao(""); setAgendado(""); setLink(""); setTipo("nativa");
       setModal(false);
       await carregar();
     } catch (e: unknown) {
@@ -118,18 +124,55 @@ export default function Lives() {
 
       {modal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "24px" }}>
-          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "24px", maxWidth: "460px", width: "100%", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "24px", maxWidth: "460px", width: "100%", display: "flex", flexDirection: "column", gap: "12px", maxHeight: "90vh", overflowY: "auto" }}>
             <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111" }}>Nova live</h2>
+
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em" }}>Onde vai transmitir</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => setTipo("nativa")}
+                style={{
+                  padding: "12px", borderRadius: "12px", cursor: "pointer", textAlign: "left",
+                  border: tipo === "nativa" ? "2px solid #FF5C2E" : "1.5px solid #E5E5E5",
+                  background: tipo === "nativa" ? "#FFF3EF" : "#FFFFFF",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>🎥 Aqui mesmo</p>
+                <p style={{ fontSize: "11px", color: "#525252", marginTop: "4px" }}>Câmera direto na página, sem precisar sair.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTipo("externa")}
+                style={{
+                  padding: "12px", borderRadius: "12px", cursor: "pointer", textAlign: "left",
+                  border: tipo === "externa" ? "2px solid #FF5C2E" : "1.5px solid #E5E5E5",
+                  background: tipo === "externa" ? "#FFF3EF" : "#FFFFFF",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>🔗 Link externo</p>
+                <p style={{ fontSize: "11px", color: "#525252", marginTop: "4px" }}>Vou usar Zoom, YouTube, IG Live etc.</p>
+              </button>
+            </div>
+
             <input placeholder="Título da live" value={titulo} onChange={(e) => setTitulo(e.target.value)}
               style={{ height: "44px", border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "0 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif" }} />
             <textarea placeholder="Sobre o que vai falar" value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3}
               style={{ border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "10px 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif", resize: "none" }} />
-            <label style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em" }}>Quando</label>
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em" }}>Quando (opcional)</label>
             <input type="datetime-local" value={agendado} onChange={(e) => setAgendado(e.target.value)}
               style={{ height: "44px", border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "0 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif" }} />
-            <label style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em" }}>Link externo (Zoom, Meet, YouTube, IG Live)</label>
-            <input placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)}
-              style={{ height: "44px", border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "0 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif" }} />
+
+            {tipo === "externa" && (
+              <>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em" }}>Link da transmissão (obrigatório)</label>
+                <input placeholder="https://zoom.us/... ou https://youtube.com/..." value={link} onChange={(e) => setLink(e.target.value)}
+                  style={{ height: "44px", border: "1.5px solid #E5E5E5", borderRadius: "10px", padding: "0 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif" }} />
+              </>
+            )}
+
             <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
               <button onClick={() => setModal(false)} className="um-btn-secondary" style={{ flex: 1, height: "42px", fontSize: "13px" }}>Cancelar</button>
               <button onClick={salvar} disabled={!titulo.trim() || salvando} className="um-btn-accent" style={{ flex: 1, height: "42px", fontSize: "13px" }}>
@@ -192,9 +235,17 @@ function Secao({ titulo, lives, meuId, onToggle, onApagar, destaque, atenuado }:
               )}
               {meuId === l.autor_id && (
                 <>
-                  <button onClick={() => onToggle(l)} style={{ flex: 1, height: "36px", background: destaque ? "rgba(255,255,255,0.15)" : "#F5F5F5", color: destaque ? "#FFFFFF" : "#111111", border: "none", borderRadius: "999px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                    {l.ao_vivo ? "Encerrar" : "Iniciar"}
-                  </button>
+                  {l.tipo === "nativa" ? (
+                    <a href={`/live/${l.id}/transmitir`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textDecoration: "none" }}>
+                      <button style={{ width: "100%", height: "36px", background: destaque ? "rgba(255,255,255,0.15)" : "#FF5C2E", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                        {l.ao_vivo ? "Voltar pro estúdio" : "Abrir estúdio"}
+                      </button>
+                    </a>
+                  ) : (
+                    <button onClick={() => onToggle(l)} style={{ flex: 1, height: "36px", background: destaque ? "rgba(255,255,255,0.15)" : "#F5F5F5", color: destaque ? "#FFFFFF" : "#111111", border: "none", borderRadius: "999px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                      {l.ao_vivo ? "Encerrar" : "Iniciar"}
+                    </button>
+                  )}
                   <button onClick={() => onApagar(l.id)} style={{ width: "36px", height: "36px", background: "transparent", color: destaque ? "#FFFFFF" : "#A3A3A3", border: "none", borderRadius: "50%", fontSize: "14px", cursor: "pointer" }}>✕</button>
                 </>
               )}

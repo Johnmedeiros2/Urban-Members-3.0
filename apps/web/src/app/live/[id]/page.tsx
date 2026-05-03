@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import BotaoCompartilhar from "@/components/ui/BotaoCompartilhar";
+import ViewerLiveNativa from "@/components/ui/ViewerLiveNativa";
 import {
   buscarItensLive, vincularItemLive, desvincularItemLive, comprarDaLive,
   resumoConversaoLive, buscarProdutos, buscarCursos,
@@ -20,6 +21,8 @@ interface LiveInfo {
   ao_vivo: boolean;
   agendado_para: string | null;
   link: string | null;
+  tipo: "externa" | "nativa";
+  nome_sala: string | null;
   autor: { id: string; nome: string; foto_url: string | null; cidade: string | null; urban_score: number } | null;
 }
 
@@ -56,11 +59,11 @@ export default function LivePage() {
       resumoConversaoLive(id),
     ]);
     if (liveRes.data) {
-      const l = liveRes.data as { id: string; autor_id: string; titulo: string; descricao: string | null; ao_vivo: boolean; agendado_para: string | null; link: string | null };
+      const l = liveRes.data as { id: string; autor_id: string; titulo: string; descricao: string | null; ao_vivo: boolean; agendado_para: string | null; link: string | null; tipo: "externa" | "nativa" | null; nome_sala: string | null };
       const { data: autor } = await supabase
         .from("perfis").select("id, nome, foto_url, cidade, urban_score")
         .eq("id", l.autor_id).maybeSingle();
-      setLive({ ...l, autor });
+      setLive({ ...l, tipo: l.tipo ?? "externa", autor });
     }
     setItens(it);
     setMeuId(userData.data.user?.id ?? null);
@@ -157,7 +160,40 @@ export default function LivePage() {
         {/* Player + info */}
         <div>
           <div style={{ background: "#000000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", position: "relative" }}>
-            {youtubeId ? (
+            {live.tipo === "nativa" ? (
+              live.ao_vivo ? (
+                ehAutor ? (
+                  <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#FFFFFF", textAlign: "center", padding: "24px", gap: "12px", background: "linear-gradient(135deg, #1F1F1F, #111111)" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 800, color: "#FF5C2E", letterSpacing: "0.1em", textTransform: "uppercase" }}>Você está no ar</span>
+                    <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)" }}>O estúdio abre em outra aba pra evitar interferência.</p>
+                    <a href={`/live/${id}/transmitir`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                      <button className="um-btn-accent" style={{ height: "44px", padding: "0 24px", fontSize: "13px" }}>
+                        Voltar pro estúdio →
+                      </button>
+                    </a>
+                  </div>
+                ) : (
+                  <ViewerLiveNativa liveId={id} />
+                )
+              ) : ehAutor ? (
+                <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#FFFFFF", textAlign: "center", padding: "24px", gap: "12px", background: "linear-gradient(135deg, #1F1F1F, #111111)" }}>
+                  <span style={{ fontSize: "32px" }}>🎥</span>
+                  <p style={{ fontSize: "16px", fontWeight: 700 }}>Pronto pra começar</p>
+                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>Abra o estúdio, configure câmera e microfone, e entre no ar.</p>
+                  <a href={`/live/${id}/transmitir`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                    <button className="um-btn-accent" style={{ marginTop: "8px", height: "44px", padding: "0 24px", fontSize: "13px" }}>
+                      Abrir estúdio →
+                    </button>
+                  </a>
+                </div>
+              ) : (
+                <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.6)", textAlign: "center", padding: "24px", gap: "10px" }}>
+                  <span style={{ fontSize: "28px" }}>⏳</span>
+                  <p style={{ fontSize: "14px", fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Aguardando o transmissor</p>
+                  <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>A live ainda não começou. Volte mais tarde.</p>
+                </div>
+              )
+            ) : youtubeId ? (
               <iframe
                 src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -179,7 +215,7 @@ export default function LivePage() {
               </div>
             )}
             {live.ao_vivo && (
-              <span style={{ position: "absolute", top: "12px", left: "12px", background: "#FF5C2E", color: "#FFFFFF", padding: "4px 10px", borderRadius: "999px", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              <span style={{ position: "absolute", top: "12px", left: "12px", background: "#FF5C2E", color: "#FFFFFF", padding: "4px 10px", borderRadius: "999px", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", zIndex: 10 }}>
                 🔴 Ao vivo
               </span>
             )}
