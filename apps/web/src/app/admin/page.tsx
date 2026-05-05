@@ -22,7 +22,19 @@ interface Stats {
   transacoes: number; produtos: number; conexoes: number; notif: number; receita: number;
 }
 
-const ABAS = ["Visão Geral", "Moradores", "Moderação", "Transações", "Configurações"];
+interface PHMetrics {
+  cadastros_7d: number;
+  posts_7d: number;
+  compras_7d: number;
+  lives_assistidas_7d: number;
+  taxa_conversao_cadastro: number;
+  eventos_24h: number;
+}
+
+const ABAS = ["Visão Geral", "Comportamento", "Moradores", "Moderação", "Transações", "Configurações"];
+
+const PH_PROJECT_ID = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID;
+const PH_DASHBOARD_BASE = `https://us.posthog.com/project/${PH_PROJECT_ID}`;
 
 function Badge({ children, cor }: { children: React.ReactNode; cor: string }) {
   const bg = cor === "#16A34A" ? "#F0FDF4" : cor === "#EA580C" ? "#FFF7ED" : "#F5F5F5";
@@ -50,6 +62,9 @@ export default function Admin() {
   const [buscaMod, setBuscaMod] = useState("");
   const [adicionando, setAdicionando] = useState<string | null>(null);
   const [removendo, setRemovendo] = useState<string | null>(null);
+
+  const [phMetrics, setPhMetrics] = useState<PHMetrics | null>(null);
+  const [phErro, setPhErro] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -80,6 +95,22 @@ export default function Admin() {
       setTransacoes([]);
     }
     setCarregando(false);
+
+    // PostHog metrics — falha silenciosa (não trava /admin se a chave não estiver setada)
+    try {
+      const r = await fetch("/api/admin/metrics", { cache: "no-store" });
+      if (r.ok) {
+        setPhMetrics(await r.json());
+        setPhErro(null);
+      } else {
+        const j = await r.json().catch(() => ({}));
+        setPhErro(j.error ?? `Erro ${r.status}`);
+        setPhMetrics(null);
+      }
+    } catch (e) {
+      setPhErro(e instanceof Error ? e.message : "Erro");
+      setPhMetrics(null);
+    }
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);
@@ -179,13 +210,53 @@ export default function Admin() {
 
         {!carregando && aba === "Visão Geral" && stats && (
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
-              {STATS_CARDS.map((s) => (
-                <div key={s.label} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <p style={{ fontSize: "12px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.label}</p>
-                  <p style={{ fontSize: "28px", fontWeight: 800, color: s.cor, letterSpacing: "-0.04em" }}>{s.value}</p>
+            <div>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "#A3A3A3", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>Totais (Supabase)</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+                {STATS_CARDS.map((s) => (
+                  <div key={s.label} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <p style={{ fontSize: "12px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.label}</p>
+                    <p style={{ fontSize: "28px", fontWeight: 800, color: s.cor, letterSpacing: "-0.04em" }}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                <p style={{ fontSize: "11px", fontWeight: 700, color: "#A3A3A3", textTransform: "uppercase", letterSpacing: "0.06em" }}>Comportamento últimos 7 dias (PostHog)</p>
+                <button onClick={() => setAba("Comportamento")} style={{ fontSize: "11px", color: "#FF5C2E", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>Ver tudo →</button>
+              </div>
+              {phErro ? (
+                <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "12px", padding: "12px 16px" }}>
+                  <p style={{ fontSize: "12px", color: "#92400E" }}>Métricas de comportamento indisponíveis: {phErro}</p>
                 </div>
-              ))}
+              ) : phMetrics ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+                  <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "16px 20px", border: "1px solid rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Cadastros</p>
+                    <p style={{ fontSize: "24px", fontWeight: 800, color: "#111111", letterSpacing: "-0.04em" }}>{phMetrics.cadastros_7d}</p>
+                  </div>
+                  <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "16px 20px", border: "1px solid rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Conversão cadastro</p>
+                    <p style={{ fontSize: "24px", fontWeight: 800, color: "#FF5C2E", letterSpacing: "-0.04em" }}>{phMetrics.taxa_conversao_cadastro}%</p>
+                  </div>
+                  <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "16px 20px", border: "1px solid rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Posts criados</p>
+                    <p style={{ fontSize: "24px", fontWeight: 800, color: "#111111", letterSpacing: "-0.04em" }}>{phMetrics.posts_7d}</p>
+                  </div>
+                  <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "16px 20px", border: "1px solid rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <p style={{ fontSize: "11px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Compras</p>
+                    <p style={{ fontSize: "24px", fontWeight: 800, color: "#10B981", letterSpacing: "-0.04em" }}>{phMetrics.compras_7d}</p>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} style={{ background: "#FAFAFA", borderRadius: "16px", padding: "16px 20px", height: "76px" }} />
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.06)" }}>
@@ -214,6 +285,83 @@ export default function Admin() {
                   </tbody>
                 </table>
               )}
+            </div>
+          </div>
+        )}
+
+        {!carregando && aba === "Comportamento" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.06)" }}>
+              <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Comportamento dos moradores</h3>
+              <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "4px", lineHeight: 1.5 }}>
+                Métricas de produto vindas do PostHog. Diferente das métricas do Supabase (que mostram totais), aqui você vê <strong style={{ color: "#525252" }}>o que aconteceu nos últimos 7 dias</strong>.
+              </p>
+            </div>
+
+            {phErro && (
+              <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "12px", padding: "16px 20px" }}>
+                <p style={{ fontSize: "13px", color: "#92400E", fontWeight: 600 }}>Métricas indisponíveis</p>
+                <p style={{ fontSize: "12px", color: "#92400E", marginTop: "4px" }}>{phErro}</p>
+                <p style={{ fontSize: "11px", color: "#92400E", marginTop: "8px" }}>
+                  Confira se as variáveis <code>POSTHOG_PERSONAL_API_KEY</code> e <code>NEXT_PUBLIC_POSTHOG_PROJECT_ID</code> estão setadas na Vercel.
+                </p>
+              </div>
+            )}
+
+            {phMetrics && (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+                  {[
+                    { label: "Cadastros completos", value: phMetrics.cadastros_7d.toString(), cor: "#111111", evento: "signup_completed" },
+                    { label: "Taxa de conversão (cadastro)", value: `${phMetrics.taxa_conversao_cadastro}%`, cor: "#FF5C2E", evento: "signup_completed" },
+                    { label: "Posts criados", value: phMetrics.posts_7d.toString(), cor: "#111111", evento: "post_created" },
+                    { label: "Compras concluídas", value: phMetrics.compras_7d.toString(), cor: "#10B981", evento: "purchase_completed" },
+                    { label: "Lives assistidas", value: phMetrics.lives_assistidas_7d.toString(), cor: "#111111", evento: "live_joined" },
+                    { label: "Eventos últimas 24h", value: phMetrics.eventos_24h.toString(), cor: "#525252", evento: "" },
+                  ].map((m) => (
+                    <div key={m.label} style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <p style={{ fontSize: "12px", color: "#A3A3A3", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{m.label}</p>
+                      <p style={{ fontSize: "32px", fontWeight: 800, color: m.cor, letterSpacing: "-0.04em" }}>{m.value}</p>
+                      {m.evento && (
+                        <a href={`${PH_DASHBOARD_BASE}/events?eventFilter=${m.evento}`} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: "11px", color: "#A3A3A3", textDecoration: "none" }}>
+                          Ver eventos no PostHog →
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.06)" }}>
+              <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Análises avançadas</h3>
+              <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "4px", lineHeight: 1.5 }}>
+                Pra funis customizados, retenção D1/D7/D30, session replay e cohorts, abre o PostHog direto:
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px", marginTop: "14px" }}>
+                {[
+                  { label: "📊 Dashboards", url: `${PH_DASHBOARD_BASE}/dashboard` },
+                  { label: "🎯 Funis", url: `${PH_DASHBOARD_BASE}/insights?insight=FUNNELS` },
+                  { label: "📈 Retenção", url: `${PH_DASHBOARD_BASE}/insights?insight=RETENTION` },
+                  { label: "🎬 Session Replay", url: `${PH_DASHBOARD_BASE}/replay/recent` },
+                  { label: "🌐 Web Analytics", url: `${PH_DASHBOARD_BASE}/web` },
+                  { label: "👥 Pessoas (moradores)", url: `${PH_DASHBOARD_BASE}/persons` },
+                ].map((link) => (
+                  <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#FAFAFA", borderRadius: "10px", textDecoration: "none", color: "#111111", fontSize: "13px", fontWeight: 600 }}>
+                    <span>{link.label}</span>
+                    <span style={{ fontSize: "11px", color: "#A3A3A3" }}>↗</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ background: "#F0F9FF", border: "1px solid #BAE6FD", borderRadius: "12px", padding: "14px 18px" }}>
+              <p style={{ fontSize: "12px", color: "#075985", fontWeight: 600 }}>💡 Próximo passo: dashboards customizados</p>
+              <p style={{ fontSize: "11px", color: "#075985", marginTop: "4px", lineHeight: 1.5 }}>
+                Quando você criar dashboards no PostHog (Dashboards → New), me avisa que eu embedo eles aqui dentro do /admin via iframe.
+              </p>
             </div>
           </div>
         )}
