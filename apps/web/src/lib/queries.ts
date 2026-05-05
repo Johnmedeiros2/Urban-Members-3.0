@@ -759,6 +759,12 @@ export async function criarLive(params: {
     .select()
     .single();
   if (error) throw new Error(error.message);
+  track(EVENTS.LIVE_CREATED, {
+    live_id: data.id,
+    tipo,
+    tem_agendamento: !!params.agendado_para,
+    tem_descricao: !!params.descricao,
+  });
   return data;
 }
 
@@ -766,6 +772,7 @@ export async function atualizarLiveStatus(id: string, ao_vivo: boolean) {
   const supabase = createClient();
   const { error } = await supabase.from("lives").update({ ao_vivo }).eq("id", id);
   if (error) throw new Error(error.message);
+  if (ao_vivo) track(EVENTS.LIVE_STARTED, { live_id: id });
 }
 
 export async function deletarLive(id: string) {

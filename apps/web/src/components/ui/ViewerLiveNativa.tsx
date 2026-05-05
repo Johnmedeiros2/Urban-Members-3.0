@@ -10,6 +10,7 @@ import {
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import "@livekit/components-styles";
+import { track, EVENTS } from "@/lib/analytics";
 
 interface Props {
   liveId: string;
@@ -34,6 +35,7 @@ export default function ViewerLiveNativa({ liveId }: Props) {
         if (!r.ok) throw new Error(j.error ?? "Falha ao entrar na live");
         setToken(j.token);
         setServerUrl(j.url);
+        track(EVENTS.LIVE_JOINED, { live_id: liveId });
       } catch (e: unknown) {
         if (!cancelado) setErro(e instanceof Error ? e.message : "Erro");
       }
