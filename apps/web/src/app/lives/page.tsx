@@ -70,6 +70,7 @@ export default function Lives() {
 
   const aoVivo = lives.filter((l) => l.ao_vivo);
   const agendadas = lives.filter((l) => !l.ao_vivo && l.agendado_para && new Date(l.agendado_para) > new Date());
+  const emPreparo = lives.filter((l) => !l.ao_vivo && !l.agendado_para);
   const passadas = lives.filter((l) => !l.ao_vivo && l.agendado_para && new Date(l.agendado_para) <= new Date());
 
   return (
@@ -105,6 +106,9 @@ export default function Lives() {
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             {aoVivo.length > 0 && (
               <Secao titulo="🔴 Ao vivo agora" lives={aoVivo} meuId={meuId} onToggle={toggleAoVivo} onApagar={apagar} destaque />
+            )}
+            {emPreparo.length > 0 && (
+              <Secao titulo="🎬 Pra começar quando quiser" lives={emPreparo} meuId={meuId} onToggle={toggleAoVivo} onApagar={apagar} />
             )}
             {agendadas.length > 0 && (
               <Secao titulo="📅 Agendadas" lives={agendadas} meuId={meuId} onToggle={toggleAoVivo} onApagar={apagar} />
