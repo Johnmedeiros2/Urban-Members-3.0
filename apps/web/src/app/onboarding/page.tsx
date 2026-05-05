@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { track, EVENTS } from "@/lib/analytics";
 
 const suggestedCities = [
   "São Paulo, SP · Brasil", "Rio de Janeiro, RJ · Brasil",
@@ -155,6 +156,14 @@ export default function Onboarding() {
         lgpd_data: new Date().toISOString(),
       }));
     }
+    track(EVENTS.ONBOARDING_COMPLETED, {
+      cidade: location?.city,
+      pais: location?.country,
+      tem_visita: !!visitCity,
+      tem_area: !!bio.area,
+      ocupacao: bio.ocupacao,
+      objetivo: bio.objetivo,
+    });
     router.push("/feed");
   }
 

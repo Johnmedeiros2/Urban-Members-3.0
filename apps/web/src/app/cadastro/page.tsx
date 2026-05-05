@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
+import { track, EVENTS } from "@/lib/analytics";
 
 const INPUT: React.CSSProperties = {
   width: "100%", height: "52px",
@@ -50,6 +51,11 @@ function Cadastro() {
     if (ref && typeof window !== "undefined") {
       localStorage.setItem("urban_ref", ref);
     }
+  }, [ref]);
+
+  // Analytics: começou o cadastro
+  useEffect(() => {
+    track(EVENTS.SIGNUP_STARTED, { has_referral: !!ref });
   }, [ref]);
 
   const [jaMorador, setJaMorador] = useState(false);
@@ -125,6 +131,8 @@ function Cadastro() {
       setLoading(false);
       return;
     }
+    track(EVENTS.SIGNUP_COMPLETED, { has_referral: !!ref });
+    if (ref) track(EVENTS.REFERRAL_SIGNUP, { ref_id: ref });
     setSucesso(true);
     setLoading(false);
   }
