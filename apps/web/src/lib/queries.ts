@@ -729,6 +729,9 @@ export async function criarLive(params: {
   if (!params.titulo.trim()) throw new Error("Título obrigatório");
 
   const tipo = params.tipo ?? "externa";
+  if (tipo === "externa" && !params.link?.trim()) {
+    throw new Error("Link da transmissão é obrigatório para lives externas");
+  }
   const nome_sala = tipo === "nativa"
     ? `urban-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
     : null;
@@ -740,7 +743,7 @@ export async function criarLive(params: {
       titulo: params.titulo.trim(),
       descricao: params.descricao ?? null,
       agendado_para: params.agendado_para ?? null,
-      link: tipo === "externa" ? (params.link ?? null) : null,
+      link: tipo === "externa" ? (params.link?.trim() || null) : null,
       bairro_id: params.bairro_id ?? null,
       tipo,
       nome_sala,

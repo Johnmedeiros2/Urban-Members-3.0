@@ -209,9 +209,22 @@ export default function LivePage() {
                   </button>
                 </a>
               </div>
+            ) : ehAutor ? (
+              <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#FFFFFF", textAlign: "center", padding: "24px", gap: "12px", background: "linear-gradient(135deg, #1F1F1F, #111111)" }}>
+                <span style={{ fontSize: "28px" }}>⚙️</span>
+                <p style={{ fontSize: "15px", fontWeight: 700 }}>Falta o link da transmissão</p>
+                <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", maxWidth: "360px" }}>Edite a live e cole o link do Zoom, YouTube, IG Live ou Meet pra começar.</p>
+                <a href="/lives" style={{ textDecoration: "none" }}>
+                  <button className="um-btn-accent" style={{ marginTop: "8px", height: "44px", padding: "0 24px", fontSize: "13px" }}>
+                    Voltar pra editar →
+                  </button>
+                </a>
+              </div>
             ) : (
-              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.5)", fontSize: "14px" }}>
-                Sem link configurado
+              <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.6)", textAlign: "center", padding: "24px", gap: "10px" }}>
+                <span style={{ fontSize: "28px" }}>⏳</span>
+                <p style={{ fontSize: "14px", fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Esta live ainda não está disponível</p>
+                <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", maxWidth: "320px" }}>O criador precisa configurar o link de transmissão. Volte mais tarde.</p>
               </div>
             )}
             {live.ao_vivo && (
