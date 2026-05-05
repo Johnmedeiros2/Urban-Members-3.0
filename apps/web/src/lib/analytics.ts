@@ -23,10 +23,10 @@ export const EVENTS = {
   REFERRAL_SIGNUP: "referral_signup",
   ONBOARDING_COMPLETED: "onboarding_completed",
 
-  // Aha moments
-  FIRST_POST_CREATED: "first_post_created",
-  FIRST_PURCHASE: "first_purchase",
-  COURSE_ENROLLMENT: "course_enrollment",
+  // Aha moments (PostHog detecta primeira ocorrência via funis)
+  POST_CREATED: "post_created",
+  PURCHASE_COMPLETED: "purchase_completed",
+  COURSE_ENROLLED: "course_enrolled",
 
   // Lives
   LIVE_CREATED: "live_created",

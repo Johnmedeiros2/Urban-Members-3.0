@@ -1,4 +1,5 @@
 import { createClient } from "./supabase";
+import { track, EVENTS } from "./analytics";
 
 export interface PostReal {
   id: string;
@@ -194,6 +195,13 @@ export async function criarPost(conteudo: string, bairro_id = "negocios", foto?:
     .single();
 
   if (error) throw new Error(error.message);
+  track(EVENTS.POST_CREATED, {
+    bairro_id,
+    tem_foto: !!foto_url,
+    tem_video: !!video_url,
+    tamanho_texto: conteudo.length,
+    eh_empresa: !!empresa_id,
+  });
   return data;
 }
 
@@ -859,6 +867,16 @@ export async function comprarDaLive(vendedor_id: string, valor: number, descrica
     .select()
     .single();
   if (error) throw new Error(error.message);
+  track(EVENTS.PURCHASE_COMPLETED, {
+    valor: valorFinal,
+    valor_original: valor,
+    descricao,
+    vendedor_id,
+    via: "live",
+    live_id,
+    tem_cupom: !!cupom_id,
+    desconto_aplicado,
+  });
   return data;
 }
 
@@ -1891,6 +1909,7 @@ export async function matricularCurso(curso_id: string) {
     .from("curso_alunos")
     .insert({ curso_id, morador_id: user.id });
   if (error && !error.message.includes("duplicate")) throw new Error(error.message);
+  if (!error) track(EVENTS.COURSE_ENROLLED, { curso_id });
 }
 
 // ── TRANSAÇÕES (Urban Pay) ──────────────────────────────────────────
@@ -2014,6 +2033,16 @@ export async function criarTransacao(
         .eq("id", cupom_id);
     }
   }
+
+  track(EVENTS.PURCHASE_COMPLETED, {
+    valor: valorFinal,
+    valor_original: valor,
+    descricao,
+    vendedor_id,
+    via: "mercado",
+    tem_cupom: !!cupom_id,
+    desconto_aplicado,
+  });
 
   return data;
 }
