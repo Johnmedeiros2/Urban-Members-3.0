@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import Notificacoes from "@/components/ui/Notificacoes";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import BuscaGlobal from "@/components/ui/BuscaGlobal";
@@ -259,7 +260,7 @@ export default function Feed() {
                 Urban Pay
               </button>
             </a>
-            <a href="/perfil"><Avatar name={meuNome} foto={usuario?.foto_url} size={36} /></a>
+            <AvatarMenu nome={meuNome} foto={usuario?.foto_url ?? null} size={36} />
           </div>
         </div>
       </header>

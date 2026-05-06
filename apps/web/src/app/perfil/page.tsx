@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import Avatar from "@/components/ui/Avatar";
 import BotaoConvite from "@/components/ui/BotaoConvite";
 import MeusCupons from "@/components/ui/MeusCupons";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
 import { meusProdutos, meusCursos, minhasVendasResumo, uploadFotoPerfil, minhasIndicacoes, type Indicacao } from "@/lib/queries";
+import { reset as resetAnalytics } from "@/lib/analytics";
 
 interface ProdutoMeu {
   id: string; nome: string; preco: number; categoria: string; total_vendas: number;
@@ -57,11 +59,26 @@ const recentPosts = [
 ];
 
 export default function Perfil() {
+  const router = useRouter();
   const [perfil, setPerfil] = useState<Perfil>(MOCK);
   const [carregando, setCarregando] = useState(true);
   const [editando, setEditando] = useState(false);
   const [nomeEdit, setNomeEdit] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [saindo, setSaindo] = useState(false);
+
+  async function handleSair() {
+    if (!confirm("Sair da sua conta agora?")) return;
+    setSaindo(true);
+    try {
+      await createClient().auth.signOut();
+      resetAnalytics();
+      router.push("/login");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro ao sair");
+      setSaindo(false);
+    }
+  }
 
   // Meu comércio
   const [minhaLoja, setMinhaLoja] = useState<LojaMinha | null>(null);
@@ -603,6 +620,24 @@ export default function Perfil() {
             </div>
           </div>
         )}
+
+        {/* Conta */}
+        <div style={{ marginTop: "32px", background: "#FFFFFF", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.05)", padding: "20px 24px" }}>
+          <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Conta</h3>
+          <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "4px", lineHeight: 1.5 }}>
+            Você pode sair a qualquer momento. Todos seus dados ficam salvos pra quando voltar.
+          </p>
+          <button onClick={handleSair} disabled={saindo} style={{
+            marginTop: "14px", height: "44px", padding: "0 20px",
+            background: "transparent", color: "#DC2626",
+            border: "1.5px solid #FECACA", borderRadius: "999px",
+            fontSize: "13px", fontWeight: 700, cursor: saindo ? "wait" : "pointer",
+            fontFamily: "Inter, sans-serif",
+            display: "inline-flex", alignItems: "center", gap: "8px",
+          }}>
+            <span>🚪</span> {saindo ? "Saindo..." : "Sair da conta"}
+          </button>
+        </div>
 
         {/* Posts recentes */}
         <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
