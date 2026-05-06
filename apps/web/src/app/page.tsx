@@ -1,9 +1,9 @@
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white text-[#111111]" style={{ fontFamily: "Inter, sans-serif" }}>
+    <main className="min-h-screen bg-white text-[#111111] w-full" style={{ fontFamily: "Inter, sans-serif" }}>
 
       {/* HERO */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden flex justify-center w-full">
         {/* Skyline SVG no fundo */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 70% 30%, rgba(255,92,46,0.08) 0%, transparent 60%)" }} />
@@ -20,7 +20,7 @@ export default function Home() {
           </svg>
         </div>
 
-        <div className="relative max-w-md mx-auto px-6 pt-20 pb-16 flex flex-col gap-10">
+        <div className="relative w-full max-w-md px-6 pt-20 pb-16 flex flex-col gap-10">
           {/* Logo + identidade */}
           <div className="flex items-center gap-3">
             <img src="/logo.svg" alt="Urban Members" width={56} height={56} style={{ display: "block" }} />
@@ -59,8 +59,8 @@ export default function Home() {
       </section>
 
       {/* ENDOSSO ADONAI */}
-      <section className="border-t border-[#F5F5F5] bg-[#FAFAFA]">
-        <div className="max-w-md mx-auto px-6 py-8 flex flex-col items-center gap-3 text-center">
+      <section className="border-t border-[#F5F5F5] bg-[#FAFAFA] flex justify-center w-full">
+        <div className="w-full max-w-md px-6 py-8 flex flex-col items-center gap-3 text-center">
           <p className="text-[10px] font-bold tracking-[0.12em] text-[#A3A3A3] uppercase">Apoiado por</p>
           <p className="text-sm font-bold text-[#111111]">Instituto Caxiense Shalom Adonai</p>
           <p className="text-xs text-[#525252] leading-relaxed">
@@ -70,8 +70,8 @@ export default function Home() {
       </section>
 
       {/* COMO FUNCIONA */}
-      <section className="border-t border-[#F5F5F5]">
-        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-10">
+      <section className="border-t border-[#F5F5F5] flex justify-center w-full">
+        <div className="w-full max-w-md px-6 py-16 flex flex-col gap-10">
           <div className="flex flex-col gap-2">
             <p className="text-[10px] font-bold tracking-[0.12em] text-[#FF5C2E] uppercase">Como funciona</p>
             <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
@@ -106,8 +106,8 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="border-t border-[#F5F5F5] bg-[#FAFAFA]">
-        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-8">
+      <section className="border-t border-[#F5F5F5] bg-[#FAFAFA] flex justify-center w-full">
+        <div className="w-full max-w-md px-6 py-16 flex flex-col gap-8">
           <div className="flex flex-col gap-2">
             <p className="text-[10px] font-bold tracking-[0.12em] text-[#A3A3A3] uppercase">Perguntas frequentes</p>
             <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
@@ -137,8 +137,8 @@ export default function Home() {
       </section>
 
       {/* CTA FINAL */}
-      <section className="border-t border-[#F5F5F5]">
-        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-6 items-center text-center">
+      <section className="border-t border-[#F5F5F5] flex justify-center w-full">
+        <div className="w-full max-w-md px-6 py-16 flex flex-col gap-6 items-center text-center">
           <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
             Pronto pra ser morador?
           </h2>
@@ -155,8 +155,8 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-[#F5F5F5] bg-white">
-        <div className="max-w-md mx-auto px-6 py-8 flex items-center justify-between">
+      <footer className="border-t border-[#F5F5F5] bg-white flex justify-center w-full">
+        <div className="w-full max-w-md px-6 py-8 flex items-center justify-between">
           <p className="text-xs text-[#A3A3A3]">urbanicsa.com</p>
           <p className="text-xs text-[#A3A3A3]">© 2026 Urban Members</p>
         </div>
