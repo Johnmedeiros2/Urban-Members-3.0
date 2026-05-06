@@ -25,38 +25,61 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
   const [enviando, setEnviando] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const ultimoTimestamp = useRef<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
 
-    async function carregar() {
+    async function carregarTudo() {
       const { data } = await supabase
         .from("live_mensagens")
         .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
         .eq("live_id", liveId)
         .order("criado_em", { ascending: true })
         .limit(150);
-      if (data) setMensagens(data as unknown as Mensagem[]);
+      if (data && data.length > 0) {
+        setMensagens(data as unknown as Mensagem[]);
+        ultimoTimestamp.current = (data as unknown as Mensagem[])[data.length - 1].criado_em;
+      }
     }
-    carregar();
+
+    async function buscarNovas() {
+      const desde = ultimoTimestamp.current;
+      if (!desde) return;
+      const { data } = await supabase
+        .from("live_mensagens")
+        .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
+        .eq("live_id", liveId)
+        .gt("criado_em", desde)
+        .order("criado_em", { ascending: true })
+        .limit(50);
+      if (data && data.length > 0) {
+        setMensagens((prev) => {
+          const ids = new Set(prev.map((m) => m.id));
+          const novas = (data as unknown as Mensagem[]).filter((m) => !ids.has(m.id));
+          if (novas.length === 0) return prev;
+          ultimoTimestamp.current = novas[novas.length - 1].criado_em;
+          return [...prev, ...novas];
+        });
+      }
+    }
+
+    carregarTudo();
+    const timer = setInterval(buscarNovas, 3000);
 
     const channel = supabase
       .channel(`live-chat-${liveId}-${channelId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "live_mensagens", filter: `live_id=eq.${liveId}` },
-        async (payload) => {
-          const { data } = await supabase
-            .from("live_mensagens")
-            .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
-            .eq("id", payload.new.id)
-            .single();
-          if (data) setMensagens((prev) => [...prev, data as unknown as Mensagem]);
-        }
+        () => buscarNovas()
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      clearInterval(timer);
+      supabase.removeChannel(channel);
+    };
   }, [liveId, channelId]);
 
   useEffect(() => {
@@ -69,7 +92,19 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
     setEnviando(true);
     setTexto("");
     const supabase = createClient();
-    await supabase.from("live_mensagens").insert({ live_id: liveId, autor_id: meuId, texto: t });
+    const { data: nova } = await supabase
+      .from("live_mensagens")
+      .insert({ live_id: liveId, autor_id: meuId, texto: t })
+      .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
+      .single();
+    if (nova) {
+      const m = nova as unknown as Mensagem;
+      setMensagens((prev) => {
+        if (prev.some((x) => x.id === m.id)) return prev;
+        ultimoTimestamp.current = m.criado_em;
+        return [...prev, m];
+      });
+    }
     setEnviando(false);
     inputRef.current?.focus();
   }
