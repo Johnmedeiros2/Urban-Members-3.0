@@ -184,33 +184,33 @@ export default function Home() {
     <main className="min-h-screen bg-white text-[#111111] w-full" style={{ fontFamily: "Inter, sans-serif" }}>
 
       {/* HEADER */}
-      <header className="border-b border-[#F5F5F5] bg-white sticky top-0 z-50 w-full flex justify-center">
-        <div className="w-full max-w-6xl px-6 h-16 flex items-center justify-between">
+      <header className="border-b border-[#F5F5F5] bg-white/90 backdrop-blur-md sticky top-0 z-50 w-full flex justify-center">
+        <div className="w-full max-w-6xl px-6 h-14 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2.5 no-underline">
-            <img src="/logo.svg" alt="Urban Members" width={32} height={32} style={{ display: "block" }} />
-            <span className="text-sm font-bold tracking-widest text-[#111111] uppercase">Urban Members</span>
+            <img src="/logo.svg" alt="Urban Members" width={28} height={28} style={{ display: "block" }} />
+            <span className="text-[13px] font-bold tracking-widest text-[#111111] uppercase">Urban Members</span>
           </a>
           <div className="flex items-center gap-3">
-            <a href="/login" className="hidden md:inline text-sm font-medium text-[#525252] hover:text-[#111111] transition-colors">Já tenho conta</a>
-            <a href="/cadastro" className="inline-flex items-center gap-1 h-10 px-5 bg-[#FF5C2E] text-white text-sm font-bold rounded-full hover:bg-[#E04E20] transition-colors no-underline">
+            <a href="/login" className="hidden md:inline text-[13px] font-medium text-[#525252] hover:text-[#111111] transition-colors">Já tenho conta</a>
+            <a href="/cadastro" className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#FF5C2E] text-white text-[13px] font-semibold rounded-full hover:bg-[#E04E20] transition-colors no-underline">
               Quero meu endereço <span aria-hidden="true">→</span>
             </a>
           </div>
         </div>
       </header>
 
-      {/* HERO — 2 colunas em desktop */}
-      <section className="relative overflow-hidden flex justify-center w-full bg-gradient-to-br from-[#FFF8F4] via-white to-[#FFF3EF]">
-        <div className="w-full max-w-6xl px-6 py-12 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-center">
+      {/* HERO — 2 colunas em desktop, ocupa toda a viewport */}
+      <section className="relative overflow-hidden flex justify-center w-full bg-gradient-to-br from-[#FFF8F4] via-white to-[#FFF3EF]" style={{ minHeight: "calc(100vh - 56px)" }}>
+        <div className="w-full max-w-6xl px-6 py-10 md:py-12 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-center">
 
           {/* COLUNA ESQUERDA — texto */}
-          <div className="flex flex-col gap-6 text-left">
+          <div className="flex flex-col gap-5 text-left">
             <span className="inline-flex items-center gap-2 self-start px-3 py-1.5 bg-[#FFF3EF] border border-[#FED7C3] rounded-full">
               <span className="w-2 h-2 rounded-full bg-[#FF5C2E] animate-pulse"></span>
               <span className="text-[11px] font-bold tracking-[0.08em] text-[#FF5C2E] uppercase">Pré-lançamento aberto</span>
             </span>
 
-            <h1 className="text-[34px] md:text-[48px] lg:text-[56px] font-bold leading-[1.05] text-[#111111] tracking-tight">
+            <h1 className="text-[34px] md:text-[44px] lg:text-[52px] font-bold leading-[1.05] text-[#111111] tracking-tight">
               A primeira <span className="text-[#FF5C2E]">cidade digital</span> brasileira está no dia 1.
             </h1>
 
@@ -218,22 +218,22 @@ export default function Home() {
               Estamos no início. Os primeiros moradores ajudam a construir a cidade que querem morar.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center pt-1">
               <a
                 href="/cadastro"
-                className="inline-flex items-center justify-center gap-2 h-14 px-8 bg-[#FF5C2E] text-white text-base font-bold rounded-full hover:bg-[#E04E20] transition-colors shadow-[0_8px_20px_rgba(255,92,46,0.3)] no-underline"
+                className="inline-flex items-center justify-center gap-1.5 h-12 px-6 bg-[#FF5C2E] text-white text-sm font-semibold rounded-full hover:bg-[#E04E20] transition-colors shadow-[0_4px_14px_rgba(255,92,46,0.25)] no-underline"
               >
                 Quero meu endereço grátis <span aria-hidden="true">→</span>
               </a>
               <a
                 href="/login"
-                className="inline-flex items-center justify-center h-14 px-6 text-[#525252] text-sm font-semibold hover:text-[#111111] transition-colors no-underline"
+                className="inline-flex items-center justify-center h-12 px-5 text-[#525252] text-sm font-medium hover:text-[#111111] transition-colors no-underline"
               >
                 Já tenho conta
               </a>
             </div>
 
-            <p className="text-xs text-[#A3A3A3]">
+            <p className="text-xs text-[#A3A3A3] leading-relaxed">
               ⚡ Cadastro em 30 segundos · sem cartão · ao continuar você aceita os{" "}
               <a href="/termos" className="underline hover:text-[#525252]">Termos</a> e a{" "}
               <a href="/privacidade" className="underline hover:text-[#525252]">Privacidade</a>
