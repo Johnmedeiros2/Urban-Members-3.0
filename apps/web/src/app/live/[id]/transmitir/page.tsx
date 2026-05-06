@@ -11,6 +11,7 @@ import {
 import "@livekit/components-styles";
 import { atualizarLiveStatus } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
+import ChatLive from "@/components/ui/ChatLive";
 
 export default function TransmitirLive() {
   const params = useParams();
@@ -22,6 +23,7 @@ export default function TransmitirLive() {
   const [erro, setErro] = useState<string | null>(null);
   const [tituloLive, setTituloLive] = useState<string>("");
   const [aoVivo, setAoVivo] = useState(false);
+  const [meuId, setMeuId] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -40,6 +42,7 @@ export default function TransmitirLive() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Faça login para transmitir");
       if (user.id !== liveTyped.autor_id) throw new Error("Só o autor pode transmitir");
+      setMeuId(user.id);
 
       setTituloLive(liveTyped.titulo);
       setAoVivo(liveTyped.ao_vivo);
@@ -125,20 +128,25 @@ export default function TransmitirLive() {
         )}
       </header>
 
-      <div style={{ flex: 1, position: "relative" }}>
-        <LiveKitRoom
-          token={token}
-          serverUrl={serverUrl}
-          connect={true}
-          video={true}
-          audio={true}
-          data-lk-theme="default"
-          style={{ height: "100%" }}
-        >
-          <VideoConference />
-          <RoomAudioRenderer />
-          <ControlBar variation="minimal" controls={{ chat: false, screenShare: true, leave: false }} />
-        </LiveKitRoom>
+      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 300px", overflow: "hidden" }}>
+        <div style={{ position: "relative", overflow: "hidden" }}>
+          <LiveKitRoom
+            token={token}
+            serverUrl={serverUrl}
+            connect={true}
+            video={true}
+            audio={true}
+            data-lk-theme="default"
+            style={{ height: "100%" }}
+          >
+            <VideoConference />
+            <RoomAudioRenderer />
+            <ControlBar variation="minimal" controls={{ chat: false, screenShare: true, leave: false }} />
+          </LiveKitRoom>
+        </div>
+        <div style={{ borderLeft: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column" }}>
+          <ChatLive liveId={id} meuId={meuId} altura="100%" />
+        </div>
       </div>
 
       {!aoVivo && (
