@@ -104,33 +104,40 @@ export default function Feed() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
+    // Timer de segurança: desbloqueia a tela em até 7s mesmo se algo travar
+    const seguranca = setTimeout(() => setCarregando(false), 7000);
     try {
-      const fetchPromise = tagFiltro
-        ? buscarPosts(20, tagFiltro)
-        : modoFeed === "voce"
-          ? buscarPostsPersonalizado(30)
-          : buscarPosts(20);
-      const fetcher = Promise.race([fetchPromise, new Promise<PostReal[]>((resolve) => setTimeout(() => resolve([]), 8000))]);
-      const [p, user] = await Promise.all([
-        fetcher,
-        createClient().auth.getUser(),
+      const supabase = createClient();
+      const [p, userResult] = await Promise.all([
+        Promise.race([
+          tagFiltro ? buscarPosts(20, tagFiltro) : modoFeed === "voce" ? buscarPostsPersonalizado(30) : buscarPosts(20),
+          new Promise<PostReal[]>((resolve) => setTimeout(() => resolve([]), 6000)),
+        ]),
+        Promise.race([
+          supabase.auth.getUser(),
+          new Promise<{ data: { user: null }; error: null }>((resolve) => setTimeout(() => resolve({ data: { user: null }, error: null }), 6000)),
+        ]),
       ]);
       setPosts(p);
       if (p.length > 0) {
-        const curtidasIds = await minhasCurtidas(p.map((x) => x.id));
+        const curtidasIds = await Promise.race([
+          minhasCurtidas(p.map((x) => x.id)),
+          new Promise<Set<string>>((resolve) => setTimeout(() => resolve(new Set()), 5000)),
+        ]);
         setCurtidas(curtidasIds);
       }
-      if (user.data.user) {
-        const { data } = await createClient()
+      if (userResult.data.user) {
+        const { data } = await supabase
           .from("perfis")
           .select("nome, urban_score, foto_url")
-          .eq("id", user.data.user.id)
+          .eq("id", userResult.data.user.id)
           .single();
-        if (data) setUsuario({ id: user.data.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
+        if (data) setUsuario({ id: userResult.data.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
       }
     } catch {
-      // falha silenciosa — mostra feed vazio
+      // falha silenciosa
     } finally {
+      clearTimeout(seguranca);
       setCarregando(false);
     }
   }, [tagFiltro, modoFeed]);
