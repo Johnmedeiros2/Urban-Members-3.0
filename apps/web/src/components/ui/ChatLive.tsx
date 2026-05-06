@@ -118,6 +118,7 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && enviar()}
             placeholder="Digite uma mensagem..."
             maxLength={300}
+            className="chat-input"
             style={{ flex: 1, height: "38px", borderRadius: "10px", border: "1.5px solid #E5E5E5", padding: "0 12px", fontSize: "13px", outline: "none", fontFamily: "Inter, sans-serif", transition: "border-color 0.2s", color: "#111111", background: "#FFFFFF" }}
             onFocus={(e) => (e.target.style.borderColor = "#FF5C2E")}
             onBlur={(e) => (e.target.style.borderColor = "#E5E5E5")}

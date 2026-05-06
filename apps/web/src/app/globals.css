@@ -440,3 +440,10 @@ body {
   background: #FFF3EF;
   border-color: rgba(255,92,46,0.2);
 }
+
+/* Chat ao vivo — forçar cor do input mesmo com LiveKit global CSS */
+.chat-input {
+  color: #111111 !important;
+  background: #FFFFFF !important;
+  caret-color: #111111 !important;
+}
