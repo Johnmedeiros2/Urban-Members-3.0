@@ -70,7 +70,6 @@ function Cadastro() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [confirmar, setConfirmar] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
@@ -101,8 +100,7 @@ function Cadastro() {
   }
 
   const forcaSenha = forca(senha);
-  const senhasIguais = senha === confirmar && confirmar.length > 0;
-  const podeCadastrar = nome.trim() && email && senha.length >= 6 && senhasIguais;
+  const podeCadastrar = nome.trim() && email && senha.length >= 6;
 
   async function handleCadastro() {
     if (!podeCadastrar) return;
@@ -220,6 +218,20 @@ function Cadastro() {
           </p>
         </div>
 
+        {/* Benefícios condensados — visíveis também em mobile (painel esquerdo está hidden md:flex) */}
+        <div className="md:hidden" style={{ display: "flex", flexWrap: "wrap", gap: "8px", padding: "12px 14px", background: "#FAFAFA", borderRadius: "12px", border: "1px solid #F5F5F5" }}>
+          <span style={{ fontSize: "11px", color: "#525252", fontWeight: 600 }}>🏘️ Cadastro grátis</span>
+          <span style={{ fontSize: "11px", color: "#A3A3A3" }}>·</span>
+          <span style={{ fontSize: "11px", color: "#525252", fontWeight: 600 }}>⚡ 30 segundos</span>
+          <span style={{ fontSize: "11px", color: "#A3A3A3" }}>·</span>
+          <span style={{ fontSize: "11px", color: "#525252", fontWeight: 600 }}>🔒 Sem cartão</span>
+        </div>
+
+        {/* Âncora de tempo — visível em desktop (em mobile já tem na linha acima) */}
+        <p className="hidden md:block" style={{ fontSize: "12px", color: "#A3A3A3", textAlign: "center", marginTop: "-12px" }}>
+          ⚡ Cadastro em 30 segundos · sem cartão
+        </p>
+
         {/* Google */}
         <button onClick={handleGoogle} style={{
           width: "100%", height: "52px",
@@ -279,15 +291,6 @@ function Cadastro() {
                 </div>
                 <p style={{ fontSize: "11px", color: forcaSenha.cor, fontWeight: 600 }}>{forcaSenha.texto}</p>
               </div>
-            )}
-          </div>
-
-          <div>
-            <label style={LABEL}>Confirmar senha</label>
-            <input type={mostrarSenha ? "text" : "password"} placeholder="Repita a senha" value={confirmar} onChange={(e) => setConfirmar(e.target.value)}
-              style={{ ...INPUT, border: `1.5px solid ${confirmar ? (senhasIguais ? "#10B981" : "#EF4444") : "#E5E5E5"}` }} />
-            {confirmar.length > 0 && !senhasIguais && (
-              <p style={{ fontSize: "11px", color: "#EF4444", marginTop: "4px" }}>As senhas não coincidem</p>
             )}
           </div>
 
