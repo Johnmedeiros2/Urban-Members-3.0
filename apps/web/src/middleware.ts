@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/admin", "/feed", "/mercado", "/sala-de-aula", "/perfil", "/pagamento", "/api/mercadopago", "/compras", "/pulse", "/curso", "/lives", "/live", "/wishlist", "/agenda", "/trilhas", "/trilha", "/buscar", "/empresa"];
+const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/recuperar-senha", "/nova-senha", "/admin", "/feed", "/mercado", "/sala-de-aula", "/perfil", "/pagamento", "/api/mercadopago", "/compras", "/pulse", "/curso", "/lives", "/live", "/wishlist", "/agenda", "/trilhas", "/trilha", "/buscar", "/empresa"];
 const ADMIN_EMAIL = "johnmedeiros30@gmail.com";
 const SUPABASE_CONFIGURED =
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -35,9 +35,9 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
 
-  // Raiz sempre redireciona — logado vai pro feed, anônimo vai pro login
-  if (path === "/") {
-    return NextResponse.redirect(new URL(user ? "/feed" : "/login", request.url));
+  // Raiz: logado vai pro feed, anônimo vê a landing page
+  if (path === "/" && user) {
+    return NextResponse.redirect(new URL("/feed", request.url));
   }
 
   const isPublic = PUBLIC_ROUTES.some((r) => path === r || path.startsWith(r + "/"));
