@@ -25,57 +25,30 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
   const [enviando, setEnviando] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const ultimoTimestamp = useRef<string | null>(null);
+  const prevCount = useRef(0);
 
   useEffect(() => {
     const supabase = createClient();
 
-    async function carregarTudo() {
-      const antes = new Date().toISOString();
+    async function carregar() {
       const { data } = await supabase
         .from("live_mensagens")
         .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
         .eq("live_id", liveId)
         .order("criado_em", { ascending: true })
         .limit(150);
-      if (data) {
-        setMensagens(data as unknown as Mensagem[]);
-        const msgs = data as unknown as Mensagem[];
-        // Mesmo sem mensagens, guarda o timestamp atual para o polling funcionar
-        ultimoTimestamp.current = msgs.length > 0 ? msgs[msgs.length - 1].criado_em : antes;
-      }
+      if (data) setMensagens(data as unknown as Mensagem[]);
     }
 
-    async function buscarNovas() {
-      const desde = ultimoTimestamp.current;
-      if (!desde) return;
-      const { data } = await supabase
-        .from("live_mensagens")
-        .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
-        .eq("live_id", liveId)
-        .gt("criado_em", desde)
-        .order("criado_em", { ascending: true })
-        .limit(50);
-      if (data && data.length > 0) {
-        setMensagens((prev) => {
-          const ids = new Set(prev.map((m) => m.id));
-          const novas = (data as unknown as Mensagem[]).filter((m) => !ids.has(m.id));
-          if (novas.length === 0) return prev;
-          ultimoTimestamp.current = novas[novas.length - 1].criado_em;
-          return [...prev, ...novas];
-        });
-      }
-    }
-
-    carregarTudo();
-    const timer = setInterval(buscarNovas, 3000);
+    carregar();
+    const timer = setInterval(carregar, 3000);
 
     const channel = supabase
       .channel(`live-chat-${liveId}-${channelId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "live_mensagens", filter: `live_id=eq.${liveId}` },
-        () => buscarNovas()
+        () => carregar()
       )
       .subscribe();
 
@@ -86,7 +59,10 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
   }, [liveId, channelId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (mensagens.length > prevCount.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      prevCount.current = mensagens.length;
+    }
   }, [mensagens]);
 
   async function enviar() {
@@ -101,10 +77,9 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
       .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
       .single();
     if (nova) {
-      const m = nova as unknown as Mensagem;
       setMensagens((prev) => {
+        const m = nova as unknown as Mensagem;
         if (prev.some((x) => x.id === m.id)) return prev;
-        ultimoTimestamp.current = m.criado_em;
         return [...prev, m];
       });
     }
