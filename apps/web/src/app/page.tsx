@@ -56,12 +56,12 @@ export default function Home() {
             </a>
           </div>
 
-          <p style={{ fontSize: "13px", color: "#A3A3A3" }}>
-            Já tem conta?{" "}
-            <a href="/login" className="lp-link" style={{ color: "#FF5C2E", fontWeight: 600, textDecoration: "none" }}>Entrar na cidade</a>
-          </p>
+          <a href="/login" className="lp-login-btn" style={{ height: "52px", borderRadius: "14px", border: "1.5px solid #111111", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "14px", fontWeight: 700, color: "#111111", textDecoration: "none" }}>
+            Já tenho conta — Entrar na cidade
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
 
-          <p style={{ fontSize: "12px", color: "#C0C0C0" }}>Cadastro gratuito · 30 segundos · sem cartão</p>
+          <p style={{ fontSize: "12px", color: "#C0C0C0", textAlign: "center" }}>Cadastro gratuito · 30 segundos · sem cartão</p>
         </div>
 
         {/* ── DIREITA: Ilustração ── */}

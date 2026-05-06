@@ -418,6 +418,18 @@ body {
 }
 .lp-link:hover { opacity: 0.75; }
 
+.lp-login-btn {
+  transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.15s;
+}
+.lp-login-btn:hover {
+  border-color: #FF5C2E !important;
+  color: #FF5C2E !important;
+  background: #FFF3EF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(255,92,46,0.14);
+}
+.lp-login-btn:active { transform: translateY(0); }
+
 .lp-counter {
   transition: background 0.2s, border-color 0.2s;
   padding: 10px 14px;
