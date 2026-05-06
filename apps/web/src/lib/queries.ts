@@ -2629,11 +2629,15 @@ export async function ehAdmin(): Promise<boolean> {
 }
 
 export async function ehModerador(): Promise<boolean> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return false;
-  const { data } = await supabase.rpc("is_moderador");
-  return Boolean(data);
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { data } = await supabase.rpc("is_moderador");
+    return Boolean(data);
+  } catch {
+    return false;
+  }
 }
 
 export async function listarModeradores(): Promise<ModeradorInfo[]> {

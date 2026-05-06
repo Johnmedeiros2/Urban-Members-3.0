@@ -30,15 +30,20 @@ export default function SalaDeAula() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [lista, fiscal, user] = await Promise.all([
-      buscarCursos(),
-      ehModerador(),
-      createClient().auth.getUser(),
-    ]);
-    setCursos(lista);
-    setSouFiscal(fiscal);
-    setMeuId(user.data.user?.id ?? null);
-    setCarregando(false);
+    try {
+      const [lista, fiscal, user] = await Promise.all([
+        buscarCursos(),
+        ehModerador().catch(() => false),
+        createClient().auth.getUser(),
+      ]);
+      setCursos(lista);
+      setSouFiscal(fiscal);
+      setMeuId(user.data.user?.id ?? null);
+    } catch {
+      // falha silenciosa — mostra lista vazia
+    } finally {
+      setCarregando(false);
+    }
   }, []);
 
   async function confirmarRemocaoCurso(motivo: string) {
