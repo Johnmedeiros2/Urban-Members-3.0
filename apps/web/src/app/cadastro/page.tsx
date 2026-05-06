@@ -20,6 +20,24 @@ const LABEL: React.CSSProperties = {
   display: "block", marginBottom: "6px",
 };
 
+// Detecta typos comuns em domínios populares e sugere correção
+function sugerirEmail(email: string): string | null {
+  const partes = email.split("@");
+  if (partes.length !== 2 || !partes[1]) return null;
+  const dominio = partes[1].toLowerCase().trim();
+  const corretos = ["gmail.com", "hotmail.com", "outlook.com", "yahoo.com", "icloud.com", "live.com"];
+  if (corretos.includes(dominio)) return null;
+
+  // Distância de edição simples — sugere se está a 1-2 caracteres de um domínio popular
+  for (const c of corretos) {
+    let dist = Math.abs(c.length - dominio.length);
+    const min = Math.min(c.length, dominio.length);
+    for (let i = 0; i < min; i++) if (c[i] !== dominio[i]) dist++;
+    if (dist > 0 && dist <= 2) return `${partes[0]}@${c}`;
+  }
+  return null;
+}
+
 function forca(senha: string): { nivel: number; texto: string; cor: string } {
   if (senha.length === 0) return { nivel: 0, texto: "", cor: "" };
   let pontos = 0;
@@ -150,7 +168,7 @@ function Cadastro() {
   if (sucesso) {
     return (
       <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif", padding: "24px" }}>
-        <div style={{ maxWidth: "420px", width: "100%", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", alignItems: "center" }}>
+        <div style={{ maxWidth: "440px", width: "100%", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", alignItems: "center" }}>
           <div style={{ width: "72px", height: "72px", borderRadius: "50%", background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>
             ✉️
           </div>
@@ -161,17 +179,39 @@ function Cadastro() {
               Clique no link para ativar sua conta e entrar na cidade.
             </p>
           </div>
-          <div style={{ background: "#F7F7F8", borderRadius: "14px", padding: "14px 20px", width: "100%" }}>
-            <p style={{ fontSize: "12px", color: "#A3A3A3" }}>Não recebeu? Verifique a caixa de spam ou</p>
-            <button
-              onClick={handleCadastro}
-              style={{ fontSize: "13px", color: "#FF5C2E", fontWeight: 600, background: "none", border: "none", cursor: "pointer", marginTop: "4px", fontFamily: "Inter, sans-serif" }}
-            >
-              reenviar e-mail de confirmação
-            </button>
+
+          {/* Checklist do que fazer se não recebeu */}
+          <div style={{ background: "#F7F7F8", borderRadius: "14px", padding: "16px 20px", width: "100%", textAlign: "left", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <p style={{ fontSize: "12px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.06em" }}>Não recebeu?</p>
+            <ul style={{ display: "flex", flexDirection: "column", gap: "6px", paddingLeft: 0, listStyle: "none" }}>
+              <li style={{ fontSize: "13px", color: "#525252", display: "flex", gap: "8px" }}>
+                <span style={{ color: "#10B981" }}>✓</span> Verifique a caixa de <strong style={{ color: "#111111" }}>spam</strong> ou <strong style={{ color: "#111111" }}>promoções</strong>
+              </li>
+              <li style={{ fontSize: "13px", color: "#525252", display: "flex", gap: "8px" }}>
+                <span style={{ color: "#10B981" }}>✓</span> Aguarde até <strong style={{ color: "#111111" }}>1 minuto</strong> — pode demorar
+              </li>
+              <li style={{ fontSize: "13px", color: "#525252", display: "flex", gap: "8px" }}>
+                <span style={{ color: "#10B981" }}>✓</span>{" "}
+                <button
+                  onClick={handleCadastro}
+                  style={{ fontSize: "13px", color: "#FF5C2E", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Inter, sans-serif", textDecoration: "underline" }}
+                >
+                  Reenviar e-mail
+                </button>
+              </li>
+            </ul>
           </div>
+
+          {/* Opção de corrigir email errado */}
+          <button
+            onClick={() => { setSucesso(false); }}
+            style={{ fontSize: "13px", color: "#525252", background: "none", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", textDecoration: "underline" }}
+          >
+            Errei o e-mail. Voltar e corrigir
+          </button>
+
           <a href="/login" style={{ fontSize: "13px", color: "#A3A3A3", textDecoration: "none" }}>
-            Voltar para o login
+            Já confirmei. Ir para o login
           </a>
         </div>
       </div>
@@ -269,6 +309,23 @@ function Cadastro() {
             <label style={LABEL}>E-mail</label>
             <input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)}
               style={{ ...INPUT, border: `1.5px solid ${email ? "#111111" : "#E5E5E5"}` }} />
+            {(() => {
+              const sugestao = email.includes("@") ? sugerirEmail(email) : null;
+              if (!sugestao) return null;
+              return (
+                <p style={{ fontSize: "12px", color: "#525252", marginTop: "6px" }}>
+                  Você quis dizer{" "}
+                  <button
+                    type="button"
+                    onClick={() => setEmail(sugestao)}
+                    style={{ fontSize: "12px", color: "#FF5C2E", fontWeight: 700, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Inter, sans-serif", textDecoration: "underline" }}
+                  >
+                    {sugestao}
+                  </button>
+                  ?
+                </p>
+              );
+            })()}
           </div>
 
           <div>
