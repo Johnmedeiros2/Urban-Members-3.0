@@ -76,6 +76,26 @@ function Cadastro() {
     track(EVENTS.SIGNUP_STARTED, { has_referral: !!ref });
   }, [ref]);
 
+  // Busca o nome do morador que está convidando (se ?ref= presente)
+  const [indicador, setIndicador] = useState<{ nome: string; foto_url: string | null; cidade: string | null } | null>(null);
+  useEffect(() => {
+    if (!ref) return;
+    let cancelado = false;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("perfis")
+          .select("nome, foto_url, cidade")
+          .eq("id", ref)
+          .maybeSingle();
+        if (cancelado || !data) return;
+        setIndicador(data as { nome: string; foto_url: string | null; cidade: string | null });
+      } catch { /* falha silenciosa - tela funciona sem indicador */ }
+    })();
+    return () => { cancelado = true; };
+  }, [ref]);
+
   const [jaMorador, setJaMorador] = useState(false);
 
   useEffect(() => {
@@ -257,6 +277,27 @@ function Cadastro() {
             <a href="/login" style={{ color: "#FF5C2E", fontWeight: 600, textDecoration: "none" }}>Entrar</a>
           </p>
         </div>
+
+        {/* Display do indicador (referral) */}
+        {indicador && (
+          <div style={{ background: "#FFF3EF", border: "1.5px solid #FED7C3", borderRadius: "14px", padding: "14px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+            {indicador.foto_url ? (
+              <img src={indicador.foto_url} alt={indicador.nome} style={{ width: "44px", height: "44px", borderRadius: "50%", objectFit: "cover", border: "2px solid #FFFFFF" }} />
+            ) : (
+              <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "linear-gradient(135deg, #FF5C2E, #FF8C5A)", display: "flex", alignItems: "center", justifyContent: "center", color: "#FFFFFF", fontWeight: 800, fontSize: "18px", border: "2px solid #FFFFFF" }}>
+                {indicador.nome.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: "13px", color: "#525252" }}>
+                <strong style={{ color: "#111111" }}>{indicador.nome}</strong> está te convidando
+              </p>
+              <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "2px" }}>
+                {indicador.cidade ? `Morador de ${indicador.cidade}` : "Morador do Urban"}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Benefícios condensados — visíveis também em mobile (painel esquerdo está hidden md:flex) */}
         <div className="md:hidden" style={{ display: "flex", flexWrap: "wrap", gap: "8px", padding: "12px 14px", background: "#FAFAFA", borderRadius: "12px", border: "1px solid #F5F5F5" }}>
