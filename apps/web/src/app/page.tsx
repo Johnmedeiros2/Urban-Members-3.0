@@ -1,284 +1,164 @@
-import HeroEmailForm from "@/components/HeroEmailForm";
-
-/* ───────────────────────────────────────────────────────────
-   Composição visual do produto — mostra Urban "em ação"
-   3 cards flutuantes: post no feed + notificação + live badge
-   Estilo: Stripe/Linear (mockup do produto, não ilustração)
-   ─────────────────────────────────────────────────────────── */
-function PreviewProduto() {
-  return (
-    <div className="relative w-full max-w-[560px] aspect-[4/5] mx-auto" aria-hidden="true">
-      {/* Glow de fundo — gradient radial sutil */}
-      <div
-        className="absolute inset-0 rounded-[40px]"
-        style={{
-          background:
-            "radial-gradient(ellipse at 30% 20%, rgba(255,92,46,0.10) 0%, transparent 55%), radial-gradient(ellipse at 80% 80%, rgba(255,140,90,0.08) 0%, transparent 50%)",
-        }}
-      />
-
-      {/* Card principal — POST DO FEED */}
-      <div
-        className="absolute top-[8%] left-[6%] right-[6%] bg-white rounded-3xl border border-[#EDEAE5] um-floating-slow"
-        style={{
-          boxShadow:
-            "0 1px 2px rgba(15,15,14,0.04), 0 8px 24px rgba(15,15,14,0.06), 0 24px 48px rgba(15,15,14,0.06)",
-        }}
-      >
-        <div className="p-6 flex flex-col gap-4">
-          {/* Header do post */}
-          <div className="flex items-center gap-3">
-            <div
-              className="w-11 h-11 rounded-full flex items-center justify-center text-white text-base font-bold"
-              style={{
-                background: "linear-gradient(135deg, #FF5C2E 0%, #FF8C5A 100%)",
-              }}
-            >
-              M
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold text-[#0F0F0E] leading-tight">Marina Cardoso</p>
-              <p className="text-[12px] text-[#8B8B85] mt-0.5">Caxias-RJ · Bairro Negócios · há 12min</p>
-            </div>
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF1EA]">
-              <span className="text-[10px] font-bold text-[#FF5C2E]">+340</span>
-            </div>
-          </div>
-
-          {/* Conteúdo do post */}
-          <p className="text-[14px] text-[#1A1A18] leading-relaxed">
-            Acabei de fechar minha primeira venda no Mercado Urbano. Comissão de 10% versus os 30% do iFood — economizei R$ 47 num pedido só. <span className="text-[#FF5C2E]">#mercado</span>
-          </p>
-
-          {/* Imagem placeholder do post */}
-          <div
-            className="w-full aspect-[16/9] rounded-2xl"
-            style={{
-              background:
-                "linear-gradient(135deg, #FFF1EA 0%, #FED7C3 50%, #FFC2A3 100%)",
-            }}
-          >
-            <div className="w-full h-full rounded-2xl flex items-center justify-center text-[40px] opacity-30">
-              🥖
-            </div>
-          </div>
-
-          {/* Footer do post — interactions */}
-          <div className="flex items-center justify-between pt-2 border-t border-[#F5F2EE]">
-            <div className="flex items-center gap-5">
-              <div className="flex items-center gap-1.5 text-[12px] text-[#4A4A47]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-                <span className="font-medium">28</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[12px] text-[#4A4A47]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-                <span className="font-medium">7</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[12px] text-[#4A4A47]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              </div>
-            </div>
-            <span className="text-[11px] text-[#A8A29E]">Bairro #Negócios</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Card secundário — NOTIFICAÇÃO sobreposta */}
-      <div
-        className="absolute top-[3%] right-[-3%] bg-white rounded-2xl border border-[#EDEAE5] um-floating"
-        style={{
-          padding: "12px 14px",
-          maxWidth: "240px",
-          boxShadow:
-            "0 1px 2px rgba(15,15,14,0.05), 0 8px 20px rgba(15,15,14,0.08), 0 16px 36px rgba(15,15,14,0.08)",
-          animationDelay: "1.5s",
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-            style={{
-              background: "linear-gradient(135deg, #1A1A18 0%, #4A4A47 100%)",
-            }}
-          >
-            <span className="text-white text-xs font-bold">JC</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[12px] text-[#0F0F0E] leading-tight">
-              <strong>João Carlos</strong> conectou com você
-            </p>
-            <p className="text-[10px] text-[#8B8B85] mt-0.5">Bairro Educação · agora</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Badge live — chama atenção, canto inferior */}
-      <div
-        className="absolute bottom-[6%] left-[-2%] bg-white rounded-full border border-[#EDEAE5] um-floating-slow"
-        style={{
-          padding: "10px 16px",
-          boxShadow:
-            "0 1px 2px rgba(15,15,14,0.05), 0 8px 24px rgba(15,15,14,0.10)",
-          animationDelay: "0.8s",
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="relative flex w-2 h-2">
-            <span className="animate-ping absolute inset-0 rounded-full bg-[#FF5C2E] opacity-60" />
-            <span className="relative w-2 h-2 rounded-full bg-[#FF5C2E]" />
-          </span>
-          <p className="text-[12px] font-semibold text-[#0F0F0E]">
-            Marcos transmitindo <span className="text-[#8B8B85] font-normal">· 47 assistindo</span>
-          </p>
-        </div>
-      </div>
-
-      {/* Stat card — destaca métrica */}
-      <div
-        className="absolute bottom-[16%] right-[-4%] bg-[#0F0F0E] rounded-2xl px-4 py-3 um-floating"
-        style={{
-          boxShadow: "0 8px 24px rgba(15,15,14,0.20), 0 16px 40px rgba(15,15,14,0.10)",
-          animationDelay: "2.2s",
-        }}
-      >
-        <p className="text-[10px] font-semibold text-[#8B8B85] uppercase tracking-[0.1em]">Em Caxias</p>
-        <p className="text-[20px] font-bold text-white mt-0.5 leading-none">+ 1.247</p>
-        <p className="text-[10px] text-[#8B8B85] mt-1">moradores ativos hoje</p>
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
   return (
-    <main
-      className="min-h-screen w-full"
-      style={{
-        background: "#FAFAF7",
-        color: "#0F0F0E",
-        fontFamily: "Inter, sans-serif",
-      }}
-    >
+    <main className="min-h-screen bg-white text-[#111111]" style={{ fontFamily: "Inter, sans-serif" }}>
 
-      {/* HEADER — minimalista, editorial */}
-      <header className="border-b border-[#EDEAE5]/60 bg-[#FAFAF7]/85 backdrop-blur-xl sticky top-0 z-50 w-full flex justify-center">
-        <div className="w-full max-w-[1240px] px-6 lg:px-10 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2.5 no-underline group">
-            <img src="/logo.svg" alt="Urban Members" width={28} height={28} style={{ display: "block" }} />
-            <span className="text-[13px] font-semibold tracking-[0.2em] text-[#0F0F0E] uppercase">Urban Members</span>
-          </a>
-          <a
-            href="/login"
-            className="text-[13px] text-[#4A4A47] hover:text-[#0F0F0E] transition-colors no-underline font-medium"
+      {/* HERO */}
+      <section className="relative overflow-hidden">
+        {/* Skyline SVG no fundo */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 70% 30%, rgba(255,92,46,0.08) 0%, transparent 60%)" }} />
+          <svg
+            className="absolute bottom-0 left-0 right-0 w-full opacity-[0.06]"
+            viewBox="0 0 1440 200"
+            preserveAspectRatio="none"
+            style={{ height: "200px" }}
           >
-            Já tenho conta
-          </a>
+            <path
+              fill="#111111"
+              d="M0,200 L0,140 L60,140 L60,90 L120,90 L120,120 L180,120 L180,60 L240,60 L240,100 L300,100 L300,80 L360,80 L360,130 L420,130 L420,70 L480,70 L480,110 L540,110 L540,50 L600,50 L600,90 L660,90 L660,120 L720,120 L720,80 L780,80 L780,140 L840,140 L840,100 L900,100 L900,60 L960,60 L960,110 L1020,110 L1020,130 L1080,130 L1080,90 L1140,90 L1140,70 L1200,70 L1200,120 L1260,120 L1260,100 L1320,100 L1320,140 L1380,140 L1380,90 L1440,90 L1440,200 Z"
+            />
+          </svg>
         </div>
-      </header>
 
-      {/* HERO — layout editorial 60/40, viewport completa */}
-      <section
-        className="relative flex justify-center w-full overflow-hidden"
-        style={{ minHeight: "calc(100vh - 64px)" }}
-      >
-        {/* Background gradient orbs sutis */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 60% at 70% 30%, rgba(255,92,46,0.045) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 20% 80%, rgba(255,140,90,0.035) 0%, transparent 60%)",
-          }}
-          aria-hidden="true"
-        />
-
-        <div className="relative w-full max-w-[1240px] px-6 lg:px-10 py-12 md:py-20 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 items-center">
-
-          {/* COLUNA TEXTO — 7/12 em desktop (60%) */}
-          <div className="md:col-span-7 flex flex-col gap-7 md:gap-9">
-            {/* Eyebrow / badge */}
-            <div className="um-anim-fade-up">
-              <span className="inline-flex items-center gap-2.5">
-                <span className="relative flex w-1.5 h-1.5">
-                  <span className="animate-ping absolute inset-0 rounded-full bg-[#FF5C2E] opacity-60" />
-                  <span className="relative w-1.5 h-1.5 rounded-full bg-[#FF5C2E]" />
-                </span>
-                <span className="text-[11px] font-bold tracking-[0.16em] text-[#4A4A47] uppercase">
-                  Pré-lançamento aberto
-                </span>
-              </span>
-            </div>
-
-            {/* Headline editorial */}
-            <h1
-              className="um-anim-fade-up um-anim-delay-100 text-[#0F0F0E]"
-              style={{
-                fontSize: "clamp(40px, 6.5vw, 76px)",
-                fontWeight: 800,
-                lineHeight: 1.02,
-                letterSpacing: "-0.045em",
-              }}
-            >
-              A primeira{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(135deg, #FF5C2E 0%, #FF8C5A 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                cidade digital
-              </span>{" "}
-              brasileira abre suas portas.
-            </h1>
-
-            {/* Sub editorial — peso radical contrastante com headline */}
-            <p
-              className="um-anim-fade-up um-anim-delay-200 text-[#4A4A47]"
-              style={{
-                fontSize: "clamp(16px, 1.4vw, 19px)",
-                fontWeight: 400,
-                lineHeight: 1.55,
-                maxWidth: "44ch",
-              }}
-            >
-              Estamos no início. Os primeiros moradores constroem a cidade que querem morar.
-            </p>
-
-            {/* Form de email */}
-            <div className="um-anim-fade-up um-anim-delay-300 max-w-[520px] w-full">
-              <HeroEmailForm />
-            </div>
-
-            {/* Microcopy LGPD implícita + diferencial */}
-            <div className="um-anim-fade-up um-anim-delay-400 flex flex-col gap-3">
-              <p className="text-[12px] text-[#8B8B85] leading-relaxed max-w-[42ch]">
-                Cadastro em segundos. Ao continuar você aceita os{" "}
-                <a href="/termos" className="text-[#4A4A47] underline decoration-[#C2C2BB] underline-offset-[3px] hover:decoration-[#0F0F0E] hover:text-[#0F0F0E] transition-colors">Termos</a>{" "}
-                e a{" "}
-                <a href="/privacidade" className="text-[#4A4A47] underline decoration-[#C2C2BB] underline-offset-[3px] hover:decoration-[#0F0F0E] hover:text-[#0F0F0E] transition-colors">Privacidade</a>.
-              </p>
-            </div>
+        <div className="relative max-w-md mx-auto px-6 pt-20 pb-16 flex flex-col gap-10">
+          {/* Logo + identidade */}
+          <div className="flex items-center gap-3">
+            <img src="/logo.svg" alt="Urban Members" width={56} height={56} style={{ display: "block" }} />
+            <span className="text-sm font-bold tracking-widest text-[#111111] uppercase">Urban Members</span>
           </div>
 
-          {/* COLUNA VISUAL — 5/12 em desktop (40%) */}
-          <div className="md:col-span-5 um-anim-fade-up um-anim-delay-500 order-first md:order-last">
-            <PreviewProduto />
+          {/* Headline + subline */}
+          <div className="flex flex-col gap-5">
+            <h1 className="text-[40px] font-bold leading-tight text-[#111111] tracking-tight">
+              A primeira cidade digital brasileira está no dia&nbsp;1.
+            </h1>
+            <p className="text-base text-[#525252] leading-relaxed">
+              Estamos no início. Os primeiros moradores ajudam a construir a cidade que querem morar.
+            </p>
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col gap-3">
+            <a
+              href="/cadastro"
+              className="w-full h-14 bg-[#111111] text-white text-sm font-semibold rounded-full flex items-center justify-center hover:bg-[#FF5C2E] transition-colors duration-200"
+            >
+              Reservar meu endereço
+            </a>
+            <a
+              href="/login"
+              className="w-full h-14 border border-[#E5E5E5] text-[#111111] text-sm font-semibold rounded-full flex items-center justify-center hover:border-[#111111] transition-colors duration-200"
+            >
+              Já tenho conta
+            </a>
+            <p className="text-xs text-[#A3A3A3] text-center mt-1">
+              Cadastro gratuito · 30 segundos · sem cartão
+            </p>
           </div>
         </div>
       </section>
 
-      {/* FOOTER — editorial minimalista */}
-      <footer className="border-t border-[#EDEAE5]/60 bg-[#FAFAF7] flex justify-center w-full">
-        <div className="w-full max-w-[1240px] px-6 lg:px-10 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <img src="/logo.svg" alt="Urban Members" width={20} height={20} style={{ display: "block" }} />
-            <span className="text-[11px] font-semibold tracking-[0.16em] text-[#4A4A47] uppercase">Urban Members</span>
-          </div>
-          <p className="text-[11px] text-[#8B8B85]">
-            © 2026 · A primeira cidade digital brasileira
+      {/* ENDOSSO ADONAI */}
+      <section className="border-t border-[#F5F5F5] bg-[#FAFAFA]">
+        <div className="max-w-md mx-auto px-6 py-8 flex flex-col items-center gap-3 text-center">
+          <p className="text-[10px] font-bold tracking-[0.12em] text-[#A3A3A3] uppercase">Apoiado por</p>
+          <p className="text-sm font-bold text-[#111111]">Instituto Caxiense Shalom Adonai</p>
+          <p className="text-xs text-[#525252] leading-relaxed">
+            36 anos cuidando da educação de famílias em Duque de Caxias
           </p>
+        </div>
+      </section>
+
+      {/* COMO FUNCIONA */}
+      <section className="border-t border-[#F5F5F5]">
+        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-10">
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-bold tracking-[0.12em] text-[#FF5C2E] uppercase">Como funciona</p>
+            <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
+              Em 3 passos você é morador.
+            </h2>
+          </div>
+
+          <ol className="flex flex-col gap-6">
+            <li className="flex gap-4">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-[#FFF3EF] flex items-center justify-center text-base">🏘️</div>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-bold text-[#111111]">1. Reserve seu endereço</p>
+                <p className="text-sm text-[#525252] leading-relaxed">Cadastro gratuito em 30 segundos. Sem cartão.</p>
+              </div>
+            </li>
+            <li className="flex gap-4">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-[#FFF3EF] flex items-center justify-center text-base">🏪</div>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-bold text-[#111111]">2. Conheça seus vizinhos</p>
+                <p className="text-sm text-[#525252] leading-relaxed">Lojistas, professores e moradores reais — sem algoritmo bloqueando.</p>
+              </div>
+            </li>
+            <li className="flex gap-4">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-[#FFF3EF] flex items-center justify-center text-base">🛒</div>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-bold text-[#111111]">3. Aprenda, conecte ou venda</p>
+                <p className="text-sm text-[#525252] leading-relaxed">Tudo dentro da sua cidade digital. Sem sair de casa.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="border-t border-[#F5F5F5] bg-[#FAFAFA]">
+        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-bold tracking-[0.12em] text-[#A3A3A3] uppercase">Perguntas frequentes</p>
+            <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
+              Coisas que você pode estar pensando.
+            </h2>
+          </div>
+
+          <dl className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <dt className="text-sm font-bold text-[#111111]">É grátis?</dt>
+              <dd className="text-sm text-[#525252] leading-relaxed">Sim. Cadastro e uso são gratuitos. Comissão Urban (10%) só existe quando um lojista vende dentro da cidade.</dd>
+            </div>
+            <div className="flex flex-col gap-2">
+              <dt className="text-sm font-bold text-[#111111]">Pra quem é?</dt>
+              <dd className="text-sm text-[#525252] leading-relaxed">Pra quem quer aprender com gente real, vender sem ser esmagado por comissões altas, ou conectar com vizinhos da própria cidade.</dd>
+            </div>
+            <div className="flex flex-col gap-2">
+              <dt className="text-sm font-bold text-[#111111]">Quando lança?</dt>
+              <dd className="text-sm text-[#525252] leading-relaxed">15 de maio de 2026. Quem reserva o endereço antes entra em pré-lançamento.</dd>
+            </div>
+            <div className="flex flex-col gap-2">
+              <dt className="text-sm font-bold text-[#111111]">Posso usar agora?</dt>
+              <dd className="text-sm text-[#525252] leading-relaxed">Sim. O pré-lançamento já está aberto pra famílias Adonai e indicados. Reserve seu endereço pra entrar.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="border-t border-[#F5F5F5]">
+        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-6 items-center text-center">
+          <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
+            Pronto pra ser morador?
+          </h2>
+          <p className="text-sm text-[#525252] leading-relaxed">
+            Reserve seu endereço agora e entre na cidade antes do mundo.
+          </p>
+          <a
+            href="/cadastro"
+            className="w-full max-w-xs h-14 bg-[#111111] text-white text-sm font-semibold rounded-full flex items-center justify-center hover:bg-[#FF5C2E] transition-colors duration-200"
+          >
+            Reservar meu endereço
+          </a>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-[#F5F5F5] bg-white">
+        <div className="max-w-md mx-auto px-6 py-8 flex items-center justify-between">
+          <p className="text-xs text-[#A3A3A3]">urbanicsa.com</p>
+          <p className="text-xs text-[#A3A3A3]">© 2026 Urban Members</p>
         </div>
       </footer>
 
