@@ -448,9 +448,47 @@ export default function Feed() {
           )}
 
           {!carregando && posts.length === 0 && (
-            <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "48px 24px", textAlign: "center", border: "1px solid rgba(0,0,0,0.05)" }}>
-              <p style={{ fontSize: "15px", fontWeight: 700, color: "#111111" }}>A cidade ainda está silenciosa</p>
-              <p style={{ fontSize: "13px", color: "#A3A3A3", marginTop: "6px" }}>Seja o primeiro a postar algo no seu bairro.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* Cabeçalho de boas-vindas */}
+              <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <p style={{ fontSize: "11px", fontWeight: 700, color: "#FF5C2E", letterSpacing: "0.1em", textTransform: "uppercase" }}>Bem-vindo à cidade</p>
+                <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111", marginTop: "4px", letterSpacing: "-0.02em" }}>Por enquanto está calmo por aqui.</h2>
+                <p style={{ fontSize: "13px", color: "#525252", marginTop: "6px", lineHeight: 1.5 }}>Enquanto seus vizinhos não chegam, dá uma olhada no que rola nos outros bairros:</p>
+              </div>
+
+              {/* 5 posts curados de boas-vindas (cards visualmente distintos) */}
+              {[
+                { emoji: "🏙️", titulo: "A cidade está abrindo as primeiras ruas", texto: "Estamos no dia 1. Cada morador que chega ajuda a construir Urban. Conta pra gente: o que você quer ver na sua cidade?", cta: "Criar primeiro post", href: "#novo-post", cor: "#111111" },
+                { emoji: "🏪", titulo: "Mercado Urbano está aberto", texto: "Lojistas independentes, criadores e profissionais — todos no mesmo lugar. Comissão 1/3 do que você paga em outros apps.", cta: "Conhecer o Mercado →", href: "/mercado", cor: "#FF5C2E" },
+                { emoji: "📚", titulo: "Sala de Aula tem cursos chegando", texto: "Professores estão preparando os primeiros cursos. Inclusive o preparatório militar do Adonai. Fique de olho.", cta: "Ver Sala de Aula →", href: "/sala-de-aula", cor: "#3B82F6" },
+                { emoji: "🎬", titulo: "Lives da cidade ao vivo", texto: "Moradores transmitem direto da plataforma — aulas, conversas, vendas. Câmera e microfone próprios.", cta: "Ver Lives →", href: "/lives", cor: "#8B5CF6" },
+                { emoji: "🤝", titulo: "Convide um vizinho, ganhe Urban Score", texto: "Cada amigo que entra pelo seu link vira sua indicação. Você ganha pontos quando ele participa.", cta: "Convidar agora →", href: "/convite", cor: "#10B981" },
+              ].map((post, i) => (
+                <article key={i} style={{ background: "#FFFFFF", borderRadius: "20px", padding: "20px 24px", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: post.cor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>{post.emoji}</div>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Urban Members</p>
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: "#FFFFFF", background: "#FF5C2E", padding: "2px 7px", borderRadius: "999px", letterSpacing: "0.04em", textTransform: "uppercase" }}>Cidade</span>
+                      </div>
+                      <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "2px" }}>Boas-vindas oficiais</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", marginBottom: "6px" }}>{post.titulo}</h3>
+                    <p style={{ fontSize: "14px", color: "#525252", lineHeight: 1.6 }}>{post.texto}</p>
+                  </div>
+                  <a href={post.href} style={{ textDecoration: "none" }}>
+                    <button style={{ width: "100%", height: "40px", background: "transparent", color: "#111111", border: "1.5px solid #E5E5E5", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif", transition: "border-color 0.2s, color 0.2s" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#111111"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E5E5E5"; }}
+                    >
+                      {post.cta}
+                    </button>
+                  </a>
+                </article>
+              ))}
             </div>
           )}
 
