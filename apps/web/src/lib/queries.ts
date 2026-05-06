@@ -2638,7 +2638,7 @@ export async function ehModerador(): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
     const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 4000));
-    const check = supabase.rpc("is_moderador").then((r) => Boolean(r.data)).catch(() => false);
+    const check = Promise.resolve(supabase.rpc("is_moderador")).then((r) => Boolean(r.data)).catch(() => false);
     return await Promise.race([check, timeout]);
   } catch {
     return false;
