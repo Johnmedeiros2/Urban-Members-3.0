@@ -1,167 +1,158 @@
+import ContadorMoradores from "@/components/ui/ContadorMoradores";
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white text-[#111111]" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", fontFamily: "Inter, sans-serif" }}>
 
-      {/* HERO */}
-      <section className="relative overflow-hidden">
-        {/* Skyline SVG no fundo */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 70% 30%, rgba(255,92,46,0.08) 0%, transparent 60%)" }} />
-          <svg
-            className="absolute bottom-0 left-0 right-0 w-full opacity-[0.06]"
-            viewBox="0 0 1440 200"
-            preserveAspectRatio="none"
-            style={{ height: "200px" }}
-          >
-            <path
-              fill="#111111"
-              d="M0,200 L0,140 L60,140 L60,90 L120,90 L120,120 L180,120 L180,60 L240,60 L240,100 L300,100 L300,80 L360,80 L360,130 L420,130 L420,70 L480,70 L480,110 L540,110 L540,50 L600,50 L600,90 L660,90 L660,120 L720,120 L720,80 L780,80 L780,140 L840,140 L840,100 L900,100 L900,60 L960,60 L960,110 L1020,110 L1020,130 L1080,130 L1080,90 L1140,90 L1140,70 L1200,70 L1200,120 L1260,120 L1260,100 L1320,100 L1320,140 L1380,140 L1380,90 L1440,90 L1440,200 Z"
-            />
-          </svg>
-        </div>
+      {/* Painel esquerdo — escuro */}
+      <div
+        style={{
+          flex: 1,
+          background: "#111111",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "48px",
+          position: "relative",
+          overflow: "hidden",
+        }}
+        className="hidden md:flex"
+      >
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 30% 70%, rgba(255,92,46,0.15) 0%, transparent 60%)" }} />
 
-        <div className="relative max-w-md mx-auto px-6 pt-20 pb-16 flex flex-col gap-10">
-          {/* Logo + identidade */}
-          <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="Urban Members" width={56} height={56} style={{ display: "block" }} />
-            <span className="text-sm font-bold tracking-widest text-[#111111] uppercase">Urban Members</span>
-          </div>
+        {/* Skyline */}
+        <svg
+          style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "260px", pointerEvents: "none" }}
+          viewBox="0 0 900 260"
+          preserveAspectRatio="xMidYMax meet"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {/* Silhueta dos prédios */}
+          <path
+            d="M0,260 L0,200 L55,200 L55,170 L100,170 L100,230 L140,230 L140,140 L175,140 L175,198 L215,198 L215,158 L255,158 L255,235 L285,235 L285,162 L325,162 L325,108 L370,108 L370,182 L410,182 L410,148 L450,148 L450,212 L485,212 L485,95 L535,95 L535,228 L570,228 L570,158 L615,158 L615,185 L655,185 L655,128 L700,128 L700,208 L740,208 L740,155 L780,155 L780,202 L820,202 L820,238 L860,238 L860,188 L900,188 L900,260 Z"
+            fill="white"
+            opacity="0.06"
+          />
+          {/* Antenas nos prédios mais altos */}
+          <rect x="344" y="88" width="2" height="22" fill="white" opacity="0.08" />
+          <rect x="347" y="82" width="2" height="8" fill="white" opacity="0.06" />
+          <rect x="508" y="74" width="2" height="23" fill="white" opacity="0.08" />
+          <rect x="511" y="67" width="2" height="9" fill="white" opacity="0.06" />
+          {/* Janelas — prédio alto esquerdo (325-370) */}
+          <rect x="330" y="118" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="340" y="118" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="350" y="118" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="360" y="118" width="5" height="6" fill="white" opacity="0.08" />
+          <rect x="330" y="132" width="5" height="6" fill="white" opacity="0.08" />
+          <rect x="340" y="132" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="350" y="132" width="5" height="6" fill="white" opacity="0.06" />
+          <rect x="360" y="132" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="330" y="146" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="350" y="146" width="5" height="6" fill="white" opacity="0.08" />
+          {/* Janelas — prédio alto direito (485-535) */}
+          <rect x="492" y="105" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="502" y="105" width="5" height="6" fill="white" opacity="0.08" />
+          <rect x="512" y="105" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="522" y="105" width="5" height="6" fill="white" opacity="0.06" />
+          <rect x="492" y="119" width="5" height="6" fill="white" opacity="0.06" />
+          <rect x="502" y="119" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="512" y="119" width="5" height="6" fill="white" opacity="0.08" />
+          <rect x="522" y="119" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="492" y="133" width="5" height="6" fill="white" opacity="0.10" />
+          <rect x="512" y="133" width="5" height="6" fill="white" opacity="0.06" />
+          <rect x="522" y="133" width="5" height="6" fill="white" opacity="0.12" />
+          {/* Janelas — prédio alto centro-direito (655-700) */}
+          <rect x="662" y="138" width="5" height="6" fill="white" opacity="0.10" />
+          <rect x="672" y="138" width="5" height="6" fill="white" opacity="0.06" />
+          <rect x="682" y="138" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="662" y="152" width="5" height="6" fill="white" opacity="0.08" />
+          <rect x="672" y="152" width="5" height="6" fill="white" opacity="0.12" />
+          <rect x="682" y="152" width="5" height="6" fill="white" opacity="0.06" />
+        </svg>
 
-          {/* Headline + subline */}
-          <div className="flex flex-col gap-5">
-            <h1 className="text-[40px] font-bold leading-tight text-[#111111] tracking-tight">
-              A primeira cidade digital brasileira está no dia&nbsp;1.
-            </h1>
-            <p className="text-base text-[#525252] leading-relaxed">
-              Estamos no início. Os primeiros moradores ajudam a construir a cidade que querem morar.
-            </p>
-          </div>
+        <img src="/logo.svg" alt="Urban Members" width={48} height={48} style={{ position: "relative", filter: "invert(1)" }} />
 
-          {/* CTAs */}
-          <div className="flex flex-col gap-3">
-            <a
-              href="/cadastro"
-              className="w-full h-14 bg-[#111111] text-white text-sm font-semibold rounded-full flex items-center justify-center hover:bg-[#FF5C2E] transition-colors duration-200"
-            >
-              Reservar meu endereço
-            </a>
-            <a
-              href="/login"
-              className="w-full h-14 border border-[#E5E5E5] text-[#111111] text-sm font-semibold rounded-full flex items-center justify-center hover:border-[#111111] transition-colors duration-200"
-            >
-              Já tenho conta
-            </a>
-            <p className="text-xs text-[#A3A3A3] text-center mt-1">
-              Cadastro gratuito · 30 segundos · sem cartão
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ENDOSSO ADONAI */}
-      <section className="border-t border-[#F5F5F5] bg-[#FAFAFA]">
-        <div className="max-w-md mx-auto px-6 py-8 flex flex-col items-center gap-3 text-center">
-          <p className="text-[10px] font-bold tracking-[0.12em] text-[#A3A3A3] uppercase">Apoiado por</p>
-          <p className="text-sm font-bold text-[#111111]">Instituto Caxiense Shalom Adonai</p>
-          <p className="text-xs text-[#525252] leading-relaxed">
-            36 anos cuidando da educação de famílias em Duque de Caxias
+        <div style={{ position: "relative" }}>
+          <p style={{ fontSize: "13px", color: "#FF5C2E", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "16px" }}>
+            Dia 1
           </p>
-        </div>
-      </section>
-
-      {/* COMO FUNCIONA */}
-      <section className="border-t border-[#F5F5F5]">
-        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-10">
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-bold tracking-[0.12em] text-[#FF5C2E] uppercase">Como funciona</p>
-            <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
-              Em 3 passos você é morador.
-            </h2>
-          </div>
-
-          <ol className="flex flex-col gap-6">
-            <li className="flex gap-4">
-              <div className="shrink-0 w-10 h-10 rounded-full bg-[#FFF3EF] flex items-center justify-center text-base">🏘️</div>
-              <div className="flex flex-col gap-1">
-                <p className="text-sm font-bold text-[#111111]">1. Reserve seu endereço</p>
-                <p className="text-sm text-[#525252] leading-relaxed">Cadastro gratuito em 30 segundos. Sem cartão.</p>
-              </div>
-            </li>
-            <li className="flex gap-4">
-              <div className="shrink-0 w-10 h-10 rounded-full bg-[#FFF3EF] flex items-center justify-center text-base">🏪</div>
-              <div className="flex flex-col gap-1">
-                <p className="text-sm font-bold text-[#111111]">2. Conheça seus vizinhos</p>
-                <p className="text-sm text-[#525252] leading-relaxed">Lojistas, professores e moradores reais — sem algoritmo bloqueando.</p>
-              </div>
-            </li>
-            <li className="flex gap-4">
-              <div className="shrink-0 w-10 h-10 rounded-full bg-[#FFF3EF] flex items-center justify-center text-base">🛒</div>
-              <div className="flex flex-col gap-1">
-                <p className="text-sm font-bold text-[#111111]">3. Aprenda, conecte ou venda</p>
-                <p className="text-sm text-[#525252] leading-relaxed">Tudo dentro da sua cidade digital. Sem sair de casa.</p>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="border-t border-[#F5F5F5] bg-[#FAFAFA]">
-        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-8">
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-bold tracking-[0.12em] text-[#A3A3A3] uppercase">Perguntas frequentes</p>
-            <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
-              Coisas que você pode estar pensando.
-            </h2>
-          </div>
-
-          <dl className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <dt className="text-sm font-bold text-[#111111]">É grátis?</dt>
-              <dd className="text-sm text-[#525252] leading-relaxed">Sim. Cadastro e uso são gratuitos. Comissão Urban (10%) só existe quando um lojista vende dentro da cidade.</dd>
-            </div>
-            <div className="flex flex-col gap-2">
-              <dt className="text-sm font-bold text-[#111111]">Pra quem é?</dt>
-              <dd className="text-sm text-[#525252] leading-relaxed">Pra quem quer aprender com gente real, vender sem ser esmagado por comissões altas, ou conectar com vizinhos da própria cidade.</dd>
-            </div>
-            <div className="flex flex-col gap-2">
-              <dt className="text-sm font-bold text-[#111111]">Quando lança?</dt>
-              <dd className="text-sm text-[#525252] leading-relaxed">15 de maio de 2026. Quem reserva o endereço antes entra em pré-lançamento.</dd>
-            </div>
-            <div className="flex flex-col gap-2">
-              <dt className="text-sm font-bold text-[#111111]">Posso usar agora?</dt>
-              <dd className="text-sm text-[#525252] leading-relaxed">Sim. O pré-lançamento já está aberto pra famílias Adonai e indicados. Reserve seu endereço pra entrar.</dd>
-            </div>
-          </dl>
-        </div>
-      </section>
-
-      {/* CTA FINAL */}
-      <section className="border-t border-[#F5F5F5]">
-        <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-6 items-center text-center">
-          <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
-            Pronto pra ser morador?
+          <h2 style={{ fontSize: "40px", fontWeight: 800, color: "#FFFFFF", lineHeight: 1.15, letterSpacing: "-0.03em", marginBottom: "20px" }}>
+            A primeira cidade<br />digital brasileira.
           </h2>
-          <p className="text-sm text-[#525252] leading-relaxed">
-            Reserve seu endereço agora e entre na cidade antes do mundo.
+          <p style={{ fontSize: "15px", color: "#A3A3A3", lineHeight: 1.7, marginBottom: "32px" }}>
+            Os primeiros moradores ajudam a construir a cidade que querem morar.
           </p>
-          <a
-            href="/cadastro"
-            className="w-full max-w-xs h-14 bg-[#111111] text-white text-sm font-semibold rounded-full flex items-center justify-center hover:bg-[#FF5C2E] transition-colors duration-200"
-          >
-            Reservar meu endereço
-          </a>
+          <ContadorMoradores dark />
         </div>
-      </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-[#F5F5F5] bg-white">
-        <div className="max-w-md mx-auto px-6 py-8 flex items-center justify-between">
-          <p className="text-xs text-[#A3A3A3]">urbanicsa.com</p>
-          <p className="text-xs text-[#A3A3A3]">© 2026 Urban Members</p>
+        <p style={{ position: "relative", fontSize: "12px", color: "#525252" }}>urbanicsa.com</p>
+      </div>
+
+      {/* Painel direito — claro */}
+      <div style={{ width: "100%", maxWidth: "520px", padding: "48px", display: "flex", flexDirection: "column", justifyContent: "center", gap: "28px" }}>
+
+        {/* Mobile: logo */}
+        <div className="flex md:hidden" style={{ alignItems: "center", gap: "12px" }}>
+          <img src="/logo.svg" alt="Urban Members" width={40} height={40} />
+          <span style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#111111" }}>Urban Members</span>
         </div>
-      </footer>
 
-    </main>
+        <div>
+          <h1 style={{ fontSize: "28px", fontWeight: 800, color: "#111111", letterSpacing: "-0.03em" }}>Reserve seu endereço</h1>
+          <p style={{ fontSize: "14px", color: "#A3A3A3", marginTop: "6px" }}>
+            Já tem conta?{" "}
+            <a href="/login" style={{ color: "#FF5C2E", fontWeight: 600, textDecoration: "none" }}>Entrar na cidade</a>
+          </p>
+        </div>
+
+        {/* Mobile: contador */}
+        <div className="flex md:hidden">
+          <ContadorMoradores />
+        </div>
+
+        {/* Botão Google */}
+        <a
+          href="/cadastro"
+          style={{
+            width: "100%", height: "52px",
+            background: "#FFFFFF", border: "1.5px solid #E5E5E5",
+            borderRadius: "14px", display: "flex", alignItems: "center",
+            justifyContent: "center", gap: "12px",
+            fontSize: "14px", fontWeight: 600, color: "#111111",
+            cursor: "pointer", fontFamily: "Inter, sans-serif",
+            textDecoration: "none", transition: "border-color 0.2s",
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+            <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+          </svg>
+          Continuar com Google
+        </a>
+
+        {/* Divisor */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ flex: 1, height: "1px", background: "#E5E5E5" }} />
+          <span style={{ fontSize: "12px", color: "#A3A3A3", fontWeight: 500 }}>ou</span>
+          <div style={{ flex: 1, height: "1px", background: "#E5E5E5" }} />
+        </div>
+
+        {/* CTA principal */}
+        <a
+          href="/cadastro"
+          className="um-btn-accent"
+          style={{ width: "100%", height: "52px", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}
+        >
+          Criar meu endereço →
+        </a>
+
+        <p style={{ fontSize: "12px", color: "#A3A3A3", textAlign: "center", lineHeight: 1.6 }}>
+          Cadastro gratuito · 30 segundos · sem cartão
+        </p>
+
+      </div>
+    </div>
   );
 }
