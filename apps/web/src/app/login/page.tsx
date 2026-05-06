@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
 import { vincularIndicador } from "@/lib/queries";
 
@@ -15,7 +15,17 @@ const INPUT: React.CSSProperties = {
 };
 
 export default function Login() {
+  return (
+    <Suspense>
+      <LoginInner />
+    </Suspense>
+  );
+}
+
+function LoginInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const foiExpulso = searchParams.get("motivo") === "sessao";
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -38,6 +48,10 @@ export default function Login() {
       setLoading(false);
       return;
     }
+    // Expulsa sessões ativas em outros dispositivos
+    await supabase.auth.signOut({ scope: "others" });
+    sessionStorage.setItem("urban_sessao_unica", "1");
+
     // Se o usuário veio por link de indicação, vincula agora
     const ref = typeof window !== "undefined" ? localStorage.getItem("urban_ref") : null;
     if (ref) {
@@ -94,6 +108,14 @@ export default function Login() {
             <a href="/cadastro" style={{ color: "#FF5C2E", fontWeight: 600, textDecoration: "none" }}>Crie seu endereço</a>
           </p>
         </div>
+
+        {foiExpulso && (
+          <div style={{ background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: "10px", padding: "12px 16px" }}>
+            <p style={{ fontSize: "13px", color: "#C2410C", lineHeight: 1.5 }}>
+              <strong>Sessão encerrada.</strong> Sua conta foi acessada em outro dispositivo. Entre novamente para continuar.
+            </p>
+          </div>
+        )}
 
         {/* Google */}
         <button onClick={handleGoogle} style={{

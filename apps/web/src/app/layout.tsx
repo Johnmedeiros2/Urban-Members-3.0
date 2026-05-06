@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "@/components/PostHogProvider";
+import { SessionGuard } from "@/components/SessionGuard";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -62,7 +63,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col">
-        <PostHogProvider>{children}</PostHogProvider>
+        <PostHogProvider>
+          <SessionGuard />
+          {children}
+        </PostHogProvider>
       </body>
     </html>
   );
