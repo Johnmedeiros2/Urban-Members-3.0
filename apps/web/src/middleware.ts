@@ -34,6 +34,12 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
+
+  // Raiz sempre redireciona — logado vai pro feed, anônimo vai pro login
+  if (path === "/") {
+    return NextResponse.redirect(new URL(user ? "/feed" : "/login", request.url));
+  }
+
   const isPublic = PUBLIC_ROUTES.some((r) => path === r || path.startsWith(r + "/"));
 
   if (!isPublic && !user) {
