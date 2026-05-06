@@ -23,6 +23,11 @@ export const EVENTS = {
   REFERRAL_SIGNUP: "referral_signup",
   ONBOARDING_COMPLETED: "onboarding_completed",
 
+  // Magic link funnel (form embebido no hero)
+  EMAIL_CAPTURE_STARTED: "email_capture_started",
+  EMAIL_CAPTURED: "email_captured",
+  MAGIC_LINK_CLICKED: "magic_link_clicked",
+
   // Aha moments (PostHog detecta primeira ocorrência via funis)
   POST_CREATED: "post_created",
   PURCHASE_COMPLETED: "purchase_completed",
