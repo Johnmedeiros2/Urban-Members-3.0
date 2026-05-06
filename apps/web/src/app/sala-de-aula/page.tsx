@@ -132,10 +132,13 @@ export default function SalaDeAula() {
               }
 
               return (
-                <div key={curso.id} className="um-card um-clickable" onClick={() => window.location.href = `/curso/${curso.id}`} style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
-                  <div style={{ position: "absolute", top: "16px", right: "16px", display: "flex", gap: "6px", alignItems: "center" }}>
+                <div key={curso.id} className="um-card" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
+                  {/* Link transparente cobrindo o card inteiro */}
+                  <a href={`/curso/${curso.id}`} style={{ position: "absolute", inset: 0, zIndex: 0, borderRadius: "inherit" }} aria-label={curso.titulo} />
+
+                  <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "flex-end", gap: "6px", alignItems: "center" }}>
                     {podeFiscalizar && (
-                      <button onClick={(e) => { e.stopPropagation(); setCursoParaRemover(curso.id); }}
+                      <button onClick={() => setCursoParaRemover(curso.id)}
                         title="Remover (moderação)"
                         style={{ width: "28px", height: "28px", borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", fontSize: "13px", color: "#A3A3A3" }}
                         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#FEF2F2"; (e.currentTarget as HTMLElement).style.color = "#DC2626"; }}
@@ -144,11 +147,9 @@ export default function SalaDeAula() {
                         ⋯
                       </button>
                     )}
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
-                    </div>
+                    <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
                   </div>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", paddingRight: "60px" }}>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                     <span style={{ fontSize: "11px", fontWeight: 600, color: "#A3A3A3", padding: "2px 10px", borderRadius: "999px", background: "#F5F5F5" }}>
                       {curso.nivel}
                     </span>
@@ -176,30 +177,28 @@ export default function SalaDeAula() {
                     <ScoreBadge score={curso.instrutor?.urban_score ?? 10} compact />
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
+                  <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
                     <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{curso.total_alunos} alunos</span>
                     {ehMeu ? (
                       <span style={{ fontSize: "12px", fontWeight: 600, color: "#FF5C2E" }}>Seu curso →</span>
                     ) : (
-                      <button onClick={(e) => { e.stopPropagation(); handleMatricular(curso); }} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
+                      <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
                         {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
                       </button>
                     )}
                   </div>
                   <button
-                    onClick={(e) => { e.stopPropagation(); setAvaliacoesAbertas((prev) => {
+                    onClick={() => setAvaliacoesAbertas((prev) => {
                       const n = new Set(prev);
                       if (n.has(curso.id)) n.delete(curso.id); else n.add(curso.id);
                       return n;
-                    }); }}
-                    style={{ background: "none", border: "none", padding: 0, color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left" }}
+                    })}
+                    style={{ position: "relative", zIndex: 1, background: "none", border: "none", padding: 0, color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left" }}
                   >
                     {avaliacoesAbertas.has(curso.id) ? "Ocultar avaliações ↑" : "Ver avaliações ↓"}
                   </button>
                   {avaliacoesAbertas.has(curso.id) && (
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <Avaliacoes cursoId={curso.id} />
-                    </div>
+                    <Avaliacoes cursoId={curso.id} />
                   )}
                 </div>
               );
