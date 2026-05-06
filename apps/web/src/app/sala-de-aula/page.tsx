@@ -132,10 +132,10 @@ export default function SalaDeAula() {
               }
 
               return (
-                <div key={curso.id} className="um-card um-clickable" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
+                <div key={curso.id} className="um-card um-clickable" onClick={() => window.location.href = `/curso/${curso.id}`} style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
                   <div style={{ position: "absolute", top: "16px", right: "16px", display: "flex", gap: "6px", alignItems: "center" }}>
                     {podeFiscalizar && (
-                      <button onClick={() => setCursoParaRemover(curso.id)}
+                      <button onClick={(e) => { e.stopPropagation(); setCursoParaRemover(curso.id); }}
                         title="Remover (moderação)"
                         style={{ width: "28px", height: "28px", borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", fontSize: "13px", color: "#A3A3A3" }}
                         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#FEF2F2"; (e.currentTarget as HTMLElement).style.color = "#DC2626"; }}
@@ -144,7 +144,9 @@ export default function SalaDeAula() {
                         ⋯
                       </button>
                     )}
-                    <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
+                    </div>
                   </div>
                   <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", paddingRight: "60px" }}>
                     <span style={{ fontSize: "11px", fontWeight: 600, color: "#A3A3A3", padding: "2px 10px", borderRadius: "999px", background: "#F5F5F5" }}>
@@ -162,9 +164,7 @@ export default function SalaDeAula() {
                     )}
                   </div>
 
-                  <a href={`/curso/${curso.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                    <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", lineHeight: 1.4, cursor: "pointer" }}>{curso.titulo}</h3>
-                  </a>
+                  <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", lineHeight: 1.4 }}>{curso.titulo}</h3>
                   {curso.descricao && <p style={{ fontSize: "13px", color: "#6B6B6B", lineHeight: 1.5 }}>{curso.descricao}</p>}
 
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -178,22 +178,28 @@ export default function SalaDeAula() {
 
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
                     <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{curso.total_alunos} alunos</span>
-                    <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
-                      {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
-                    </button>
+                    {ehMeu ? (
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#FF5C2E" }}>Seu curso →</span>
+                    ) : (
+                      <button onClick={(e) => { e.stopPropagation(); handleMatricular(curso); }} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
+                        {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
+                      </button>
+                    )}
                   </div>
                   <button
-                    onClick={() => setAvaliacoesAbertas((prev) => {
+                    onClick={(e) => { e.stopPropagation(); setAvaliacoesAbertas((prev) => {
                       const n = new Set(prev);
                       if (n.has(curso.id)) n.delete(curso.id); else n.add(curso.id);
                       return n;
-                    })}
+                    }); }}
                     style={{ background: "none", border: "none", padding: 0, color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left" }}
                   >
                     {avaliacoesAbertas.has(curso.id) ? "Ocultar avaliações ↑" : "Ver avaliações ↓"}
                   </button>
                   {avaliacoesAbertas.has(curso.id) && (
-                    <Avaliacoes cursoId={curso.id} />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Avaliacoes cursoId={curso.id} />
+                    </div>
                   )}
                 </div>
               );
