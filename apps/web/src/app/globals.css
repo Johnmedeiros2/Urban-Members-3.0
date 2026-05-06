@@ -23,6 +23,47 @@ body {
   color: #111111;
   font-family: "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Selection refinada — laranja Urban */
+::selection { background: rgba(255, 92, 46, 0.18); color: #0F0F0E; }
+::-moz-selection { background: rgba(255, 92, 46, 0.18); color: #0F0F0E; }
+
+/* Animação de entrada premium (fade + slide subtle) */
+@keyframes um-fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.um-anim-fade-up { animation: um-fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.um-anim-delay-100 { animation-delay: 100ms; }
+.um-anim-delay-200 { animation-delay: 200ms; }
+.um-anim-delay-300 { animation-delay: 300ms; }
+.um-anim-delay-400 { animation-delay: 400ms; }
+.um-anim-delay-500 { animation-delay: 500ms; }
+
+/* Animação flutuante sutil (pra mockups do produto) */
+@keyframes um-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(0.2deg); }
+}
+@keyframes um-float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.um-floating { animation: um-float 7s ease-in-out infinite; }
+.um-floating-slow { animation: um-float-slow 9s ease-in-out infinite; }
+
+/* Grain texture sutil (premium feel) */
+.um-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.06 0 0 0 0 0.06 0 0 0 0 0.06 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  z-index: 1;
 }
 
 /* ─── Urban Members — Design System utilities ─────────────────────── */

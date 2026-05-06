@@ -97,14 +97,14 @@ export default function HeroEmailForm() {
         Seu e-mail
       </label>
 
-      {/* Container input + botão (1 elemento visual em desktop) */}
+      {/* Container input + botão — premium editorial style */}
       <div
-        className={`relative flex flex-col sm:flex-row gap-2 sm:gap-0 sm:rounded-full sm:border-2 sm:p-1.5 sm:bg-white transition-colors ${
+        className={`relative flex flex-col sm:flex-row gap-2.5 sm:gap-0 sm:rounded-2xl sm:border sm:p-1.5 sm:bg-white transition-all ${
           mostrarErro
-            ? "sm:border-[#DC2626]"
+            ? "sm:border-[#DC2626] sm:shadow-[0_0_0_4px_rgba(220,38,38,0.08)]"
             : valido
-            ? "sm:border-[#1A1A1A]"
-            : "sm:border-[#E5E5E5] sm:focus-within:border-[#1A1A1A]"
+            ? "sm:border-[#0F0F0E] sm:shadow-[0_2px_8px_rgba(15,15,14,0.08)]"
+            : "sm:border-[#EDEAE5] sm:shadow-[0_1px_2px_rgba(15,15,14,0.04)] sm:hover:border-[#C2C2BB] sm:focus-within:border-[#0F0F0E] sm:focus-within:shadow-[0_2px_8px_rgba(15,15,14,0.08)]"
         }`}
       >
         <input
@@ -120,22 +120,29 @@ export default function HeroEmailForm() {
           disabled={enviando}
           aria-invalid={mostrarErro || !!erro}
           aria-describedby={mostrarErro ? "hero-email-error" : erro ? "hero-email-erro-server" : undefined}
-          className="flex-1 h-12 sm:h-11 px-5 sm:px-4 text-[15px] text-[#1A1A1A] placeholder:text-[#A8A29E] bg-white border-2 sm:border-0 border-[#E5E5E5] rounded-full sm:rounded-none outline-none focus:border-[#1A1A1A] sm:focus:border-0"
-          style={{ minWidth: 0 }}
+          className="flex-1 h-13 sm:h-12 px-5 sm:px-5 text-[15px] text-[#0F0F0E] placeholder:text-[#A8A29E] bg-white border border-[#EDEAE5] sm:border-0 rounded-2xl sm:rounded-none outline-none focus:border-[#0F0F0E] sm:focus:border-0 transition-colors"
+          style={{ minWidth: 0, height: "52px" }}
         />
         <button
           type="submit"
           disabled={enviando}
-          className="inline-flex items-center justify-center gap-1.5 h-12 sm:h-11 px-6 bg-[#FF5C2E] text-white text-[14px] font-semibold rounded-full hover:bg-[#E04E20] active:bg-[#C9421A] transition-colors disabled:opacity-60 disabled:cursor-wait whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 text-[14px] font-semibold text-white whitespace-nowrap rounded-xl sm:rounded-[10px] disabled:opacity-60 disabled:cursor-wait transition-all hover:translate-y-[-1px] active:translate-y-0"
+          style={{
+            height: "52px",
+            background: "linear-gradient(180deg, #FF5C2E 0%, #E64A1E 100%)",
+            boxShadow:
+              "0 1px 0 rgba(255,255,255,0.15) inset, 0 1px 2px rgba(15,15,14,0.10), 0 4px 12px rgba(255,92,46,0.30)",
+          }}
         >
           {enviando ? (
             <>
               <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Enviando...
+              Enviando
             </>
           ) : (
             <>
-              Quero meu endereço <span aria-hidden="true">→</span>
+              <span>Quero meu endereço</span>
+              <span aria-hidden="true" className="text-base leading-none">→</span>
             </>
           )}
         </button>
