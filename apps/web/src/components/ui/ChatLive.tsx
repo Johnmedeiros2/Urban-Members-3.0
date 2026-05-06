@@ -31,15 +31,18 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
     const supabase = createClient();
 
     async function carregarTudo() {
+      const antes = new Date().toISOString();
       const { data } = await supabase
         .from("live_mensagens")
         .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
         .eq("live_id", liveId)
         .order("criado_em", { ascending: true })
         .limit(150);
-      if (data && data.length > 0) {
+      if (data) {
         setMensagens(data as unknown as Mensagem[]);
-        ultimoTimestamp.current = (data as unknown as Mensagem[])[data.length - 1].criado_em;
+        const msgs = data as unknown as Mensagem[];
+        // Mesmo sem mensagens, guarda o timestamp atual para o polling funcionar
+        ultimoTimestamp.current = msgs.length > 0 ? msgs[msgs.length - 1].criado_em : antes;
       }
     }
 
