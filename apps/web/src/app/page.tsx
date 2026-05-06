@@ -226,10 +226,10 @@ export default function Home() {
                 Quero meu endereço grátis <span aria-hidden="true">→</span>
               </a>
               <a
-                href="#como-funciona"
+                href="/login"
                 className="inline-flex items-center justify-center h-14 px-6 text-[#525252] text-sm font-semibold hover:text-[#111111] transition-colors no-underline"
               >
-                Como funciona ↓
+                Já tenho conta
               </a>
             </div>
 
@@ -255,99 +255,6 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3">
             <p className="text-sm font-bold text-[#111111]">Instituto Caxiense Shalom Adonai</p>
             <p className="text-xs text-[#525252]">36 anos cuidando da educação em Duque de Caxias</p>
-          </div>
-        </div>
-      </section>
-
-      {/* COMO FUNCIONA — cards coloridos */}
-      <section id="como-funciona" className="flex justify-center w-full">
-        <div className="w-full max-w-6xl px-6 py-16 md:py-24 flex flex-col gap-12">
-          <div className="flex flex-col gap-3 text-center items-center max-w-[40ch] mx-auto">
-            <p className="text-[11px] font-bold tracking-[0.12em] text-[#FF5C2E] uppercase">Como funciona</p>
-            <h2 className="text-3xl md:text-4xl font-bold leading-[1.1] text-[#111111] tracking-tight">
-              Em 3 passos você é morador da cidade.
-            </h2>
-            <p className="text-base text-[#525252] leading-relaxed">
-              Sem burocracia. Sem cartão. Sem promessa vazia.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Card 1 — Laranja */}
-            <div className="relative rounded-3xl p-7 bg-[#FFF3EF] border border-[#FED7C3] flex flex-col gap-4 overflow-hidden">
-              <div className="absolute top-4 right-5 text-[80px] font-black leading-none text-[#FF5C2E] opacity-15 select-none">01</div>
-              <div className="relative z-10 w-12 h-12 rounded-2xl bg-[#FF5C2E] text-white flex items-center justify-center text-2xl">🏘️</div>
-              <h3 className="relative z-10 text-lg font-bold text-[#111111]">Reserve seu endereço</h3>
-              <p className="relative z-10 text-sm text-[#525252] leading-relaxed">Cadastro gratuito em 30 segundos. Sem cartão de crédito.</p>
-            </div>
-
-            {/* Card 2 — Azul */}
-            <div className="relative rounded-3xl p-7 bg-[#EFF6FF] border border-[#BFDBFE] flex flex-col gap-4 overflow-hidden">
-              <div className="absolute top-4 right-5 text-[80px] font-black leading-none text-[#3B82F6] opacity-15 select-none">02</div>
-              <div className="relative z-10 w-12 h-12 rounded-2xl bg-[#3B82F6] text-white flex items-center justify-center text-2xl">🏪</div>
-              <h3 className="relative z-10 text-lg font-bold text-[#111111]">Conheça seus vizinhos</h3>
-              <p className="relative z-10 text-sm text-[#525252] leading-relaxed">Lojistas, professores e moradores reais — sem algoritmo bloqueando.</p>
-            </div>
-
-            {/* Card 3 — Verde */}
-            <div className="relative rounded-3xl p-7 bg-[#ECFDF5] border border-[#A7F3D0] flex flex-col gap-4 overflow-hidden">
-              <div className="absolute top-4 right-5 text-[80px] font-black leading-none text-[#10B981] opacity-15 select-none">03</div>
-              <div className="relative z-10 w-12 h-12 rounded-2xl bg-[#10B981] text-white flex items-center justify-center text-2xl">🛒</div>
-              <h3 className="relative z-10 text-lg font-bold text-[#111111]">Aprenda, conecte ou venda</h3>
-              <p className="relative z-10 text-sm text-[#525252] leading-relaxed">Tudo dentro da sua cidade digital. Sem sair de casa.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="border-y border-[#F5F5F5] bg-[#FAFAFA] flex justify-center w-full">
-        <div className="w-full max-w-3xl px-6 py-16 md:py-20 flex flex-col gap-10">
-          <div className="flex flex-col gap-3 text-center items-center">
-            <p className="text-[11px] font-bold tracking-[0.12em] text-[#A3A3A3] uppercase">Perguntas frequentes</p>
-            <h2 className="text-3xl md:text-4xl font-bold leading-[1.1] text-[#111111] tracking-tight">
-              Coisas que você pode estar pensando.
-            </h2>
-          </div>
-
-          <dl className="flex flex-col gap-4">
-            {[
-              { q: "É grátis?", a: "Sim. Cadastro e uso são gratuitos. Comissão Urban (10%) só existe quando um lojista vende dentro da cidade." },
-              { q: "Pra quem é?", a: "Pra quem quer aprender com gente real, vender sem ser esmagado por comissões altas, ou conectar com vizinhos da própria cidade." },
-              { q: "Quando lança?", a: "15 de maio de 2026. Quem reserva o endereço antes entra no pré-lançamento." },
-              { q: "Posso usar agora?", a: "Sim. O pré-lançamento já está aberto pra famílias Adonai e indicados. Reserve seu endereço pra entrar." },
-            ].map((item, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 border border-[#F0F0F0]">
-                <dt className="text-base font-bold text-[#111111] mb-2">{item.q}</dt>
-                <dd className="text-sm text-[#525252] leading-relaxed">{item.a}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      {/* CTA FINAL — banner com gradient laranja */}
-      <section className="flex justify-center w-full">
-        <div className="w-full max-w-6xl px-6 py-16 md:py-24">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF5C2E] via-[#FF7A4D] to-[#FF8C5A] p-10 md:p-16 text-center flex flex-col gap-6 items-center">
-            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white opacity-10"></div>
-            <div className="absolute -bottom-12 -left-12 w-52 h-52 rounded-full bg-white opacity-10"></div>
-
-            <h2 className="relative z-10 text-3xl md:text-5xl font-bold leading-[1.05] text-white tracking-tight max-w-[20ch]">
-              Pronto pra ser morador?
-            </h2>
-            <p className="relative z-10 text-base md:text-lg text-white/90 leading-relaxed max-w-[36ch]">
-              Reserve agora e entre na cidade antes do mundo.
-            </p>
-            <a
-              href="/cadastro"
-              className="relative z-10 inline-flex items-center justify-center gap-2 h-14 px-10 bg-white text-[#FF5C2E] text-base font-bold rounded-full hover:bg-[#FFF8F4] transition-colors shadow-[0_8px_20px_rgba(0,0,0,0.15)] no-underline"
-            >
-              Quero meu endereço grátis <span aria-hidden="true">→</span>
-            </a>
-            <p className="relative z-10 text-xs text-white/80">
-              ⚡ 30 segundos · sem cartão
-            </p>
           </div>
         </div>
       </section>
