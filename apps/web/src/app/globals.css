@@ -376,3 +376,55 @@ body {
     animation: none !important;
   }
 }
+
+/* ─── Landing page — hover interativos ──────────────────────────────── */
+
+.lp-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  transition: opacity var(--um-transition-fast);
+}
+.lp-logo:hover { opacity: 0.85; }
+.lp-logo:hover .lp-logo-text { color: var(--um-accent); }
+.lp-logo-text {
+  transition: color var(--um-transition-fast);
+}
+
+.lp-google-btn {
+  transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.15s;
+}
+.lp-google-btn:hover {
+  border-color: #FF5C2E !important;
+  background: #FFF3EF !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(255,92,46,0.12);
+}
+.lp-google-btn:active { transform: translateY(0); }
+
+.lp-cta {
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.lp-cta:hover {
+  background: #E64A1E !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px rgba(255,92,46,0.42) !important;
+}
+.lp-cta:active { transform: translateY(0); }
+
+.lp-link {
+  transition: opacity 0.15s;
+}
+.lp-link:hover { opacity: 0.75; }
+
+.lp-counter {
+  transition: background 0.2s, border-color 0.2s;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+.lp-counter:hover {
+  background: #FFF3EF;
+  border-color: rgba(255,92,46,0.2);
+}
