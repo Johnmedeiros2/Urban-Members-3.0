@@ -1,12 +1,12 @@
-import ContadorMoradores from "@/components/ui/ContadorMoradores";
+import LandingCTA from "@/components/ui/LandingCTA";
 
 export default function Home() {
   return (
     <div style={{ minHeight: "100vh", background: "#F7F7F8", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, sans-serif", padding: "48px 24px" }}>
       <div style={{ maxWidth: "1100px", width: "100%", display: "flex", alignItems: "center", gap: "72px" }}>
 
-        {/* ── ESQUERDA: CTA ── */}
-        <div style={{ flex: "0 0 400px", display: "flex", flexDirection: "column", gap: "28px" }}>
+        {/* ── ESQUERDA: CTA + Login inline ── */}
+        <div style={{ flex: "0 0 420px", display: "flex", flexDirection: "column", gap: "28px" }}>
 
           {/* Logo */}
           <a href="/" className="lp-logo">
@@ -17,51 +17,7 @@ export default function Home() {
             </div>
           </a>
 
-          {/* Título */}
-          <div>
-            <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FF5C2E", marginBottom: "10px" }}>Bem-vindo</p>
-            <h1 style={{ fontSize: "44px", fontWeight: 800, color: "#111111", lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: "14px" }}>
-              Reserve seu<br />endereço.
-            </h1>
-            <p style={{ fontSize: "14px", color: "#525252", lineHeight: 1.65 }}>
-              A primeira cidade digital brasileira.<br />Junte-se aos primeiros moradores.
-            </p>
-          </div>
-
-          {/* Contador */}
-          <div className="lp-counter" style={{ display: "inline-block" }}>
-            <ContadorMoradores />
-          </div>
-
-          {/* Botões */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <a href="/cadastro" className="lp-google-btn" style={{ height: "52px", background: "#FFFFFF", border: "1.5px solid #E5E5E5", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", fontSize: "14px", fontWeight: 600, color: "#111111", textDecoration: "none" }}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
-                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-              </svg>
-              Continuar com Google
-            </a>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div style={{ flex: 1, height: "1px", background: "#E5E5E5" }} />
-              <span style={{ fontSize: "12px", color: "#A3A3A3" }}>ou</span>
-              <div style={{ flex: 1, height: "1px", background: "#E5E5E5" }} />
-            </div>
-
-            <a href="/cadastro" className="um-btn-accent lp-cta" style={{ height: "52px", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", borderRadius: "14px" }}>
-              Criar meu endereço →
-            </a>
-          </div>
-
-          <a href="/login" className="lp-login-btn" style={{ height: "52px", borderRadius: "14px", border: "1.5px solid #111111", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "14px", fontWeight: 700, color: "#111111", textDecoration: "none" }}>
-            Já tenho conta — Entrar na cidade
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </a>
-
-          <p style={{ fontSize: "12px", color: "#C0C0C0", textAlign: "center" }}>Cadastro gratuito · 30 segundos · sem cartão</p>
+          <LandingCTA />
         </div>
 
         {/* ── DIREITA: Ilustração ── */}
