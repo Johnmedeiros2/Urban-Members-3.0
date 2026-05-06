@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import { minhasCompras, type Transacao } from "@/lib/queries";
 
 const STATUS_COR: Record<string, string> = {
@@ -50,7 +51,10 @@ export default function Compras() {
             <span style={{ fontSize: "13px", color: "#A3A3A3", margin: "0 4px" }}>/</span>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#525252" }}>Minhas compras</span>
           </div>
-          <BotaoConvite variant="ghost" />
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <BotaoConvite variant="ghost" />
+            <AvatarMenu size={32} />
+          </div>
         </div>
       </header>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import { buscarLives, criarLive, atualizarLiveStatus, deletarLive, type Live } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
@@ -85,11 +86,12 @@ export default function Lives() {
             <span style={{ fontSize: "13px", color: "#A3A3A3", margin: "0 4px" }}>/</span>
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#525252" }}>Lives</span>
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <BotaoConvite variant="ghost" />
             <button onClick={() => setModal(true)} className="um-btn-accent" style={{ height: "36px", padding: "0 18px", fontSize: "13px" }}>
               + Nova live
             </button>
+            <AvatarMenu size={32} />
           </div>
         </div>
       </header>

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import { buscarCurso, buscarAulas, criarAula, marcarAulaConcluida, deletarAula, matricularCurso, buscarMateriais, adicionarMaterial, deletarMaterial, atualizarCurso, deletarCurso, ehModerador, removerCursoPorModeracao, type Aula, type Material } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 import ConteudoRemovido from "@/components/ui/ConteudoRemovido";
@@ -305,6 +306,7 @@ export default function CursoPage() {
               </button>
             )}
             <BotaoConvite variant="ghost" />
+            <AvatarMenu size={32} />
           </div>
         </div>
       </header>

@@ -6,6 +6,7 @@ import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import PostCard from "@/components/ui/PostCard";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 
 const BAIRROS_DATA: Record<string, {
   descricao: string;
@@ -74,6 +75,7 @@ export default function BairroPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <BotaoConvite variant="ghost" />
             <ScoreBadge score={320} compact />
+            <AvatarMenu size={32} />
           </div>
         </div>
       </header>

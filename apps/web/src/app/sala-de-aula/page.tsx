@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import { buscarCursos, criarCurso, matricularCurso, ehModerador, removerCursoPorModeracao, type Curso } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 import BotaoWishlist from "@/components/ui/BotaoWishlist";
@@ -96,6 +97,7 @@ export default function SalaDeAula() {
             <button onClick={() => setModal(true)} className="um-btn-accent" style={{ height: "36px", padding: "0 18px", fontSize: "13px" }}>
               + Criar curso
             </button>
+            <AvatarMenu size={32} />
           </div>
         </div>
       </header>

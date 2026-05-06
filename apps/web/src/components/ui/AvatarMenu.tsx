@@ -7,16 +7,45 @@ import { createClient } from "@/lib/supabase";
 import { reset as resetAnalytics } from "@/lib/analytics";
 
 interface Props {
-  nome: string;
+  nome?: string;
   foto?: string | null;
   size?: number;
 }
 
-export default function AvatarMenu({ nome, foto, size = 36 }: Props) {
+export default function AvatarMenu({ nome: nomeProp, foto: fotoProp, size = 36 }: Props) {
   const router = useRouter();
   const [aberto, setAberto] = useState(false);
   const [saindo, setSaindo] = useState(false);
+  const [nome, setNome] = useState<string>(nomeProp ?? "");
+  const [foto, setFoto] = useState<string | null>(fotoProp ?? null);
+  const [logado, setLogado] = useState<boolean>(!!nomeProp);
   const ref = useRef<HTMLDivElement>(null);
+
+  // Busca dados do morador logado se nao foram passados via props
+  useEffect(() => {
+    if (nomeProp) return;
+    let cancelado = false;
+    (async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelado) return;
+      if (!user) {
+        setLogado(false);
+        return;
+      }
+      const { data: perfil } = await supabase
+        .from("perfis")
+        .select("nome, foto_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelado) return;
+      const p = perfil as { nome?: string; foto_url?: string | null } | null;
+      setNome(p?.nome ?? user.user_metadata?.nome_completo ?? user.email?.split("@")[0] ?? "Morador");
+      setFoto(p?.foto_url ?? null);
+      setLogado(true);
+    })();
+    return () => { cancelado = true; };
+  }, [nomeProp]);
 
   useEffect(() => {
     function handleClickFora(e: MouseEvent) {
@@ -39,6 +68,9 @@ export default function AvatarMenu({ nome, foto, size = 36 }: Props) {
       setSaindo(false);
     }
   }
+
+  // Se o usuario nao esta logado, nao renderiza nada
+  if (!logado) return null;
 
   return (
     <div ref={ref} style={{ position: "relative" }}>

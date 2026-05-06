@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import ConteudoRemovido from "@/components/ui/ConteudoRemovido";
 import ModalMotivoRemocao from "@/components/ui/ModalMotivoRemocao";
 import { buscarMorador, contagemConexoes, conectarCom, desconectarDe, minhasConexoesIds, ehModerador, removerPostPorModeracao } from "@/lib/queries";
@@ -148,7 +149,10 @@ export default function PerfilPublico() {
             </a>
             <span style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{perfil.nome}</span>
           </div>
-          <BotaoConvite variant="ghost" />
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <BotaoConvite variant="ghost" />
+            <AvatarMenu size={32} />
+          </div>
         </div>
       </header>
 

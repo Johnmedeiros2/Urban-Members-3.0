@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import { buscarProdutos, buscarLojas, buscarMinhaLoja, criarLoja, criarProduto, criarTransacao, produtosEmAlta, minhasEmpresas, type Produto, type Empresa } from "@/lib/queries";
 import Avaliacoes from "@/components/ui/Avaliacoes";
 import CarrinhoDrawer from "@/components/ui/CarrinhoDrawer";
@@ -126,6 +127,7 @@ export default function Mercado() {
                 Abrir minha loja
               </button>
             )}
+            <AvatarMenu size={32} />
           </div>
         </div>
       </header>

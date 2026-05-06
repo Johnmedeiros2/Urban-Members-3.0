@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Avatar from "@/components/ui/Avatar";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import { minhasTransacoes, saldoAtual, criarTransacao, type Transacao } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
@@ -68,7 +69,10 @@ export default function UrbanPay() {
             <img src="/logo.svg" alt="Urban Members" width={32} height={32} />
             <span style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>Urban Pay</span>
           </a>
-          <BotaoConvite variant="ghost" />
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <BotaoConvite variant="ghost" />
+            <AvatarMenu size={32} />
+          </div>
         </div>
       </header>
 

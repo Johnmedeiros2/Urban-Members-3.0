@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import BotaoConvite from "@/components/ui/BotaoConvite";
+import AvatarMenu from "@/components/ui/AvatarMenu";
 import { buscarTrilha, buscarAtomos, progressoTrilha, matricularTrilha, type Trilha, type Atomo } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 
@@ -69,7 +70,10 @@ export default function TrilhaPage() {
               <span style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>Urban Academy</span>
             </a>
           </div>
-          <BotaoConvite variant="ghost" />
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <BotaoConvite variant="ghost" />
+            <AvatarMenu size={32} />
+          </div>
         </div>
       </header>
 
