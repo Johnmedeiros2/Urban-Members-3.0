@@ -109,21 +109,12 @@ export default function Feed() {
     try {
       const supabase = createClient();
       const [p, userResult] = await Promise.all([
-        Promise.race([
-          tagFiltro ? buscarPosts(20, tagFiltro) : modoFeed === "voce" ? buscarPostsPersonalizado(30) : buscarPosts(20),
-          new Promise<PostReal[]>((resolve) => setTimeout(() => resolve([]), 6000)),
-        ]),
-        Promise.race([
-          supabase.auth.getUser(),
-          new Promise<{ data: { user: null }; error: null }>((resolve) => setTimeout(() => resolve({ data: { user: null }, error: null }), 6000)),
-        ]),
+        tagFiltro ? buscarPosts(20, tagFiltro) : modoFeed === "voce" ? buscarPostsPersonalizado(30) : buscarPosts(20),
+        supabase.auth.getUser(),
       ]);
       setPosts(p);
       if (p.length > 0) {
-        const curtidasIds = await Promise.race([
-          minhasCurtidas(p.map((x) => x.id)),
-          new Promise<Set<string>>((resolve) => setTimeout(() => resolve(new Set()), 5000)),
-        ]);
+        const curtidasIds = await minhasCurtidas(p.map((x) => x.id)).catch(() => new Set<string>());
         setCurtidas(curtidasIds);
       }
       if (userResult.data.user) {

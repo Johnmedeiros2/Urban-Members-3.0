@@ -32,7 +32,13 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const authResult = await Promise.race([
+    supabase.auth.getUser(),
+    new Promise<{ data: { user: null } }>((resolve) =>
+      setTimeout(() => resolve({ data: { user: null } }), 5000)
+    ),
+  ]);
+  const { data: { user } } = authResult;
   const path = request.nextUrl.pathname;
 
   // Raiz: logado vai pro feed, anônimo vê a landing page
