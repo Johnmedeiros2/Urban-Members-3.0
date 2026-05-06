@@ -22,6 +22,10 @@ export interface PostReal {
 
 // ── POSTS ───────────────────────────────────────────────────────────
 
+function comTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([promise, new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))]);
+}
+
 export async function buscarPosts(limite = 20, tag?: string | null): Promise<PostReal[]> {
   const supabase = createClient();
 
