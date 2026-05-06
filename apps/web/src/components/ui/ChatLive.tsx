@@ -18,6 +18,35 @@ interface Props {
   altura?: string;
 }
 
+async function buscarMensagens(liveId: string) {
+  const supabase = createClient();
+
+  const { data: msgs } = await supabase
+    .from("live_mensagens")
+    .select("id, texto, criado_em, autor_id")
+    .eq("live_id", liveId)
+    .order("criado_em", { ascending: true })
+    .limit(150);
+
+  if (!msgs || msgs.length === 0) return [];
+
+  const autorIds = [...new Set(msgs.map((m) => m.autor_id))];
+  const { data: autores } = await supabase
+    .from("perfis")
+    .select("id, nome, foto_url")
+    .in("id", autorIds);
+
+  const mapa = new Map((autores ?? []).map((a) => [a.id, a]));
+
+  return msgs.map((m) => ({
+    id: m.id,
+    texto: m.texto,
+    criado_em: m.criado_em,
+    autor_id: m.autor_id,
+    autor: mapa.get(m.autor_id) ?? null,
+  })) as Mensagem[];
+}
+
 export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
   const channelId = useId();
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
@@ -31,13 +60,8 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
     const supabase = createClient();
 
     async function carregar() {
-      const { data } = await supabase
-        .from("live_mensagens")
-        .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
-        .eq("live_id", liveId)
-        .order("criado_em", { ascending: true })
-        .limit(150);
-      if (data) setMensagens(data as unknown as Mensagem[]);
+      const lista = await buscarMensagens(liveId);
+      setMensagens(lista);
     }
 
     carregar();
@@ -74,11 +98,16 @@ export default function ChatLive({ liveId, meuId, altura = "420px" }: Props) {
     const { data: nova } = await supabase
       .from("live_mensagens")
       .insert({ live_id: liveId, autor_id: meuId, texto: t })
-      .select("id, texto, criado_em, autor_id, autor:perfis!autor_id(nome, foto_url)")
+      .select("id, texto, criado_em, autor_id")
       .single();
     if (nova) {
+      const { data: autor } = await supabase
+        .from("perfis")
+        .select("nome, foto_url")
+        .eq("id", meuId)
+        .single();
+      const m: Mensagem = { ...nova, autor: autor ?? null };
       setMensagens((prev) => {
-        const m = nova as unknown as Mensagem;
         if (prev.some((x) => x.id === m.id)) return prev;
         return [...prev, m];
       });
