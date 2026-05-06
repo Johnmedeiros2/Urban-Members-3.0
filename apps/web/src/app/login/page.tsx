@@ -48,9 +48,6 @@ function LoginInner() {
       setLoading(false);
       return;
     }
-    // Expulsa sessões ativas em outros dispositivos
-    await supabase.auth.signOut({ scope: "others" });
-    sessionStorage.setItem("urban_sessao_unica", "1");
 
     // Se o usuário veio por link de indicação, vincula agora
     const ref = typeof window !== "undefined" ? localStorage.getItem("urban_ref") : null;
