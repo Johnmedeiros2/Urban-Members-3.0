@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
 
 const INPUT: React.CSSProperties = {
@@ -12,14 +12,32 @@ const INPUT: React.CSSProperties = {
   boxSizing: "border-box", transition: "border-color 0.2s",
 };
 
+const COOLDOWN_SEGUNDOS = 60;
+
 export default function RecuperarSenha() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [erro, setErro] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  function iniciarCooldown() {
+    setCooldown(COOLDOWN_SEGUNDOS);
+    timerRef.current = setInterval(() => {
+      setCooldown((s) => {
+        if (s <= 1) { clearInterval(timerRef.current!); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+  }
 
   async function handleRecuperar() {
-    if (!email) return;
+    if (!email || cooldown > 0) return;
     if (!supabaseConfigured) {
       setErro("Configure as credenciais do Supabase.");
       return;
@@ -32,10 +50,20 @@ export default function RecuperarSenha() {
     });
     setLoading(false);
     if (error) {
-      setErro("Não foi possível enviar o e-mail. Verifique o endereço e tente novamente.");
+      const isRateLimit =
+        error.message?.toLowerCase().includes("rate") ||
+        error.message?.toLowerCase().includes("security") ||
+        error.status === 429;
+      if (isRateLimit) {
+        setErro("Aguarde 60 segundos antes de solicitar outro link.");
+        iniciarCooldown();
+      } else {
+        setErro("Não foi possível enviar o e-mail. Verifique se o endereço está correto.");
+      }
       return;
     }
     setEnviado(true);
+    iniciarCooldown();
   }
 
   return (
@@ -74,7 +102,23 @@ export default function RecuperarSenha() {
                 <br />Verifique sua caixa de entrada e a pasta de spam.
               </p>
             </div>
-            <a href="/login" style={{ fontSize: "14px", color: "#FF5C2E", fontWeight: 600, textDecoration: "none" }}>
+
+            {cooldown > 0 && (
+              <p style={{ fontSize: "13px", color: "#A3A3A3" }}>
+                Não recebeu? Aguarde <strong style={{ color: "#111111" }}>{cooldown}s</strong> para reenviar.
+              </p>
+            )}
+
+            {cooldown === 0 && (
+              <button
+                onClick={() => { setEnviado(false); setErro(""); }}
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", color: "#FF5C2E", fontWeight: 600, textAlign: "left", padding: 0 }}
+              >
+                Reenviar link →
+              </button>
+            )}
+
+            <a href="/login" style={{ fontSize: "14px", color: "#A3A3A3", textDecoration: "none" }}>
               ← Voltar para o login
             </a>
           </div>
@@ -110,11 +154,11 @@ export default function RecuperarSenha() {
 
               <button
                 onClick={handleRecuperar}
-                disabled={!email || loading}
+                disabled={!email || loading || cooldown > 0}
                 className="um-btn-accent"
-                style={{ width: "100%", height: "52px", fontSize: "15px" }}
+                style={{ width: "100%", height: "52px", fontSize: "15px", opacity: cooldown > 0 ? 0.6 : 1 }}
               >
-                {loading ? "Enviando..." : "Enviar link →"}
+                {loading ? "Enviando..." : cooldown > 0 ? `Aguarde ${cooldown}s` : "Enviar link →"}
               </button>
             </div>
 
