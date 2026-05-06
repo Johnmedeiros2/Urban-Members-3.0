@@ -20,39 +20,40 @@ export default function Home() {
           </svg>
         </div>
 
-        <div className="relative w-full max-w-md px-6 pt-20 pb-16 flex flex-col gap-10">
+        <div className="relative w-full max-w-md px-6 pt-12 pb-12 flex flex-col gap-7 items-center text-center">
           {/* Logo + identidade */}
           <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="Urban Members" width={56} height={56} style={{ display: "block" }} />
+            <img src="/logo.svg" alt="Urban Members" width={48} height={48} style={{ display: "block" }} />
             <span className="text-sm font-bold tracking-widest text-[#111111] uppercase">Urban Members</span>
           </div>
 
           {/* Headline + subline */}
-          <div className="flex flex-col gap-5">
-            <h1 className="text-[40px] font-bold leading-tight text-[#111111] tracking-tight">
+          <div className="flex flex-col gap-4 items-center">
+            <h1 className="text-[30px] md:text-[36px] font-bold leading-[1.1] text-[#111111] tracking-tight max-w-[20ch]">
               A primeira cidade digital brasileira está no dia&nbsp;1.
             </h1>
-            <p className="text-base text-[#525252] leading-relaxed">
+            <p className="text-sm md:text-base text-[#525252] leading-relaxed max-w-[32ch]">
               Estamos no início. Os primeiros moradores ajudam a construir a cidade que querem morar.
             </p>
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 w-full">
             <a
               href="/cadastro"
-              className="w-full h-14 bg-[#111111] text-white text-sm font-semibold rounded-full flex items-center justify-center hover:bg-[#FF5C2E] transition-colors duration-200"
+              className="w-full h-14 bg-[#FF5C2E] text-white text-sm font-bold rounded-full flex items-center justify-center gap-2 hover:bg-[#E04E20] transition-colors duration-200 shadow-[0_4px_14px_rgba(255,92,46,0.25)]"
             >
-              Reservar meu endereço
+              Quero meu endereço grátis
+              <span aria-hidden="true">→</span>
             </a>
             <a
               href="/login"
-              className="w-full h-14 border border-[#E5E5E5] text-[#111111] text-sm font-semibold rounded-full flex items-center justify-center hover:border-[#111111] transition-colors duration-200"
+              className="w-full h-12 text-[#525252] text-sm font-medium rounded-full flex items-center justify-center hover:text-[#111111] transition-colors duration-200"
             >
               Já tenho conta
             </a>
-            <p className="text-xs text-[#A3A3A3] text-center mt-1">
-              Cadastro gratuito · 30 segundos · sem cartão
+            <p className="text-[11px] text-[#A3A3A3] text-center -mt-1">
+              Cadastro em 30 segundos · sem cartão · ao continuar você aceita os <a href="/termos" className="underline hover:text-[#525252]">Termos</a> e a <a href="/privacidade" className="underline hover:text-[#525252]">Privacidade</a>
             </p>
           </div>
         </div>
@@ -71,8 +72,8 @@ export default function Home() {
 
       {/* COMO FUNCIONA */}
       <section className="border-t border-[#F5F5F5] flex justify-center w-full">
-        <div className="w-full max-w-md px-6 py-16 flex flex-col gap-10">
-          <div className="flex flex-col gap-2">
+        <div className="w-full max-w-md px-6 py-14 flex flex-col gap-8">
+          <div className="flex flex-col gap-2 text-center items-center">
             <p className="text-[10px] font-bold tracking-[0.12em] text-[#FF5C2E] uppercase">Como funciona</p>
             <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
               Em 3 passos você é morador.
@@ -107,8 +108,8 @@ export default function Home() {
 
       {/* FAQ */}
       <section className="border-t border-[#F5F5F5] bg-[#FAFAFA] flex justify-center w-full">
-        <div className="w-full max-w-md px-6 py-16 flex flex-col gap-8">
-          <div className="flex flex-col gap-2">
+        <div className="w-full max-w-md px-6 py-14 flex flex-col gap-8">
+          <div className="flex flex-col gap-2 text-center items-center">
             <p className="text-[10px] font-bold tracking-[0.12em] text-[#A3A3A3] uppercase">Perguntas frequentes</p>
             <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
               Coisas que você pode estar pensando.
@@ -138,18 +139,19 @@ export default function Home() {
 
       {/* CTA FINAL */}
       <section className="border-t border-[#F5F5F5] flex justify-center w-full">
-        <div className="w-full max-w-md px-6 py-16 flex flex-col gap-6 items-center text-center">
+        <div className="w-full max-w-md px-6 py-14 flex flex-col gap-5 items-center text-center">
           <h2 className="text-2xl font-bold leading-tight text-[#111111] tracking-tight">
             Pronto pra ser morador?
           </h2>
           <p className="text-sm text-[#525252] leading-relaxed">
-            Reserve seu endereço agora e entre na cidade antes do mundo.
+            Reserve agora e entre na cidade antes do mundo.
           </p>
           <a
             href="/cadastro"
-            className="w-full max-w-xs h-14 bg-[#111111] text-white text-sm font-semibold rounded-full flex items-center justify-center hover:bg-[#FF5C2E] transition-colors duration-200"
+            className="w-full max-w-xs h-14 bg-[#FF5C2E] text-white text-sm font-bold rounded-full flex items-center justify-center gap-2 hover:bg-[#E04E20] transition-colors duration-200 shadow-[0_4px_14px_rgba(255,92,46,0.25)]"
           >
-            Reservar meu endereço
+            Quero meu endereço grátis
+            <span aria-hidden="true">→</span>
           </a>
         </div>
       </section>
