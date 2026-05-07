@@ -27,10 +27,15 @@ export default function Moradores() {
 
   const carregar = useCallback(async (termo = "") => {
     setCarregando(true);
-    const [m, c] = await Promise.all([todosMoradores(termo), minhasConexoesIds()]);
-    setMoradores(m as Morador[]);
-    setConexoes(c);
-    setCarregando(false);
+    try {
+      const [m, c] = await Promise.all([todosMoradores(termo), minhasConexoesIds()]);
+      setMoradores(m as Morador[]);
+      setConexoes(c);
+    } catch {
+      // falha silenciosa
+    } finally {
+      setCarregando(false);
+    }
   }, []);
 
   useEffect(() => {

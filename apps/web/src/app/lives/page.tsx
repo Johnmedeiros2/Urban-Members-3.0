@@ -22,13 +22,18 @@ export default function Lives() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [l, { data: { user } }] = await Promise.all([
-      buscarLives(),
-      createClient().auth.getUser(),
-    ]);
-    setLives(l);
-    setMeuId(user?.id ?? null);
-    setCarregando(false);
+    try {
+      const [l, { data: { user } }] = await Promise.all([
+        buscarLives(),
+        createClient().auth.getUser(),
+      ]);
+      setLives(l);
+      setMeuId(user?.id ?? null);
+    } catch {
+      // falha silenciosa
+    } finally {
+      setCarregando(false);
+    }
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);

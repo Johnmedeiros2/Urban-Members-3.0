@@ -14,13 +14,18 @@ export default function UrbanPulse() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const lista = await buscarPulses(30);
-    setPulses(lista);
-    if (lista.length > 0) {
-      const ids = await minhasCurtidas(lista.map((p) => p.id));
-      setCurtidas(ids);
+    try {
+      const lista = await buscarPulses(30);
+      setPulses(lista);
+      if (lista.length > 0) {
+        const ids = await minhasCurtidas(lista.map((p) => p.id));
+        setCurtidas(ids);
+      }
+    } catch {
+      // falha silenciosa
+    } finally {
+      setCarregando(false);
     }
-    setCarregando(false);
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);

@@ -13,8 +13,13 @@ export default function Wishlist() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    setItens(await minhaWishlist());
-    setCarregando(false);
+    try {
+      setItens(await minhaWishlist());
+    } catch {
+      // falha silenciosa
+    } finally {
+      setCarregando(false);
+    }
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);

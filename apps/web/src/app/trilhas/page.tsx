@@ -24,8 +24,13 @@ export default function TrilhasPage() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    setTrilhas(await buscarTrilhas());
-    setCarregando(false);
+    try {
+      setTrilhas(await buscarTrilhas());
+    } catch {
+      // falha silenciosa
+    } finally {
+      setCarregando(false);
+    }
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);

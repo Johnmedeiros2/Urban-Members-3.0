@@ -26,8 +26,13 @@ export default function Compras() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    setCompras(await minhasCompras());
-    setCarregando(false);
+    try {
+      setCompras(await minhasCompras());
+    } catch {
+      // falha silenciosa
+    } finally {
+      setCarregando(false);
+    }
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);

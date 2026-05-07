@@ -15,14 +15,11 @@ function fetchComTimeout(ms: number): typeof fetch {
     try {
       const response = await fetch(input, { ...init, signal: controller.signal });
       return response;
-    } catch (err) {
-      if ((err as Error).name === "AbortError") {
-        return new Response('{"message":"timeout","code":"timeout"}', {
-          status: 504,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      throw err;
+    } catch {
+      return new Response('{"message":"timeout","code":"timeout"}', {
+        status: 504,
+        headers: { "Content-Type": "application/json" },
+      });
     } finally {
       clearTimeout(timer);
     }

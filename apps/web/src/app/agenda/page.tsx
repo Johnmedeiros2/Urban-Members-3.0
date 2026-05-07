@@ -37,8 +37,13 @@ export default function Agenda() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    setEventos(await agendaDoMorador(escopo));
-    setCarregando(false);
+    try {
+      setEventos(await agendaDoMorador(escopo));
+    } catch {
+      // falha silenciosa
+    } finally {
+      setCarregando(false);
+    }
   }, [escopo]);
 
   useEffect(() => { carregar(); }, [carregar]);
