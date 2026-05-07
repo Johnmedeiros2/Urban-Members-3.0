@@ -39,9 +39,9 @@ function AuthIdentifier() {
   useEffect(() => {
     const supabase = createClient();
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        posthog.identify(user.id, { email: user.email });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        posthog.identify(session.user.id, { email: session.user.email });
       }
     });
 

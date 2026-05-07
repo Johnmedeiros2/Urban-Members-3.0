@@ -21,21 +21,21 @@ export default function TrilhaPage() {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [t, a, p, userData] = await Promise.all([
+    const [t, a, p, { data: { session } }] = await Promise.all([
       buscarTrilha(id),
       buscarAtomos(id),
       progressoTrilha(id),
-      supabase.auth.getUser(),
+      supabase.auth.getSession(),
     ]);
     setTrilha(t);
     setAtomos(a);
     setProgresso(p);
-    if (userData.data.user) {
+    if (session?.user) {
       const { data: m } = await supabase
         .from("trilha_alunos")
         .select("trilha_id")
         .eq("trilha_id", id)
-        .eq("aluno_id", userData.data.user.id)
+        .eq("aluno_id", session.user.id)
         .maybeSingle();
       setMatriculado(!!m);
     }

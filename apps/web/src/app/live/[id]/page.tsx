@@ -53,10 +53,10 @@ export default function LivePage() {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [liveRes, it, userData, res] = await Promise.all([
+    const [liveRes, it, { data: { session } }, res] = await Promise.all([
       supabase.from("lives").select("*").eq("id", id).maybeSingle(),
       buscarItensLive(id),
-      supabase.auth.getUser(),
+      supabase.auth.getSession(),
       resumoConversaoLive(id),
     ]);
     if (liveRes.data) {
@@ -67,7 +67,7 @@ export default function LivePage() {
       setLive({ ...l, tipo: l.tipo ?? "externa", autor });
     }
     setItens(it);
-    setMeuId(userData.data.user?.id ?? null);
+    setMeuId(session?.user?.id ?? null);
     setResumo(res);
     setCarregando(false);
   }, [id]);

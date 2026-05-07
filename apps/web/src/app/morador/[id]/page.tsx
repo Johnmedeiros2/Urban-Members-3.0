@@ -61,11 +61,11 @@ export default function PerfilPublico() {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [m, c, conn, userData, postsRes, lojaRes, cursosRes] = await Promise.all([
+    const [m, c, conn, { data: { session } }, postsRes, lojaRes, cursosRes] = await Promise.all([
       buscarMorador(id),
       contagemConexoes(id),
       minhasConexoesIds(),
-      supabase.auth.getUser(),
+      supabase.auth.getSession(),
       supabase.from("posts").select("*").eq("autor_id", id).order("criado_em", { ascending: false }).limit(10),
       supabase.from("lojas").select("id, nome, total_vendas").eq("dono_id", id).maybeSingle(),
       supabase.from("cursos").select("id", { count: "exact", head: true }).eq("instrutor_id", id),
@@ -73,7 +73,7 @@ export default function PerfilPublico() {
     setPerfil(m as Perfil | null);
     setContagem(c);
     setConectado(conn.has(id));
-    setSouEu(userData.data.user?.id === id);
+    setSouEu(session?.user?.id === id);
     setPosts((postsRes.data as PostPublico[]) ?? []);
     setLoja(lojaRes.data as Loja | null);
     setTemCursos((cursosRes.count ?? 0) > 0);

@@ -28,7 +28,7 @@ export default function UrbanPay() {
 
   const carregar = useCallback(async () => {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = (await supabase.auth.getSession()).data.session?.user;
     if (!user) return;
     setMeuId(user.id);
     const [h, s, m] = await Promise.all([

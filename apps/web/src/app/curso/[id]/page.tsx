@@ -69,11 +69,11 @@ export default function CursoPage() {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [c, a, m, userData, fiscal] = await Promise.all([
+    const [c, a, m, { data: { session } }, fiscal] = await Promise.all([
       buscarCurso(id),
       buscarAulas(id),
       buscarMateriais(id),
-      supabase.auth.getUser(),
+      supabase.auth.getSession(),
       ehModerador(),
     ]);
     setSouFiscal(fiscal);
@@ -85,13 +85,13 @@ export default function CursoPage() {
     const aulaQuery = params?.get("aula");
     const aulaDoQuery = aulaQuery ? a.find((x) => x.id === aulaQuery) : null;
     setAulaAtual(aulaDoQuery ?? a[0] ?? null);
-    setMeuId(userData.data.user?.id ?? null);
-    if (userData.data.user) {
+    setMeuId(session?.user?.id ?? null);
+    if (session?.user) {
       const { data: matricula } = await supabase
         .from("curso_alunos")
         .select("curso_id")
         .eq("curso_id", id)
-        .eq("morador_id", userData.data.user.id)
+        .eq("morador_id", session.user.id)
         .maybeSingle();
       setMatriculado(!!matricula);
     }

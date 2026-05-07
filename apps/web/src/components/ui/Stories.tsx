@@ -24,12 +24,12 @@ export default function Stories({ layout = "lateral" }: Props) {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [s, { data: { user } }] = await Promise.all([
+    const [s, { data: { session } }] = await Promise.all([
       buscarStoriesAtivos(),
-      createClient().auth.getUser(),
+      createClient().auth.getSession(),
     ]);
     setGrupos(s);
-    setMeuId(user?.id ?? null);
+    setMeuId(session?.user?.id ?? null);
     setCarregando(false);
   }, []);
 

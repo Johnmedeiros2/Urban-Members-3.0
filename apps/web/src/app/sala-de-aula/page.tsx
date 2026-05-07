@@ -30,14 +30,14 @@ export default function SalaDeAula() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [lista, fiscal, user] = await Promise.all([
+    const [lista, fiscal, { data: { session } }] = await Promise.all([
       buscarCursos(),
       ehModerador(),
-      createClient().auth.getUser(),
+      createClient().auth.getSession(),
     ]);
     setCursos(lista);
     setSouFiscal(fiscal);
-    setMeuId(user.data.user?.id ?? null);
+    setMeuId(session?.user?.id ?? null);
     setCarregando(false);
   }, []);
 

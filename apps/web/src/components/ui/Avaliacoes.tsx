@@ -40,15 +40,15 @@ export default function Avaliacoes({ produtoId, cursoId }: Props) {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [avals, med, { data: { user } }, fiscal] = await Promise.all([
+    const [avals, med, { data: { session } }, fiscal] = await Promise.all([
       buscarAvaliacoes(produtoId, cursoId),
       mediaAvaliacao(produtoId, cursoId),
-      createClient().auth.getUser(),
+      createClient().auth.getSession(),
       ehModerador(),
     ]);
     setLista(avals);
     setMedia(med);
-    setMeuId(user?.id ?? null);
+    setMeuId(session?.user?.id ?? null);
     setSouFiscal(fiscal);
     setCarregando(false);
   }, [produtoId, cursoId]);

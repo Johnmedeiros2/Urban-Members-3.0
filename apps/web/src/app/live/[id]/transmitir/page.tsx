@@ -37,7 +37,7 @@ export default function TransmitirLive() {
       const liveTyped = live as { titulo: string; ao_vivo: boolean; tipo: string; autor_id: string };
       if (liveTyped.tipo !== "nativa") throw new Error("Esta live usa link externo, não é transmissão nativa");
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = (await supabase.auth.getSession()).data.session?.user;
       if (!user) throw new Error("Faça login para transmitir");
       if (user.id !== liveTyped.autor_id) throw new Error("Só o autor pode transmitir");
 

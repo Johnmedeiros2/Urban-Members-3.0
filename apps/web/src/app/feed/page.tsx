@@ -109,22 +109,22 @@ export default function Feed() {
       : modoFeed === "voce"
         ? buscarPostsPersonalizado(30)
         : buscarPosts(20);
-    const [p, user] = await Promise.all([
+    const [p, { data: { session } }] = await Promise.all([
       fetcher,
-      createClient().auth.getUser(),
+      createClient().auth.getSession(),
     ]);
     setPosts(p);
     if (p.length > 0) {
       const curtidasIds = await minhasCurtidas(p.map((x) => x.id));
       setCurtidas(curtidasIds);
     }
-    if (user.data.user) {
+    if (session?.user) {
       const { data } = await createClient()
         .from("perfis")
         .select("nome, urban_score, foto_url")
-        .eq("id", user.data.user.id)
+        .eq("id", session.user.id)
         .single();
-      if (data) setUsuario({ id: user.data.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
+      if (data) setUsuario({ id: session.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
     }
     setCarregando(false);
   }, [tagFiltro, modoFeed]);

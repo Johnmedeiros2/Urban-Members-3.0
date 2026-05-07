@@ -121,7 +121,7 @@ export default function Perfil() {
       if (supabaseConfigured) {
         try {
           const supabase = createClient();
-          const { data: { user } } = await supabase.auth.getUser();
+          const user = (await supabase.auth.getSession()).data.session?.user;
           if (user) {
             const { data } = await supabase
               .from("perfis")
@@ -158,19 +158,19 @@ export default function Perfil() {
 
     // Carrega dados de comércio e indicações em paralelo
     (async () => {
-      const [mp, mc, r, ind, userData] = await Promise.all([
+      const [mp, mc, r, ind, { data: { session } }] = await Promise.all([
         meusProdutos(),
         meusCursos(),
         minhasVendasResumo(),
         minhasIndicacoes(),
-        createClient().auth.getUser(),
+        createClient().auth.getSession(),
       ]);
       setMinhaLoja(mp.loja as LojaMinha | null);
       setProdutos(mp.produtos as ProdutoMeu[]);
       setCursos(mc as CursoMeu[]);
       setResumo(r);
       setIndicacoes(ind);
-      setUserId(userData.data.user?.id ?? null);
+      setUserId(session?.user?.id ?? null);
     })();
   }, []);
 
@@ -187,7 +187,7 @@ export default function Perfil() {
     if (supabaseConfigured) {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = (await supabase.auth.getSession()).data.session?.user;
         if (user) {
           await supabase.from("perfis").update({ nome: nomeEdit }).eq("id", user.id);
           setPerfil((p) => ({ ...p, nome: nomeEdit }));

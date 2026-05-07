@@ -22,12 +22,12 @@ export default function Lives() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [l, { data: { user } }] = await Promise.all([
+    const [l, { data: { session } }] = await Promise.all([
       buscarLives(),
-      createClient().auth.getUser(),
+      createClient().auth.getSession(),
     ]);
     setLives(l);
-    setMeuId(user?.id ?? null);
+    setMeuId(session?.user?.id ?? null);
     setCarregando(false);
   }, []);
 

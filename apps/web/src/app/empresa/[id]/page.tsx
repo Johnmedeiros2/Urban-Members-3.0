@@ -26,15 +26,15 @@ export default function EmpresaPage() {
     if (!id) return;
     setCarregando(true);
     const supabase = createClient();
-    const [e, seguindoSet, userData, lojasData] = await Promise.all([
+    const [e, seguindoSet, { data: { session } }, lojasData] = await Promise.all([
       buscarEmpresa(id),
       meusSeguindoEmpresas(),
-      supabase.auth.getUser(),
+      supabase.auth.getSession(),
       lojasDaEmpresa(id),
     ]);
     setEmpresa(e);
     setSeguindo(seguindoSet.has(id));
-    setMeuId(userData.data.user?.id ?? null);
+    setMeuId(session?.user?.id ?? null);
     setLojas(lojasData as unknown as LojaSimples[]);
     setCarregando(false);
   }, [id]);

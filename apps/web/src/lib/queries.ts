@@ -78,7 +78,7 @@ export async function buscarPosts(limite = 20, tag?: string | null): Promise<Pos
 
 export async function buscarPostsPersonalizado(limite = 30): Promise<PostReal[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return buscarPosts(limite);
 
   const [meusBairros, minhasConex, posts] = await Promise.all([
@@ -143,7 +143,7 @@ export async function buscarPostsPersonalizado(limite = 30): Promise<PostReal[]>
 
 export async function criarPost(conteudo: string, bairro_id = "negocios", foto?: File | null, video?: File | null, empresa_id?: string | null) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado. Faça login novamente.");
 
   // Garante que o perfil existe antes de postar
@@ -226,7 +226,7 @@ export async function buscarPulses(limite = 20): Promise<PostReal[]> {
 
 export async function deletarPost(post_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
 
   // Busca a foto antes para poder deletar do storage
@@ -256,7 +256,7 @@ export async function deletarPost(post_id: string) {
 
 export async function curtirPost(post_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   const { error } = await supabase
     .from("curtidas")
@@ -266,7 +266,7 @@ export async function curtirPost(post_id: string) {
 
 export async function descurtirPost(post_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   const { error } = await supabase
     .from("curtidas")
@@ -279,7 +279,7 @@ export async function descurtirPost(post_id: string) {
 export async function minhasCurtidas(post_ids: string[]): Promise<Set<string>> {
   if (post_ids.length === 0) return new Set();
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return new Set();
   const { data } = await supabase
     .from("curtidas")
@@ -293,7 +293,7 @@ export async function minhasCurtidas(post_ids: string[]): Promise<Set<string>> {
 
 export async function buscarNotificacoes() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return [];
   const { data } = await supabase
     .from("notificacoes")
@@ -306,7 +306,7 @@ export async function buscarNotificacoes() {
 
 export async function marcarTodasLidas() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return;
   await supabase
     .from("notificacoes")
@@ -414,7 +414,7 @@ export async function buscarAtomos(trilha_id: string): Promise<Atomo[]> {
 
   if (!atomos) return [];
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return atomos as Atomo[];
 
   const ids = atomos.map((a: { id: string }) => a.id);
@@ -437,7 +437,7 @@ export async function buscarAtomo(atomo_id: string): Promise<Atomo | null> {
     .maybeSingle();
   if (!data) return null;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return data as Atomo;
 
   const { data: progresso } = await supabase
@@ -480,7 +480,7 @@ export async function buscarQuestoesDiagnostico(trilha_id: string, limite = 15):
 
 export async function matricularTrilha(trilha_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   const { error } = await supabase
     .from("trilha_alunos")
@@ -490,7 +490,7 @@ export async function matricularTrilha(trilha_id: string) {
 
 export async function registrarTentativa(exercicio_id: string, acertou: boolean, resposta: string, atomo_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
 
   // Salva tentativa
@@ -535,7 +535,7 @@ export async function registrarTentativa(exercicio_id: string, acertou: boolean,
 
 export async function progressoTrilha(trilha_id: string): Promise<{ totalAtomos: number; dominados: number; em_progresso: number; percentual: number }> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return { totalAtomos: 0, dominados: 0, em_progresso: 0, percentual: 0 };
 
   const { data: atomos } = await supabase
@@ -577,7 +577,7 @@ export interface EventoAgenda {
 
 export async function agendaDoMorador(escopo: "meus" | "todos" = "todos"): Promise<EventoAgenda[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   const agora = new Date();
   const limiteFuturo = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias pra frente
   const limitePassado = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 dias pra trás
@@ -732,7 +732,7 @@ export async function criarLive(params: {
   tipo?: "externa" | "nativa";
 }) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (!params.titulo.trim()) throw new Error("Título obrigatório");
 
@@ -844,7 +844,7 @@ export async function desvincularItemLive(id: string) {
 // Variante de criarTransacao que registra origem_live_id
 export async function comprarDaLive(vendedor_id: string, valor: number, descricao: string, live_id: string, cupomCodigo?: string | null) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (user.id === vendedor_id) throw new Error("Não é possível pagar para si mesmo");
 
@@ -923,7 +923,7 @@ export interface StoriesPorAutor {
 export async function buscarStoriesAtivos(): Promise<StoriesPorAutor[]> {
   const supabase = createClient();
   const agora = new Date().toISOString();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
 
   const { data } = await supabase
     .from("stories")
@@ -973,7 +973,7 @@ export async function buscarStoriesAtivos(): Promise<StoriesPorAutor[]> {
 
 export async function registrarVisualizacaoStory(story_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return;
   await supabase
     .from("story_visualizacoes")
@@ -982,7 +982,7 @@ export async function registrarVisualizacaoStory(story_id: string) {
 
 export async function criarStory(foto?: File | null, video?: File | null, horas: 12 | 24 = 24, visualizacao_unica = false) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (!foto && !video) throw new Error("Envie uma foto ou vídeo");
 
@@ -1035,7 +1035,7 @@ export interface ItemWishlist {
 
 export async function minhaWishlist(): Promise<ItemWishlist[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return [];
 
   const { data } = await supabase
@@ -1090,7 +1090,7 @@ export async function minhaWishlist(): Promise<ItemWishlist[]> {
 
 export async function idsDaWishlist(): Promise<{ produtos: Set<string>; cursos: Set<string> }> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return { produtos: new Set(), cursos: new Set() };
   const { data } = await supabase
     .from("wishlist")
@@ -1104,7 +1104,7 @@ export async function idsDaWishlist(): Promise<{ produtos: Set<string>; cursos: 
 
 export async function toggleWishlist(tipo: "produto" | "curso", itemId: string): Promise<boolean> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
 
   const col = tipo === "produto" ? "produto_id" : "curso_id";
@@ -1142,7 +1142,7 @@ export interface Cupom {
 
 export async function criarCupom(codigo: string, desconto_percentual: number, max_usos = 100): Promise<Cupom> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   const cod = codigo.trim().toUpperCase();
   if (!/^[A-Z0-9_-]{3,24}$/.test(cod)) throw new Error("Código inválido (3-24 letras/números)");
@@ -1162,7 +1162,7 @@ export async function criarCupom(codigo: string, desconto_percentual: number, ma
 
 export async function meusCupons(): Promise<Cupom[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return [];
   const { data } = await supabase
     .from("cupons")
@@ -1263,7 +1263,7 @@ export async function mediaAvaliacao(produto_id?: string, curso_id?: string): Pr
 
 export async function criarAvaliacao(params: { produto_id?: string; curso_id?: string; estrelas: number; comentario?: string; foto?: File | null; video?: File | null }) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (params.estrelas < 1 || params.estrelas > 5) throw new Error("Avaliação inválida");
   if (!params.produto_id && !params.curso_id) throw new Error("Produto ou curso obrigatório");
@@ -1352,7 +1352,7 @@ export async function buscarComentarios(post_id: string): Promise<Comentario[]> 
 
 export async function criarComentario(post_id: string, conteudo: string): Promise<Comentario> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (!conteudo.trim()) throw new Error("Comentário vazio");
 
@@ -1541,7 +1541,7 @@ export async function buscarProdutos(limite = 20): Promise<Produto[]> {
 
 export async function buscarMinhaLoja() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return null;
   const { data } = await supabase.from("lojas").select("*").eq("dono_id", user.id).maybeSingle();
   return data;
@@ -1549,7 +1549,7 @@ export async function buscarMinhaLoja() {
 
 export async function criarLoja(nome: string, descricao?: string, empresa_id?: string | null) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   const { data, error } = await supabase
     .from("lojas")
@@ -1654,7 +1654,7 @@ export async function buscarCursos(limite = 20): Promise<Curso[]> {
 
 export async function criarCurso(titulo: string, descricao: string, nivel: string, preco: number) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   const { data, error } = await supabase
     .from("cursos")
@@ -1753,7 +1753,7 @@ export async function adicionarMaterial(params: {
   arquivo: File;
 }): Promise<Material> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (!params.titulo.trim()) throw new Error("Título é obrigatório");
   if (!params.arquivo) throw new Error("Envie um arquivo");
@@ -1802,7 +1802,7 @@ export async function buscarAulas(curso_id: string): Promise<Aula[]> {
     .order("ordem", { ascending: true });
   if (!data) return [];
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return data as Aula[];
 
   const aulaIds = data.map((a: Aula) => a.id);
@@ -1821,7 +1821,7 @@ export async function criarAula(
   params: { descricao?: string; video?: File | null; ao_vivo?: boolean; agendado_para?: string | null; link_ao_vivo?: string }
 ) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
 
   // Determina próxima ordem
@@ -1861,7 +1861,7 @@ export async function criarAula(
 
 export async function marcarAulaConcluida(aula_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   await supabase
     .from("aula_progresso")
@@ -1910,7 +1910,7 @@ export async function buscarCurso(curso_id: string) {
 
 export async function matricularCurso(curso_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   const { error } = await supabase
     .from("curso_alunos")
@@ -1939,7 +1939,7 @@ export interface Transacao {
 
 export async function minhasTransacoes(): Promise<Transacao[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return [];
   const { data } = await supabase
     .from("transacoes")
@@ -1965,7 +1965,7 @@ export async function minhasTransacoes(): Promise<Transacao[]> {
 
 export async function minhasCompras(): Promise<Transacao[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return [];
   const { data } = await supabase
     .from("transacoes")
@@ -1995,7 +1995,7 @@ export async function criarTransacao(
   cupomCodigo?: string | null
 ) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (user.id === vendedor_id) throw new Error("Não é possível pagar para si mesmo");
 
@@ -2056,7 +2056,7 @@ export async function criarTransacao(
 
 export async function saldoAtual() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return 0;
   const { data } = await supabase
     .from("transacoes")
@@ -2078,7 +2078,7 @@ export async function saldoAtual() {
 
 export async function vincularIndicador(indicador_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return;
   if (user.id === indicador_id) return; // não pode se auto-indicar
 
@@ -2107,7 +2107,7 @@ export async function minhasIndicacoes(): Promise<{
   pessoas_compraram: number;
 }> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return { pessoas: [], total_comissao: 0, total_pessoas: 0, pessoas_compraram: 0 };
 
   // Pessoas que você indicou
@@ -2154,7 +2154,7 @@ export async function minhasIndicacoes(): Promise<{
 
 export async function saldoComissoes() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return 0;
   const { data } = await supabase
     .from("transacoes")
@@ -2250,7 +2250,7 @@ export async function buscarEmpresa(id: string): Promise<Empresa | null> {
 
 export async function minhasEmpresas(): Promise<Empresa[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return [];
   const { data } = await supabase
     .from("empresas")
@@ -2274,7 +2274,7 @@ export async function criarEmpresa(params: {
   foto?: File | null;
 }): Promise<Empresa> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (!params.nome_fantasia.trim()) throw new Error("Nome fantasia obrigatório");
 
@@ -2328,7 +2328,7 @@ export async function deletarEmpresa(id: string) {
 
 export async function seguirEmpresa(empresa_id: string): Promise<boolean> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
 
   const { data: existe } = await supabase
@@ -2355,7 +2355,7 @@ export async function seguirEmpresa(empresa_id: string): Promise<boolean> {
 
 export async function meusSeguindoEmpresas(): Promise<Set<string>> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return new Set();
   const { data } = await supabase
     .from("empresa_seguidores")
@@ -2426,7 +2426,7 @@ export async function buscarLojasComBusca(termo = "") {
 
 export async function todosMoradores(busca = "") {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   let query = supabase
     .from("perfis")
     .select("id, nome, cidade, estado, pais, urban_score, ocupacao, foto_url");
@@ -2440,7 +2440,7 @@ export async function todosMoradores(busca = "") {
 
 export async function minhasConexoesIds(): Promise<Set<string>> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return new Set();
   const { data } = await supabase
     .from("conexoes")
@@ -2451,7 +2451,7 @@ export async function minhasConexoesIds(): Promise<Set<string>> {
 
 export async function conectarCom(morador_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (user.id === morador_id) throw new Error("Você não pode conectar com si mesmo");
   const { error } = await supabase
@@ -2462,7 +2462,7 @@ export async function conectarCom(morador_id: string) {
 
 export async function desconectarDe(morador_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   const { error } = await supabase
     .from("conexoes")
@@ -2495,7 +2495,7 @@ export async function contagemConexoes(morador_id: string) {
 
 export async function uploadFotoPerfil(arquivo: File): Promise<string> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
 
   const ext = arquivo.name.split(".").pop() ?? "jpg";
@@ -2517,7 +2517,7 @@ export async function uploadFotoPerfil(arquivo: File): Promise<string> {
 
 export async function meusProdutos() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return { loja: null, produtos: [] };
 
   const { data: loja } = await supabase
@@ -2539,7 +2539,7 @@ export async function meusProdutos() {
 
 export async function meusCursos() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return [];
   const { data } = await supabase
     .from("cursos")
@@ -2551,7 +2551,7 @@ export async function meusCursos() {
 
 export async function minhasVendasResumo() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return { total_recebido: 0, total_vendas: 0, ticket_medio: 0, taxa_paga: 0 };
 
   const { data } = await supabase
@@ -2622,7 +2622,7 @@ export interface ModeradorInfo {
 
 export async function ehAdmin(): Promise<boolean> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return false;
   const { data } = await supabase.rpc("is_admin");
   return Boolean(data);
@@ -2630,7 +2630,7 @@ export async function ehAdmin(): Promise<boolean> {
 
 export async function ehModerador(): Promise<boolean> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) return false;
   const { data } = await supabase.rpc("is_moderador");
   return Boolean(data);
@@ -2662,7 +2662,7 @@ export async function listarModeradores(): Promise<ModeradorInfo[]> {
 
 export async function adicionarModerador(morador_id: string) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Não autenticado");
   const { error } = await supabase
     .from("moderadores")

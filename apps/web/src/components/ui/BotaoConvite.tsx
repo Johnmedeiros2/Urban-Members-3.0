@@ -13,7 +13,7 @@ export default function BotaoConvite({ variant = "light" }: BotaoConviteProps) {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await createClient().auth.getUser();
+      const user = (await createClient().auth.getSession()).data.session?.user;
       if (user) setUserId(user.id);
     })();
   }, []);

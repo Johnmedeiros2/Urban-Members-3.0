@@ -32,13 +32,13 @@ export default function Comentarios({ postId, onContagem }: Props) {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const [data, { data: { user } }, fiscal] = await Promise.all([
+    const [data, { data: { session } }, fiscal] = await Promise.all([
       buscarComentarios(postId),
-      createClient().auth.getUser(),
+      createClient().auth.getSession(),
       ehModerador(),
     ]);
     setComentarios(data);
-    setMeuId(user?.id ?? null);
+    setMeuId(session?.user?.id ?? null);
     setSouFiscal(fiscal);
     setCarregando(false);
     onContagem?.(data.length);

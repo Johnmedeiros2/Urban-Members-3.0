@@ -27,7 +27,7 @@ export default function AvatarMenu({ nome: nomeProp, foto: fotoProp, size = 36 }
     let cancelado = false;
     (async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = (await supabase.auth.getSession()).data.session?.user;
       if (cancelado) return;
       if (!user) {
         setLogado(false);
