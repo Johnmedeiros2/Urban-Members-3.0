@@ -12,8 +12,11 @@ if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     person_profiles: "identified_only",
     capture_pageview: false,
     capture_pageleave: true,
-    autocapture: false,
-    disable_session_recording: true,
+    autocapture: true,
+    session_recording: {
+      maskAllInputs: true,
+      maskTextSelector: "[data-private]",
+    },
   });
 }
 

@@ -39,11 +39,7 @@ export default function EmpresaPage() {
     setCarregando(false);
   }, [id]);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   async function toggleSeguir() {
     setAcao(true);

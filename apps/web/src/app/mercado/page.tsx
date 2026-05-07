@@ -47,24 +47,15 @@ export default function Mercado() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      const [p, l, mine, alta] = await Promise.all([buscarProdutos(), buscarLojas(), buscarMinhaLoja(), produtosEmAlta(6)]);
-      setProdutos(p);
-      setLojas(l as unknown as LojaComDono[]);
-      setMinhaLoja(mine as unknown as { id: string; nome: string } | null);
-      setEmAlta(alta);
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
-    }
+    const [p, l, mine, alta] = await Promise.all([buscarProdutos(), buscarLojas(), buscarMinhaLoja(), produtosEmAlta(6)]);
+    setProdutos(p);
+    setLojas(l as unknown as LojaComDono[]);
+    setMinhaLoja(mine as unknown as { id: string; nome: string } | null);
+    setEmAlta(alta);
+    setCarregando(false);
   }, []);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   useEffect(() => {
     minhasEmpresas().then(setEmpresas).catch(() => setEmpresas([]));

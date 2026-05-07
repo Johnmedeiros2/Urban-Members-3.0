@@ -30,20 +30,15 @@ export default function SalaDeAula() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      const [lista, fiscal, user] = await Promise.all([
-        buscarCursos(),
-        ehModerador().catch(() => false),
-        createClient().auth.getUser(),
-      ]);
-      setCursos(lista);
-      setSouFiscal(fiscal);
-      setMeuId(user.data.user?.id ?? null);
-    } catch {
-      // falha silenciosa — mostra lista vazia
-    } finally {
-      setCarregando(false);
-    }
+    const [lista, fiscal, user] = await Promise.all([
+      buscarCursos(),
+      ehModerador(),
+      createClient().auth.getUser(),
+    ]);
+    setCursos(lista);
+    setSouFiscal(fiscal);
+    setMeuId(user.data.user?.id ?? null);
+    setCarregando(false);
   }, []);
 
   async function confirmarRemocaoCurso(motivo: string) {
@@ -57,11 +52,7 @@ export default function SalaDeAula() {
     }
   }
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   async function handleCriar() {
     if (!titulo.trim() || !descricao.trim()) return;

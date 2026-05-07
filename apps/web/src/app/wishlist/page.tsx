@@ -13,20 +13,11 @@ export default function Wishlist() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      setItens(await minhaWishlist());
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
-    }
+    setItens(await minhaWishlist());
+    setCarregando(false);
   }, []);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   const filtrados = filtro === "todos" ? itens
     : filtro === "produtos" ? itens.filter((i) => i.produto_id)

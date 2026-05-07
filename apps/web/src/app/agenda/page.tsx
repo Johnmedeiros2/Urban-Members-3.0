@@ -37,20 +37,11 @@ export default function Agenda() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      setEventos(await agendaDoMorador(escopo));
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
-    }
+    setEventos(await agendaDoMorador(escopo));
+    setCarregando(false);
   }, [escopo]);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   // Agrupa por dia
   const grupos = new Map<string, { label: string; eventos: EventoAgenda[] }>();

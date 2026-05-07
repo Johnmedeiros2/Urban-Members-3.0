@@ -26,20 +26,11 @@ export default function Compras() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      setCompras(await minhasCompras());
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
-    }
+    setCompras(await minhasCompras());
+    setCarregando(false);
   }, []);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   const filtradas = filtro === "todas" ? compras : compras.filter((c) => c.status === filtro);
 

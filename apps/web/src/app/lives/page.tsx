@@ -22,25 +22,16 @@ export default function Lives() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      const [l, { data: { user } }] = await Promise.all([
-        buscarLives(),
-        createClient().auth.getUser(),
-      ]);
-      setLives(l);
-      setMeuId(user?.id ?? null);
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
-    }
+    const [l, { data: { user } }] = await Promise.all([
+      buscarLives(),
+      createClient().auth.getUser(),
+    ]);
+    setLives(l);
+    setMeuId(user?.id ?? null);
+    setCarregando(false);
   }, []);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   async function salvar() {
     if (!titulo.trim()) return;

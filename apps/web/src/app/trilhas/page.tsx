@@ -24,20 +24,11 @@ export default function TrilhasPage() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      setTrilhas(await buscarTrilhas());
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
-    }
+    setTrilhas(await buscarTrilhas());
+    setCarregando(false);
   }, []);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   const publicos = ["todos", ...Array.from(new Set(trilhas.map((t) => t.publico_alvo).filter(Boolean) as string[]))];
   const filtradas = filtro === "todos" ? trilhas : trilhas.filter((t) => t.publico_alvo === filtro);

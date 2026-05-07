@@ -104,33 +104,29 @@ export default function Feed() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    // Timer de segurança: desbloqueia a tela em até 7s mesmo se algo travar
-    const seguranca = setTimeout(() => setCarregando(false), 7000);
-    try {
-      const supabase = createClient();
-      const [p, userResult] = await Promise.all([
-        tagFiltro ? buscarPosts(20, tagFiltro) : modoFeed === "voce" ? buscarPostsPersonalizado(30) : buscarPosts(20),
-        supabase.auth.getUser(),
-      ]);
-      setPosts(p);
-      if (p.length > 0) {
-        const curtidasIds = await minhasCurtidas(p.map((x) => x.id)).catch(() => new Set<string>());
-        setCurtidas(curtidasIds);
-      }
-      if (userResult.data.user) {
-        const { data } = await supabase
-          .from("perfis")
-          .select("nome, urban_score, foto_url")
-          .eq("id", userResult.data.user.id)
-          .single();
-        if (data) setUsuario({ id: userResult.data.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
-      }
-    } catch {
-      // falha silenciosa
-    } finally {
-      clearTimeout(seguranca);
-      setCarregando(false);
+    const fetcher = tagFiltro
+      ? buscarPosts(20, tagFiltro)
+      : modoFeed === "voce"
+        ? buscarPostsPersonalizado(30)
+        : buscarPosts(20);
+    const [p, user] = await Promise.all([
+      fetcher,
+      createClient().auth.getUser(),
+    ]);
+    setPosts(p);
+    if (p.length > 0) {
+      const curtidasIds = await minhasCurtidas(p.map((x) => x.id));
+      setCurtidas(curtidasIds);
     }
+    if (user.data.user) {
+      const { data } = await createClient()
+        .from("perfis")
+        .select("nome, urban_score, foto_url")
+        .eq("id", user.data.user.id)
+        .single();
+      if (data) setUsuario({ id: user.data.user.id, nome: data.nome, score: data.urban_score, foto_url: data.foto_url });
+    }
+    setCarregando(false);
   }, [tagFiltro, modoFeed]);
 
   useEffect(() => { carregar(); }, [carregar]);

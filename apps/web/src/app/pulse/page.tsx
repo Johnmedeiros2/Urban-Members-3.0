@@ -14,25 +14,16 @@ export default function UrbanPulse() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      const lista = await buscarPulses(30);
-      setPulses(lista);
-      if (lista.length > 0) {
-        const ids = await minhasCurtidas(lista.map((p) => p.id));
-        setCurtidas(ids);
-      }
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
+    const lista = await buscarPulses(30);
+    setPulses(lista);
+    if (lista.length > 0) {
+      const ids = await minhasCurtidas(lista.map((p) => p.id));
+      setCurtidas(ids);
     }
+    setCarregando(false);
   }, []);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   // Autoplay: vídeo visível toca, os outros pausam
   useEffect(() => {

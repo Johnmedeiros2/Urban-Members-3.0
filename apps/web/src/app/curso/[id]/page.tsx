@@ -68,45 +68,37 @@ export default function CursoPage() {
   const carregar = useCallback(async () => {
     if (!id) return;
     setCarregando(true);
-    try {
-      const supabase = createClient();
-      const [c, a, m, userData, fiscal] = await Promise.all([
-        buscarCurso(id),
-        buscarAulas(id),
-        buscarMateriais(id),
-        supabase.auth.getUser(),
-        ehModerador().catch(() => false),
-      ]);
-      setSouFiscal(fiscal);
-      setMateriais(m);
-      setCurso(c as CursoInfo | null);
-      setAulas(a);
-      const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-      const aulaQuery = params?.get("aula");
-      const aulaDoQuery = aulaQuery ? a.find((x) => x.id === aulaQuery) : null;
-      setAulaAtual(aulaDoQuery ?? a[0] ?? null);
-      setMeuId(userData.data.user?.id ?? null);
-      if (userData.data.user) {
-        const { data: matricula } = await supabase
-          .from("curso_alunos")
-          .select("curso_id")
-          .eq("curso_id", id)
-          .eq("morador_id", userData.data.user.id)
-          .maybeSingle();
-        setMatriculado(!!matricula);
-      }
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
+    const supabase = createClient();
+    const [c, a, m, userData, fiscal] = await Promise.all([
+      buscarCurso(id),
+      buscarAulas(id),
+      buscarMateriais(id),
+      supabase.auth.getUser(),
+      ehModerador(),
+    ]);
+    setSouFiscal(fiscal);
+    setMateriais(m);
+    setCurso(c as CursoInfo | null);
+    setAulas(a);
+    // Se tem ?aula=X no URL, abre aquela aula
+    const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const aulaQuery = params?.get("aula");
+    const aulaDoQuery = aulaQuery ? a.find((x) => x.id === aulaQuery) : null;
+    setAulaAtual(aulaDoQuery ?? a[0] ?? null);
+    setMeuId(userData.data.user?.id ?? null);
+    if (userData.data.user) {
+      const { data: matricula } = await supabase
+        .from("curso_alunos")
+        .select("curso_id")
+        .eq("curso_id", id)
+        .eq("morador_id", userData.data.user.id)
+        .maybeSingle();
+      setMatriculado(!!matricula);
     }
+    setCarregando(false);
   }, [id]);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   async function salvarAula() {
     if (!titulo.trim()) return;

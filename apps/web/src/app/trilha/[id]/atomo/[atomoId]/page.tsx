@@ -36,11 +36,7 @@ export default function AtomoPage() {
     setCarregando(false);
   }, [atomoId, trilhaId]);
 
-  useEffect(() => {
-    carregar();
-    const _t = setTimeout(() => setCarregando(false), 8000);
-    return () => clearTimeout(_t);
-  }, [carregar]);
+  useEffect(() => { carregar(); }, [carregar]);
 
   async function handleResponder() {
     if (!resposta || respondido) return;
