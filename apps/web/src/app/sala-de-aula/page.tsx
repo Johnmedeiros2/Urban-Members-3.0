@@ -30,20 +30,15 @@ export default function SalaDeAula() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    try {
-      const [lista, fiscal, user] = await Promise.all([
-        buscarCursos(),
-        ehModerador().catch(() => false),
-        createClient().auth.getUser(),
-      ]);
-      setCursos(lista);
-      setSouFiscal(fiscal as boolean);
-      setMeuId(user.data.user?.id ?? null);
-    } catch {
-      // falha silenciosa
-    } finally {
-      setCarregando(false);
-    }
+    const [lista, fiscal, user] = await Promise.all([
+      buscarCursos(),
+      ehModerador(),
+      createClient().auth.getUser(),
+    ]);
+    setCursos(lista);
+    setSouFiscal(fiscal);
+    setMeuId(user.data.user?.id ?? null);
+    setCarregando(false);
   }, []);
 
   async function confirmarRemocaoCurso(motivo: string) {
@@ -141,11 +136,8 @@ export default function SalaDeAula() {
               }
 
               return (
-                <div key={curso.id} className="um-card" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
-                  {/* Link transparente cobrindo o card inteiro */}
-                  <a href={`/curso/${curso.id}`} style={{ position: "absolute", inset: 0, zIndex: 0, borderRadius: "inherit" }} aria-label={curso.titulo} />
-
-                  <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "flex-end", gap: "6px", alignItems: "center" }}>
+                <div key={curso.id} className="um-card um-clickable" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px", position: "relative" }}>
+                  <div style={{ position: "absolute", top: "16px", right: "16px", display: "flex", gap: "6px", alignItems: "center" }}>
                     {podeFiscalizar && (
                       <button onClick={() => setCursoParaRemover(curso.id)}
                         title="Remover (moderação)"
@@ -158,7 +150,7 @@ export default function SalaDeAula() {
                     )}
                     <BotaoWishlist tipo="curso" itemId={curso.id} tamanho="sm" />
                   </div>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", paddingRight: "60px" }}>
                     <span style={{ fontSize: "11px", fontWeight: 600, color: "#A3A3A3", padding: "2px 10px", borderRadius: "999px", background: "#F5F5F5" }}>
                       {curso.nivel}
                     </span>
@@ -174,7 +166,9 @@ export default function SalaDeAula() {
                     )}
                   </div>
 
-                  <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", lineHeight: 1.4 }}>{curso.titulo}</h3>
+                  <a href={`/curso/${curso.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                    <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111111", lineHeight: 1.4, cursor: "pointer" }}>{curso.titulo}</h3>
+                  </a>
                   {curso.descricao && <p style={{ fontSize: "13px", color: "#6B6B6B", lineHeight: 1.5 }}>{curso.descricao}</p>}
 
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -186,15 +180,11 @@ export default function SalaDeAula() {
                     <ScoreBadge score={curso.instrutor?.urban_score ?? 10} compact />
                   </div>
 
-                  <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #F5F5F5" }}>
                     <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{curso.total_alunos} alunos</span>
-                    {ehMeu ? (
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#FF5C2E" }}>Seu curso →</span>
-                    ) : (
-                      <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
-                        {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
-                      </button>
-                    )}
+                    <button onClick={() => handleMatricular(curso)} disabled={matriculando === curso.id} className="um-btn-accent" style={{ padding: "8px 16px", fontSize: "12px" }}>
+                      {matriculando === curso.id ? "..." : Number(curso.preco) === 0 ? "Matricular" : "Comprar"}
+                    </button>
                   </div>
                   <button
                     onClick={() => setAvaliacoesAbertas((prev) => {
@@ -202,7 +192,7 @@ export default function SalaDeAula() {
                       if (n.has(curso.id)) n.delete(curso.id); else n.add(curso.id);
                       return n;
                     })}
-                    style={{ position: "relative", zIndex: 1, background: "none", border: "none", padding: 0, color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left" }}
+                    style={{ background: "none", border: "none", padding: 0, color: "#525252", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "left" }}
                   >
                     {avaliacoesAbertas.has(curso.id) ? "Ocultar avaliações ↑" : "Ver avaliações ↓"}
                   </button>

@@ -13,7 +13,6 @@ import {
   type ItemLive, type Produto, type Curso
 } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
-import ChatLive from "@/components/ui/ChatLive";
 
 interface LiveInfo {
   id: string;
@@ -286,13 +285,9 @@ export default function LivePage() {
           )}
         </div>
 
-        {/* Sidebar: chat + itens da live */}
-        <aside style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-
-          {/* Chat */}
-          <ChatLive liveId={id} meuId={meuId} altura="380px" />
-
-          <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "12px" }}>
+        {/* Sidebar: itens da live */}
+        <aside>
+          <div style={{ background: "#FFFFFF", borderRadius: "16px", padding: "20px", border: "1px solid rgba(0,0,0,0.05)", position: "sticky", top: "84px", display: "flex", flexDirection: "column", gap: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Itens da live</h3>
               {ehAutor && (
