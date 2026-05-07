@@ -60,7 +60,11 @@ export default function Mercado() {
     }
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+    const _t = setTimeout(() => setCarregando(false), 8000);
+    return () => clearTimeout(_t);
+  }, [carregar]);
 
   useEffect(() => {
     minhasEmpresas().then(setEmpresas).catch(() => setEmpresas([]));

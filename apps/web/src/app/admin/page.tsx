@@ -113,7 +113,11 @@ export default function Admin() {
     }
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+    const _t = setTimeout(() => setCarregando(false), 8000);
+    return () => clearTimeout(_t);
+  }, [carregar]);
 
   const moradoresFiltrados = moradores.filter((u) =>
     u.nome.toLowerCase().includes(busca.toLowerCase()) ||

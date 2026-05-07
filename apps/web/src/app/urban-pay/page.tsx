@@ -41,7 +41,9 @@ export default function UrbanPay() {
     setMoradores((m.data as Morador[]) ?? []);
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
 
   const taxaUrban = contatoSelecionado && valor ? (parseFloat(valor) * 0.1).toFixed(2) : "0.00";
   const valorLiquido = contatoSelecionado && valor ? (parseFloat(valor) * 0.9).toFixed(2) : "0.00";

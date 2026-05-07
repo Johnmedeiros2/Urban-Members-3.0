@@ -57,7 +57,11 @@ export default function SalaDeAula() {
     }
   }
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+    const _t = setTimeout(() => setCarregando(false), 8000);
+    return () => clearTimeout(_t);
+  }, [carregar]);
 
   async function handleCriar() {
     if (!titulo.trim() || !descricao.trim()) return;
