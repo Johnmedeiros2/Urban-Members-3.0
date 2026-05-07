@@ -9,12 +9,23 @@ export function isSupabaseConfigured() {
 export const supabaseConfigured = true;
 
 function fetchComTimeout(ms: number): typeof fetch {
-  return (input, init) => {
+  return async (input, init) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), ms);
-    return fetch(input, { ...init, signal: controller.signal }).finally(() =>
-      clearTimeout(timer)
-    );
+    try {
+      const response = await fetch(input, { ...init, signal: controller.signal });
+      return response;
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        return new Response('{"message":"timeout","code":"timeout"}', {
+          status: 504,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
   };
 }
 
