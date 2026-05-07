@@ -73,7 +73,11 @@ export default function LivePage() {
     setCarregando(false);
   }, [id]);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+    const _t = setTimeout(() => setCarregando(false), 8000);
+    return () => clearTimeout(_t);
+  }, [carregar]);
 
   async function abrirVincular() {
     const [p, c] = await Promise.all([buscarProdutos(50), buscarCursos(50)]);

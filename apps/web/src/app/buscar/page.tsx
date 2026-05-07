@@ -48,7 +48,11 @@ export default function BuscarPage() {
     setCarregando(false);
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+    const _t = setTimeout(() => setCarregando(false), 8000);
+    return () => clearTimeout(_t);
+  }, [carregar]);
 
   useEffect(() => {
     const t = setTimeout(() => carregar(busca), 300);

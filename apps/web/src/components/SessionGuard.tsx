@@ -44,7 +44,11 @@ export function SessionGuard() {
     async function reivindicarSessao(userId: string) {
       const token = crypto.randomUUID();
       localStorage.setItem(LOCAL_TOKEN_KEY, token);
-      await supabase.from("perfis").update({ session_token: token }).eq("id", userId);
+      try {
+        await supabase.from("perfis").update({ session_token: token }).eq("id", userId);
+      } catch {
+        // falha silenciosa — sessão continua ativa localmente
+      }
       inscreverMudancas(userId);
     }
 
@@ -64,17 +68,20 @@ export function SessionGuard() {
         }
 
         // Verifica se a sessão ainda pertence a este aparelho
-        const { data: perfil } = await supabase
-          .from("perfis")
-          .select("session_token")
-          .eq("id", session.user.id)
-          .single();
+        try {
+          const { data: perfil } = await supabase
+            .from("perfis")
+            .select("session_token")
+            .eq("id", session.user.id)
+            .single();
 
-        if (perfil?.session_token && perfil.session_token !== meuToken) {
-          // Outro aparelho tomou a sessão → sair
-          localStorage.removeItem(LOCAL_TOKEN_KEY);
-          await supabase.auth.signOut();
-          return;
+          if (perfil?.session_token && perfil.session_token !== meuToken) {
+            localStorage.removeItem(LOCAL_TOKEN_KEY);
+            await supabase.auth.signOut();
+            return;
+          }
+        } catch {
+          // falha silenciosa — mantém sessão atual
         }
 
         inscreverMudancas(session.user.id);

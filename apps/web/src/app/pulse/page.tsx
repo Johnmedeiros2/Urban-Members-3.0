@@ -23,7 +23,11 @@ export default function UrbanPulse() {
     setCarregando(false);
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+    const _t = setTimeout(() => setCarregando(false), 8000);
+    return () => clearTimeout(_t);
+  }, [carregar]);
 
   // Autoplay: vídeo visível toca, os outros pausam
   useEffect(() => {

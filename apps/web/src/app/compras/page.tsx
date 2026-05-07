@@ -30,7 +30,11 @@ export default function Compras() {
     setCarregando(false);
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+    const _t = setTimeout(() => setCarregando(false), 8000);
+    return () => clearTimeout(_t);
+  }, [carregar]);
 
   const filtradas = filtro === "todas" ? compras : compras.filter((c) => c.status === filtro);
 
