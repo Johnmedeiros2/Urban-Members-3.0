@@ -28,6 +28,11 @@ export function SessionGuard() {
       }
 
       if (event === "SIGNED_OUT") {
+        // Logout intencional (botão Sair) → não mostra aviso de sessão encerrada
+        if (sessionStorage.getItem("urban_logout_intencional")) {
+          sessionStorage.removeItem("urban_logout_intencional");
+          return;
+        }
         // Sessão foi revogada por outro dispositivo → redireciona com aviso
         const naRotaAutenticada = ROTAS_AUTENTICADAS.some((r) => pathname.startsWith(r));
         if (naRotaAutenticada) {
