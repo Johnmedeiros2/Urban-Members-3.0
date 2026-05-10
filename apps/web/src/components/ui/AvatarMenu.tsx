@@ -64,7 +64,7 @@ export default function AvatarMenu({ nome: nomeProp, foto: fotoProp, size = 36 }
       sessionStorage.setItem("urban_logout_intencional", "1");
       await createClient().auth.signOut();
       resetAnalytics();
-      router.push("/login");
+      router.push("/");
     } catch {
       sessionStorage.removeItem("urban_logout_intencional");
       setSaindo(false);
