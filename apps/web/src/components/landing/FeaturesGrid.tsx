@@ -71,7 +71,7 @@ import Image from "next/image";
 
 export default function FeaturesGrid() {
   return (
-    <section id="features" aria-label="Funcionalidades da plataforma" style={{ background: "#F7F7F8", padding: "clamp(64px, 10vw, 100px) 24px" }}>
+    <section id="features" aria-label="Funcionalidades da plataforma" style={{ background: "#FFFFFF", padding: "clamp(64px, 10vw, 100px) 24px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "64px" }}>
@@ -130,14 +130,14 @@ export default function FeaturesGrid() {
                   </h3>
                   <span
                     style={{
-                      fontSize: "10px",
+                      fontSize: "12px",
                       fontWeight: 700,
-                      color: color,
-                      background: `${color}12`,
-                      border: `1px solid ${color}24`,
+                      color: "#111111",
+                      background: `${color}18`,
+                      border: `1px solid ${color}30`,
                       padding: "2px 8px",
                       borderRadius: "999px",
-                      letterSpacing: "0.04em",
+                      letterSpacing: "0.03em",
                       whiteSpace: "nowrap",
                       flexShrink: 0,
                     }}
@@ -174,13 +174,13 @@ export default function FeaturesGrid() {
                 />
               </div>
 
-              {/* Link */}
+              {/* Link — texto em #111 para contraste WCAG AA */}
               <a
                 href="/cadastro"
                 style={{
                   fontSize: "13px",
-                  fontWeight: 600,
-                  color: color,
+                  fontWeight: 700,
+                  color: "#111111",
                   textDecoration: "none",
                   display: "flex",
                   alignItems: "center",
@@ -188,7 +188,7 @@ export default function FeaturesGrid() {
                 }}
               >
                 Saiba mais
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 4l3 3-3 3" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </a>
             </div>
           ))}

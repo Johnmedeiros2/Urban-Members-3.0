@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { SessionGuard } from "@/components/SessionGuard";
-import CookieBanner from "@/components/CookieBanner";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
+
+// Diferidos: não são necessários para o render inicial
+const CookieBanner = dynamic(() => import("@/components/CookieBanner"), { ssr: false });
+const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), { ssr: false });
 
 const inter = Inter({
   subsets: ["latin"],
@@ -85,6 +88,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* DNS prefetch para serviços externos */}
         <link rel="dns-prefetch" href="https://izsuvdojvsuiyhkeuyll.supabase.co" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
       </head>
       <body className="min-h-full flex flex-col">
         <PostHogProvider>

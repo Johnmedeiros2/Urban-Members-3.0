@@ -91,7 +91,7 @@ export default function NavBar() {
               background: "#FF5C2E",
               borderRadius: "10px",
               color: "#FFFFFF",
-              fontSize: "13px",
+              fontSize: "14px",
               fontWeight: 700,
               textDecoration: "none",
               display: "flex",
