@@ -15,10 +15,7 @@ export default function Stories({ layout = "lateral" }: Props) {
   const [meuId, setMeuId] = useState<string | null>(null);
   const [viewerIdx, setViewerIdx] = useState<number | null>(null);
   const [enviando, setEnviando] = useState(false);
-  const [visUnica, setVisUnica] = useState(false);
-  const [modalAberto, setModalAberto] = useState(false);
-  const inputFoto = useRef<HTMLInputElement>(null);
-  const inputVideo = useRef<HTMLInputElement>(null);
+  const inputMidia = useRef<HTMLInputElement>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -35,29 +32,23 @@ export default function Stories({ layout = "lateral" }: Props) {
 
   async function enviar(foto?: File | null, video?: File | null) {
     setEnviando(true);
-    setModalAberto(false);
     try {
-      await criarStory(foto, video, 24, visUnica);
+      await criarStory(foto, video, 24, false);
       await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
     } finally {
       setEnviando(false);
-      setVisUnica(false);
-      if (inputFoto.current) inputFoto.current.value = "";
-      if (inputVideo.current) inputVideo.current.value = "";
+      if (inputMidia.current) inputMidia.current.value = "";
     }
   }
 
-  function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleMidia(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
-    if (f.size > 5 * 1024 * 1024) { alert("Máx 5MB"); return; }
-    enviar(f, null);
-  }
-  function handleVideo(e: React.ChangeEvent<HTMLInputElement>) {
-    const v = e.target.files?.[0]; if (!v) return;
-    if (v.size > 50 * 1024 * 1024) { alert("Máx 50MB"); return; }
-    enviar(null, v);
+    const isVideo = f.type.startsWith("video/");
+    if (!isVideo && f.size > 5 * 1024 * 1024) { alert("Máx 5MB para fotos"); return; }
+    if (isVideo && f.size > 50 * 1024 * 1024) { alert("Máx 50MB para vídeos"); return; }
+    enviar(isVideo ? null : f, isVideo ? f : null);
   }
 
   const meuGrupo = meuId ? grupos.find((g) => g.autor_id === meuId) : null;
@@ -79,8 +70,7 @@ export default function Stories({ layout = "lateral" }: Props) {
         padding: isLateral ? "0" : "4px 4px 12px",
         scrollbarWidth: "none",
       }}>
-        <input ref={inputFoto} type="file" accept="image/*" onChange={handleFoto} style={{ display: "none" }} />
-        <input ref={inputVideo} type="file" accept="video/mp4,video/quicktime,video/webm" onChange={handleVideo} style={{ display: "none" }} />
+        <input ref={inputMidia} type="file" accept="image/*,video/mp4,video/quicktime,video/webm" onChange={handleMidia} style={{ display: "none" }} />
 
         {/* Header da coluna (só no layout lateral) */}
         {isLateral && (
@@ -92,7 +82,7 @@ export default function Stories({ layout = "lateral" }: Props) {
 
         {/* Botão criar now */}
         <div
-          onClick={() => setModalAberto(true)}
+          onClick={() => inputMidia.current?.click()}
           style={{
             display: "flex",
             flexDirection: isLateral ? "row" : "column",
@@ -189,91 +179,6 @@ export default function Stories({ layout = "lateral" }: Props) {
         )}
       </div>
 
-      {/* Modal: criar now */}
-      {modalAberto && (
-        <div
-          onClick={(e) => { if (e.target === e.currentTarget) setModalAberto(false); }}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 200, padding: "0" }}
-        >
-          <div style={{ background: "#FFFFFF", borderRadius: "24px 24px 0 0", padding: "20px 20px 36px", width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "14px" }}>
-            {/* Alça */}
-            <div style={{ width: "36px", height: "4px", borderRadius: "999px", background: "#E5E5E5", margin: "0 auto 4px" }} />
-
-            <p style={{ fontSize: "16px", fontWeight: 800, color: "#111111", textAlign: "center" }}>Compartilhar agora</p>
-
-            {/* Dois botões grandes — clique já abre o seletor */}
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button
-                onClick={() => inputFoto.current?.click()}
-                style={{
-                  flex: 1, height: "110px", borderRadius: "18px",
-                  background: "#F5F5F5", border: "none", cursor: "pointer",
-                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px",
-                  fontFamily: "Inter, sans-serif", transition: "background 0.15s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#EBEBEB")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#F5F5F5")}
-              >
-                <span style={{ fontSize: "32px" }}>📷</span>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Foto</span>
-              </button>
-              <button
-                onClick={() => inputVideo.current?.click()}
-                style={{
-                  flex: 1, height: "110px", borderRadius: "18px",
-                  background: "#F5F5F5", border: "none", cursor: "pointer",
-                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px",
-                  fontFamily: "Inter, sans-serif", transition: "background 0.15s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#EBEBEB")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#F5F5F5")}
-              >
-                <span style={{ fontSize: "32px" }}>🎬</span>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Vídeo</span>
-              </button>
-            </div>
-
-            {/* Visualização única — toggle discreto */}
-            <button
-              onClick={() => setVisUnica((v) => !v)}
-              style={{
-                display: "flex", alignItems: "center", gap: "12px",
-                padding: "12px 14px",
-                background: visUnica ? "#FFF3EF" : "#F9F9F9",
-                border: `1.5px solid ${visUnica ? "#FF5C2E" : "transparent"}`,
-                borderRadius: "14px", cursor: "pointer",
-                textAlign: "left", width: "100%",
-                transition: "all 0.15s", fontFamily: "Inter, sans-serif",
-              }}
-            >
-              <div style={{
-                width: "36px", height: "20px", borderRadius: "999px",
-                background: visUnica ? "#FF5C2E" : "#D4D4D4",
-                position: "relative", flexShrink: 0, transition: "background 0.2s",
-              }}>
-                <div style={{
-                  position: "absolute", top: "2px",
-                  left: visUnica ? "18px" : "2px",
-                  width: "16px", height: "16px", borderRadius: "50%",
-                  background: "#FFFFFF", transition: "left 0.2s",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                }} />
-              </div>
-              <div>
-                <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", margin: 0 }}>Visualização única</p>
-                <p style={{ fontSize: "11px", color: "#737373", margin: "2px 0 0" }}>Some depois de ser visto uma vez</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setModalAberto(false)}
-              style={{ background: "none", border: "none", fontSize: "13px", color: "#A3A3A3", cursor: "pointer", fontFamily: "Inter, sans-serif", padding: "4px" }}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
 
       {viewerIdx !== null && gruposOrdenados[viewerIdx] && (
         <StoryViewer
