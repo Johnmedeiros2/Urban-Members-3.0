@@ -67,6 +67,7 @@ export default function Perfil() {
   const [nomeEdit, setNomeEdit] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [saindo, setSaindo] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
 
   async function handleSair() {
     if (!confirm("Sair da sua conta agora?")) return;
@@ -78,6 +79,28 @@ export default function Perfil() {
     } catch (e) {
       alert(e instanceof Error ? e.message : "Erro ao sair");
       setSaindo(false);
+    }
+  }
+
+  async function handleExcluirConta() {
+    if (!confirm("Tem certeza? Seus dados pessoais serão removidos permanentemente.\n\nRegistros de transações são mantidos por obrigação legal (5 anos).")) return;
+    if (!confirm("Confirme novamente: excluir conta definitivamente?")) return;
+    setExcluindo(true);
+    try {
+      const res = await fetch("/api/user/delete-account", { method: "DELETE" });
+      const json = await res.json();
+      if (json.partial) {
+        alert("Perfil anonimizado. Para exclusão completa do acesso, entre em contato com privacidade@urbanicsa.com.");
+        await createClient().auth.signOut();
+        router.push("/");
+        return;
+      }
+      if (!res.ok) throw new Error(json.error ?? "Erro desconhecido");
+      resetAnalytics();
+      router.push("/?conta=excluida");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro ao excluir conta. Tente novamente.");
+      setExcluindo(false);
     }
   }
 
@@ -639,16 +662,28 @@ export default function Perfil() {
           <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "4px", lineHeight: 1.5 }}>
             Você pode sair a qualquer momento. Todos seus dados ficam salvos pra quando voltar.
           </p>
-          <button onClick={handleSair} disabled={saindo} style={{
-            marginTop: "14px", height: "44px", padding: "0 20px",
-            background: "transparent", color: "#DC2626",
-            border: "1.5px solid #FECACA", borderRadius: "999px",
-            fontSize: "13px", fontWeight: 700, cursor: saindo ? "wait" : "pointer",
-            fontFamily: "Inter, sans-serif",
-            display: "inline-flex", alignItems: "center", gap: "8px",
-          }}>
-            <span>🚪</span> {saindo ? "Saindo..." : "Sair da conta"}
-          </button>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "14px" }}>
+            <button onClick={handleSair} disabled={saindo} style={{
+              height: "44px", padding: "0 20px",
+              background: "transparent", color: "#525252",
+              border: "1.5px solid #E5E5E5", borderRadius: "999px",
+              fontSize: "13px", fontWeight: 700, cursor: saindo ? "wait" : "pointer",
+              fontFamily: "Inter, sans-serif",
+              display: "inline-flex", alignItems: "center", gap: "8px",
+            }}>
+              <span>🚪</span> {saindo ? "Saindo..." : "Sair da conta"}
+            </button>
+            <button onClick={handleExcluirConta} disabled={excluindo} style={{
+              height: "44px", padding: "0 20px",
+              background: "transparent", color: "#DC2626",
+              border: "1.5px solid #FECACA", borderRadius: "999px",
+              fontSize: "13px", fontWeight: 700, cursor: excluindo ? "wait" : "pointer",
+              fontFamily: "Inter, sans-serif",
+              display: "inline-flex", alignItems: "center", gap: "8px",
+            }}>
+              {excluindo ? "Excluindo..." : "Excluir conta"}
+            </button>
+          </div>
         </div>
 
         {/* Posts recentes */}

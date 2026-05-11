@@ -45,23 +45,33 @@ function AuthIdentifier() {
   return null;
 }
 
+function initPostHog() {
+  if (typeof window === "undefined" || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
+  if (posthog.__loaded) return;
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+    person_profiles: "identified_only",
+    capture_pageview: false,
+    capture_pageleave: true,
+    autocapture: true,
+    disable_surveys: true,
+    session_recording: {
+      maskAllInputs: true,
+      maskTextSelector: "[data-private]",
+    },
+  });
+}
+
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (typeof window === "undefined" || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
-    if (posthog.__loaded) return;
-
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
-      person_profiles: "identified_only",
-      capture_pageview: false,
-      capture_pageleave: true,
-      autocapture: true,
-      disable_surveys: true,
-      session_recording: {
-        maskAllInputs: true,
-        maskTextSelector: "[data-private]",
-      },
-    });
+    // Só inicializa PostHog se o usuário consentiu (LGPD)
+    if (localStorage.getItem("urban_cookie_consent") === "granted") {
+      initPostHog();
+    }
+    // Escuta consentimento dado pelo banner
+    const handler = () => initPostHog();
+    window.addEventListener("urban_consent_granted", handler);
+    return () => window.removeEventListener("urban_consent_granted", handler);
   }, []);
 
   return (

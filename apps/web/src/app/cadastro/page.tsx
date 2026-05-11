@@ -407,9 +407,9 @@ function Cadastro() {
 
         <p style={{ fontSize: "11px", color: "#A3A3A3", textAlign: "center", lineHeight: 1.6 }}>
           Ao criar sua conta você concorda com os{" "}
-          <a href="#" style={{ color: "#525252", textDecoration: "underline" }}>Termos de Uso</a>{" "}
+          <a href="/termos" style={{ color: "#525252", textDecoration: "underline" }}>Termos de Uso</a>{" "}
           e a{" "}
-          <a href="#" style={{ color: "#525252", textDecoration: "underline" }}>Política de Privacidade</a>{" "}
+          <a href="/privacidade" style={{ color: "#525252", textDecoration: "underline" }}>Política de Privacidade</a>{" "}
           (LGPD — Lei nº 13.709/2018).
         </p>
       </div>
