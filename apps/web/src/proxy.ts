@@ -1,13 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/recuperar-senha", "/nova-senha", "/admin", "/feed", "/mercado", "/sala-de-aula", "/perfil", "/pagamento", "/api/mercadopago", "/compras", "/pulse", "/curso", "/lives", "/live", "/wishlist", "/agenda", "/trilhas", "/trilha", "/buscar", "/empresa"];
+const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/recuperar-senha", "/nova-senha", "/admin", "/feed", "/mercado", "/sala-de-aula", "/perfil", "/pagamento", "/api/mercadopago", "/compras", "/pulse", "/curso", "/lives", "/live", "/wishlist", "/agenda", "/trilhas", "/trilha", "/buscar", "/empresa", "/landing-v2"];
 const ADMIN_EMAIL = "johnmedeiros30@gmail.com";
 const SUPABASE_CONFIGURED =
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== "your_supabase_url";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Sem Supabase configurado, deixa tudo passar livremente
   if (!SUPABASE_CONFIGURED) return NextResponse.next({ request });
 
