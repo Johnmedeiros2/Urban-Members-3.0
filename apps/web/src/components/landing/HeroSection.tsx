@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export default function HeroSection() {
   return (
     <section
@@ -34,7 +32,7 @@ export default function HeroSection() {
               marginBottom: "28px",
             }}
           >
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#FF5C2E", display: "inline-block", animation: "um-pulse 1.6s ease-in-out infinite" }} className="um-pulse-dot" />
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#FF5C2E", display: "inline-block" }} className="um-pulse-dot" />
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#FF5C2E", letterSpacing: "0.1em", textTransform: "uppercase" }}>
               A cidade digital brasileira
             </span>
@@ -149,27 +147,75 @@ export default function HeroSection() {
           </p>
         </div>
 
-        {/* ── RIGHT: Product screenshot ── */}
+        {/* ── RIGHT: Product mockup (CSS — zero latência de rede) ── */}
         <div className="hidden lg:flex" style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <div
             style={{
               width: "100%",
-              maxWidth: "520px",
-              borderRadius: "24px",
-              overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.1)",
-              boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,92,46,0.08)",
+              maxWidth: "480px",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "28px",
+              padding: "24px",
+              backdropFilter: "blur(8px)",
             }}
           >
-            <Image
-              src="/images/feature-marketplace.png"
-              alt="Plataforma Urban Members — marketplace, cursos e lives em um só lugar"
-              width={1200}
-              height={800}
-              priority
-              sizes="(max-width: 1024px) 0vw, 520px"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
+            {/* Mock top bar */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px", paddingBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#FF5C2E", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L16 7v9H2V7L9 2z" fill="white" opacity="0.9" /><rect x="6" y="10" width="6" height="6" rx="1" fill="#FF5C2E" /></svg>
+              </div>
+              <span style={{ fontSize: "14px", fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Urban Members</span>
+              <div style={{ marginLeft: "auto", display: "flex", gap: "6px" }}>
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#FF5C2E", opacity: 0.6 }} />
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+              </div>
+            </div>
+
+            {/* Mock feature cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "16px" }}>
+              {[
+                { label: "Marketplace", icon: "🛍️", value: "R$ 1.840", active: true },
+                { label: "Cursos", icon: "📚", value: "3 ativos", active: false },
+                { label: "Lives", icon: "🎬", value: "12 ao vivo", active: false },
+                { label: "Urban Score", icon: "🎮", value: "Nível Gold", active: false },
+              ].map(({ label, icon, value, active }) => (
+                <div
+                  key={label}
+                  style={{
+                    background: active ? "rgba(255,92,46,0.12)" : "rgba(255,255,255,0.03)",
+                    border: `1px solid ${active ? "rgba(255,92,46,0.28)" : "rgba(255,255,255,0.06)"}`,
+                    borderRadius: "16px",
+                    padding: "14px",
+                  }}
+                >
+                  <div style={{ fontSize: "20px", marginBottom: "8px" }}>{icon}</div>
+                  <div style={{ fontSize: "11px", color: active ? "#FF5C2E" : "rgba(255,255,255,0.4)", fontWeight: 600, marginBottom: "4px" }}>{label}</div>
+                  <div style={{ fontSize: "13px", fontWeight: 700, color: active ? "#FFFFFF" : "rgba(255,255,255,0.6)" }}>{value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mock earnings row */}
+            <div
+              style={{
+                background: "rgba(255,92,46,0.08)",
+                border: "1px solid rgba(255,92,46,0.2)",
+                borderRadius: "14px",
+                padding: "14px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Saldo disponível</div>
+                <div style={{ fontSize: "22px", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em" }}>R$ 3.240,00</div>
+              </div>
+              <div style={{ height: "36px", padding: "0 16px", background: "#FF5C2E", borderRadius: "10px", display: "flex", alignItems: "center", fontSize: "12px", fontWeight: 700, color: "#fff" }}>
+                Sacar →
+              </div>
+            </div>
           </div>
         </div>
       </div>
