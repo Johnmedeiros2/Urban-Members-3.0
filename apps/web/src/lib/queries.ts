@@ -1350,19 +1350,16 @@ export async function buscarComentarios(post_id: string): Promise<Comentario[]> 
   }));
 }
 
-export async function criarComentario(post_id: string, conteudo: string): Promise<Comentario> {
+export async function criarComentario(post_id: string, conteudo: string): Promise<void> {
   const supabase = createClient();
   const user = (await supabase.auth.getSession()).data.session?.user;
   if (!user) throw new Error("Usuário não autenticado");
   if (!conteudo.trim()) throw new Error("Comentário vazio");
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("comentarios")
-    .insert({ post_id, autor_id: user.id, conteudo: conteudo.trim() })
-    .select()
-    .single();
+    .insert({ post_id, autor_id: user.id, conteudo: conteudo.trim() });
   if (error) throw new Error(error.message);
-  return data as Comentario;
 }
 
 export async function deletarComentario(comentario_id: string) {

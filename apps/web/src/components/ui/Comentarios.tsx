@@ -50,11 +50,8 @@ export default function Comentarios({ postId, onContagem }: Props) {
     if (!texto.trim() || enviando) return;
     setEnviando(true);
     try {
-      const novo = await criarComentario(postId, texto);
+      await criarComentario(postId, texto);
       setTexto("");
-      const lista = [...comentarios, novo];
-      setComentarios(lista);
-      onContagem?.(lista.length);
       await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro ao comentar");
