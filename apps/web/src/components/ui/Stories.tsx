@@ -15,10 +15,8 @@ export default function Stories({ layout = "lateral" }: Props) {
   const [meuId, setMeuId] = useState<string | null>(null);
   const [viewerIdx, setViewerIdx] = useState<number | null>(null);
   const [enviando, setEnviando] = useState(false);
-  const [duracao, setDuracao] = useState<12 | 24>(24);
   const [visUnica, setVisUnica] = useState(false);
-  const [modalTipo, setModalTipo] = useState<null | "escolher">(null);
-  const [tipoEscolhido, setTipoEscolhido] = useState<"foto" | "video">("foto");
+  const [modalAberto, setModalAberto] = useState(false);
   const inputFoto = useRef<HTMLInputElement>(null);
   const inputVideo = useRef<HTMLInputElement>(null);
 
@@ -37,14 +35,14 @@ export default function Stories({ layout = "lateral" }: Props) {
 
   async function enviar(foto?: File | null, video?: File | null) {
     setEnviando(true);
+    setModalAberto(false);
     try {
-      await criarStory(foto, video, duracao, visUnica);
+      await criarStory(foto, video, 24, visUnica);
       await carregar();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro");
     } finally {
       setEnviando(false);
-      setModalTipo(null);
       setVisUnica(false);
       if (inputFoto.current) inputFoto.current.value = "";
       if (inputVideo.current) inputVideo.current.value = "";
@@ -60,14 +58,6 @@ export default function Stories({ layout = "lateral" }: Props) {
     const v = e.target.files?.[0]; if (!v) return;
     if (v.size > 50 * 1024 * 1024) { alert("Máx 50MB"); return; }
     enviar(null, v);
-  }
-
-  function iniciarCriacao() {
-    setModalTipo("escolher");
-  }
-  function confirmarCriacao() {
-    if (tipoEscolhido === "foto") inputFoto.current?.click();
-    else inputVideo.current?.click();
   }
 
   const meuGrupo = meuId ? grupos.find((g) => g.autor_id === meuId) : null;
@@ -102,7 +92,7 @@ export default function Stories({ layout = "lateral" }: Props) {
 
         {/* Botão criar now */}
         <div
-          onClick={iniciarCriacao}
+          onClick={() => setModalAberto(true)}
           style={{
             display: "flex",
             flexDirection: isLateral ? "row" : "column",
@@ -200,73 +190,87 @@ export default function Stories({ layout = "lateral" }: Props) {
       </div>
 
       {/* Modal: criar now */}
-      {modalTipo === "escolher" && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "24px" }}>
-          <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "24px", maxWidth: "400px", width: "100%", display: "flex", flexDirection: "column", gap: "16px" }}>
-            <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111" }}>Novo now</h2>
+      {modalAberto && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setModalAberto(false); }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 200, padding: "0" }}
+        >
+          <div style={{ background: "#FFFFFF", borderRadius: "24px 24px 0 0", padding: "20px 20px 36px", width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "14px" }}>
+            {/* Alça */}
+            <div style={{ width: "36px", height: "4px", borderRadius: "999px", background: "#E5E5E5", margin: "0 auto 4px" }} />
 
-            <div>
-              <p style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "8px" }}>Tipo</p>
-              <div style={{ display: "flex", gap: "8px" }}>
-                {(["foto", "video"] as const).map((t) => (
-                  <button key={t} onClick={() => setTipoEscolhido(t)} style={{
-                    flex: 1, height: "44px", borderRadius: "12px",
-                    background: tipoEscolhido === t ? "#111111" : "#F5F5F5",
-                    color: tipoEscolhido === t ? "#FFFFFF" : "#111111",
-                    border: "none", cursor: "pointer",
-                    fontSize: "13px", fontWeight: 700, fontFamily: "Inter, sans-serif",
-                    textTransform: "capitalize",
-                  }}>
-                    {t === "foto" ? "📷 Foto" : "🎬 Vídeo"}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <p style={{ fontSize: "16px", fontWeight: 800, color: "#111111", textAlign: "center" }}>Compartilhar agora</p>
 
-            <div>
-              <p style={{ fontSize: "11px", fontWeight: 700, color: "#525252", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "8px" }}>Duração</p>
-              <div style={{ display: "flex", gap: "8px" }}>
-                {([12, 24] as const).map((h) => (
-                  <button key={h} onClick={() => setDuracao(h)} style={{
-                    flex: 1, height: "44px", borderRadius: "12px",
-                    background: duracao === h ? "#FF5C2E" : "#F5F5F5",
-                    color: duracao === h ? "#FFFFFF" : "#111111",
-                    border: "none", cursor: "pointer",
-                    fontSize: "13px", fontWeight: 700, fontFamily: "Inter, sans-serif",
-                  }}>
-                    {h}h
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <label style={{
-              display: "flex", alignItems: "center", gap: "10px",
-              padding: "12px 14px", background: visUnica ? "#FFF3EF" : "#F5F5F5",
-              borderRadius: "12px", cursor: "pointer",
-              border: `1px solid ${visUnica ? "#FFD4C4" : "transparent"}`,
-              transition: "all 0.15s",
-            }}>
-              <input
-                type="checkbox"
-                checked={visUnica}
-                onChange={(e) => setVisUnica(e.target.checked)}
-                style={{ width: "18px", height: "18px", accentColor: "#FF5C2E", cursor: "pointer" }}
-              />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>Visualização única</p>
-                <p style={{ fontSize: "11px", color: "#525252", marginTop: "2px" }}>Cada morador vê apenas uma vez. Depois some.</p>
-              </div>
-            </label>
-
-            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-              <button onClick={() => setModalTipo(null)} style={{ flex: 1, height: "44px", background: "#F5F5F5", color: "#525252", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                Cancelar
+            {/* Dois botões grandes — clique já abre o seletor */}
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                onClick={() => inputFoto.current?.click()}
+                style={{
+                  flex: 1, height: "110px", borderRadius: "18px",
+                  background: "#F5F5F5", border: "none", cursor: "pointer",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px",
+                  fontFamily: "Inter, sans-serif", transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#EBEBEB")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#F5F5F5")}
+              >
+                <span style={{ fontSize: "32px" }}>📷</span>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Foto</span>
               </button>
-              <button onClick={confirmarCriacao} style={{ flex: 1, height: "44px", background: "#111111", color: "#FFFFFF", border: "none", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                Escolher arquivo
+              <button
+                onClick={() => inputVideo.current?.click()}
+                style={{
+                  flex: 1, height: "110px", borderRadius: "18px",
+                  background: "#F5F5F5", border: "none", cursor: "pointer",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px",
+                  fontFamily: "Inter, sans-serif", transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#EBEBEB")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#F5F5F5")}
+              >
+                <span style={{ fontSize: "32px" }}>🎬</span>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Vídeo</span>
               </button>
             </div>
+
+            {/* Visualização única — toggle discreto */}
+            <button
+              onClick={() => setVisUnica((v) => !v)}
+              style={{
+                display: "flex", alignItems: "center", gap: "12px",
+                padding: "12px 14px",
+                background: visUnica ? "#FFF3EF" : "#F9F9F9",
+                border: `1.5px solid ${visUnica ? "#FF5C2E" : "transparent"}`,
+                borderRadius: "14px", cursor: "pointer",
+                textAlign: "left", width: "100%",
+                transition: "all 0.15s", fontFamily: "Inter, sans-serif",
+              }}
+            >
+              <div style={{
+                width: "36px", height: "20px", borderRadius: "999px",
+                background: visUnica ? "#FF5C2E" : "#D4D4D4",
+                position: "relative", flexShrink: 0, transition: "background 0.2s",
+              }}>
+                <div style={{
+                  position: "absolute", top: "2px",
+                  left: visUnica ? "18px" : "2px",
+                  width: "16px", height: "16px", borderRadius: "50%",
+                  background: "#FFFFFF", transition: "left 0.2s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                }} />
+              </div>
+              <div>
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", margin: 0 }}>Visualização única</p>
+                <p style={{ fontSize: "11px", color: "#737373", margin: "2px 0 0" }}>Some depois de ser visto uma vez</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setModalAberto(false)}
+              style={{ background: "none", border: "none", fontSize: "13px", color: "#A3A3A3", cursor: "pointer", fontFamily: "Inter, sans-serif", padding: "4px" }}
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}
