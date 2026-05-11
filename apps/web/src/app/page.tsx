@@ -9,6 +9,7 @@ import FAQ from "@/components/landing/FAQ";
 import TrustSection from "@/components/landing/TrustSection";
 import FinalCTA from "@/components/landing/FinalCTA";
 import Footer from "@/components/landing/Footer";
+import LandingTracker from "@/components/landing/LandingTracker";
 
 const BASE_URL = "https://urbanicsa.com";
 
@@ -234,17 +235,18 @@ export default function Home() {
       <NavBar />
 
       <main id="main-content">
-        <HeroSection />
-        <FeaturesGrid />
-        <UseCasesSection />
-        <ComparisonTable />
-        <SocialProof />
-        <FAQ />
-        <TrustSection />
-        <FinalCTA />
+        <section id="hero"><HeroSection /></section>
+        <section id="features"><FeaturesGrid /></section>
+        <section id="use-cases"><UseCasesSection /></section>
+        <section id="comparison"><ComparisonTable /></section>
+        <section id="social-proof"><SocialProof /></section>
+        <section id="faq"><FAQ /></section>
+        <section id="trust"><TrustSection /></section>
+        <section id="final-cta"><FinalCTA /></section>
       </main>
 
       <Footer />
+      <LandingTracker />
     </>
   );
 }

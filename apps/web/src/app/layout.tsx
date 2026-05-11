@@ -4,6 +4,7 @@ import "./globals.css";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { SessionGuard } from "@/components/SessionGuard";
 import CookieBanner from "@/components/CookieBanner";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -90,6 +91,7 @@ export default function RootLayout({
           <SessionGuard />
           {children}
           <CookieBanner />
+          <GoogleAnalytics />
         </PostHogProvider>
       </body>
     </html>

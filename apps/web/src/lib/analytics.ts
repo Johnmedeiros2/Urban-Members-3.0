@@ -5,6 +5,13 @@ export function track(event: string, properties?: Record<string, unknown>) {
   posthog.capture(event, properties);
 }
 
+// Dispara para GA4 (só funciona se o usuário consentiu e NEXT_PUBLIC_GA_ID está definido)
+export function gtagEvent(name: string, params?: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).gtag?.("event", name, params);
+}
+
 export function identify(userId: string, properties?: Record<string, unknown>) {
   if (typeof window === "undefined") return;
   posthog.identify(userId, properties);
