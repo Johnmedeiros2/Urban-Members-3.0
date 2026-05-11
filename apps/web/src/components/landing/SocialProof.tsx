@@ -37,7 +37,7 @@ const TESTIMONIALS = [
 
 export default function SocialProof() {
   return (
-    <section style={{ background: "#FFFFFF", padding: "100px 24px" }}>
+    <section aria-label="Depoimentos e resultados de criadores" style={{ background: "#FFFFFF", padding: "100px 24px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "56px" }}>

@@ -27,7 +27,7 @@ const TRUST_ITEMS = [
 
 export default function TrustSection() {
   return (
-    <section style={{ background: "#111111", padding: "80px 24px" }}>
+    <section aria-label="Segurança e privacidade" style={{ background: "#111111", padding: "80px 24px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "52px" }}>

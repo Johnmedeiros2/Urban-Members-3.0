@@ -57,7 +57,7 @@ const FEATURES = [
 
 export default function FeaturesGrid() {
   return (
-    <section id="features" style={{ background: "#F7F7F8", padding: "100px 24px" }}>
+    <section id="features" aria-label="Funcionalidades da plataforma" style={{ background: "#F7F7F8", padding: "100px 24px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "64px" }}>

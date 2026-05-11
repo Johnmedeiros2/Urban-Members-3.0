@@ -27,8 +27,8 @@ export default function NavBar() {
         }}
       >
         {/* Logo */}
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
-          <img src="/logo.svg" alt="Urban Members" width={36} height={36} />
+        <Link href="/" aria-label="Urban Members — Página inicial" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+          <img src="/logo.svg" alt="Logotipo Urban Members" width={36} height={36} />
           <span style={{ fontSize: "15px", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em" }}>
             Urban Members
           </span>
