@@ -4,28 +4,29 @@ import { useState } from "react";
 
 const FAQS = [
   {
-    q: "Quanto custa usar o Urban Members?",
-    a: "Criar sua conta e usar a plataforma é completamente grátis. A Urban cobra apenas 10% de comissão sobre vendas concluídas — ou seja, você só paga quando ganha. Sem mensalidade, sem taxa de setup, sem pegadinha.",
+    q: "Quanto custa usar Urban?",
+    a: "Grátis para criar conta e começar. Você paga apenas 10% quando vende — e só em vendas concluídas. Sem mensalidade, sem taxa de setup.",
   },
   {
     q: "Como recebo meu dinheiro?",
-    a: "Os pagamentos são processados automaticamente. Quando uma venda é concluída, o valor (menos os 10% de comissão) fica disponível no seu saldo Urban Pay. Você pode solicitar transferência para sua conta bancária a qualquer momento.",
+    a: "Transferência automática todo final de mês para sua conta bancária. Sem burocracia — você vende, nós transferimos.",
   },
   {
-    q: "Posso vender qualquer tipo de produto?",
-    a: "Sim! O marketplace aceita produtos digitais (ebooks, templates, presets, softwares), cursos e trilhas de aprendizado, serviços (consultoria, mentoria, freelance) e também produtos físicos. Desde que seja legal e dentro dos termos de uso.",
+    q: "Posso vender de tudo?",
+    a: "Produtos digitais, cursos, serviços e itens físicos. Proibido: itens ilegais e conteúdo protegido por direitos autorais sem autorização.",
   },
   {
-    q: "Como começar no Urban Members?",
-    a: "É simples: 1️⃣ Crie sua conta grátis com Google (30 segundos). 2️⃣ Configure seu perfil e escolha seu bairro na cidade. 3️⃣ Publique seu primeiro produto, curso ou live. Pronto — você já é um morador ativo da cidade digital.",
+    q: "Preciso de experiência para ensinar?",
+    a: "Não. Se você sabe algo valioso, pode criar um curso. Nossa equipe pedagógica valida o conteúdo e a IA adapta o aprendizado para cada aluno.",
   },
   {
-    q: "O que é o Urban Score?",
-    a: "Urban Score é nosso sistema de gamificação. Você ganha pontos por ações reais na plataforma — vender, criar conteúdo, completar cursos, fazer lives. Existem 5 tiers: Bronze → Silver → Gold → Platinum → Diamond. Moradores com score mais alto têm destaque na plataforma.",
-  },
-  {
-    q: "Preciso ter muitos seguidores para começar?",
-    a: "Não. O Urban é pensado para criadores em qualquer estágio. A plataforma oferece descoberta orgânica pelo marketplace e pelos bairros temáticos — você pode vender para moradores que ainda não te conhecem, desde o primeiro dia.",
+    q: "Como começar?",
+    a: "",
+    steps: [
+      "Crie conta com Google (30 segundos)",
+      "Complete seu perfil de criador",
+      "Comece a criar e vender",
+    ],
   },
 ];
 
@@ -55,7 +56,7 @@ export default function FAQ() {
 
         {/* Accordion */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {FAQS.map(({ q, a }, i) => {
+          {FAQS.map(({ q, a, steps }, i) => {
             const isOpen = open === i;
             return (
               <div
@@ -118,7 +119,35 @@ export default function FAQ() {
 
                 {isOpen && (
                   <div style={{ padding: "0 24px 20px", borderTop: "1px solid rgba(255,92,46,0.1)" }}>
-                    <p style={{ fontSize: "14px", color: "#525252", lineHeight: 1.75, marginTop: "14px" }}>{a}</p>
+                    {a && (
+                      <p style={{ fontSize: "14px", color: "#525252", lineHeight: 1.75, marginTop: "14px" }}>{a}</p>
+                    )}
+                    {steps && (
+                      <ol style={{ marginTop: "14px", paddingLeft: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {steps.map((step, idx) => (
+                          <li key={idx} style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px", color: "#525252" }}>
+                            <span
+                              style={{
+                                width: "24px",
+                                height: "24px",
+                                borderRadius: "50%",
+                                background: "#FF5C2E",
+                                color: "#fff",
+                                fontSize: "12px",
+                                fontWeight: 800,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {idx + 1}
+                            </span>
+                            <strong style={{ color: "#111111", fontWeight: 600 }}>{step}</strong>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
                   </div>
                 )}
               </div>

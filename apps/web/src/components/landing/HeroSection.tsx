@@ -74,7 +74,8 @@ export default function HeroSection() {
               maxWidth: "440px",
             }}
           >
-            Venda produtos, crie cursos, faça lives e monetize seu talento — tudo em uma plataforma feita para criadores brasileiros.
+            Você merece uma plataforma que recompensa seu talento. Urban é tudo que um criador precisa em um só lugar:{" "}
+            <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>marketplace, cursos, lives e comunidade.</span>
           </p>
 
           {/* CTAs */}

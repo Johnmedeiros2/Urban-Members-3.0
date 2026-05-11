@@ -1,41 +1,45 @@
 const PERSONAS = [
   {
     emoji: "🎨",
-    role: "Designer",
-    name: "Rafaela",
-    description: "Vende templates, UI kits e assets gráficos no Marketplace. Criou um curso de Figma com 2 módulos.",
-    actions: ["Publicou 12 produtos digitais", "Criou curso de UI/UX", "Lives de feedback de portfólio"],
-    earning: "R$ 2.800",
-    period: "no mês passado",
+    role: "Designer Gráfico",
+    name: "Para designers",
+    description: "Venda seus templates e designs.",
+    highlight: "Criadores urbanics já ganham R$500+ por mês.",
+    actions: ["Templates e UI kits no marketplace", "Portfolios e serviços de design", "Cursos de design e criatividade"],
+    earning: "R$500+",
+    period: "por mês",
     color: "#EC4899",
   },
   {
     emoji: "📖",
-    role: "Professor",
-    name: "Marcos",
-    description: "Monetiza seu conhecimento com trilhas estruturadas e aulas ao vivo. Alunos pagam diretamente na plataforma.",
-    actions: ["3 trilhas de aprendizado", "Aulas ao vivo semanais", "Material complementar incluso"],
-    earning: "R$ 4.200",
+    role: "Professor / Educador",
+    name: "Para educadores",
+    description: "Ofereça seus cursos com certificado.",
+    highlight: "A IA adapta o conteúdo para cada aluno.",
+    actions: ["Trilhas de aprendizado estruturadas", "Certificados automáticos", "Aulas ao vivo com monetização"],
+    earning: "R$4.200",
     period: "por mês",
     color: "#3B82F6",
   },
   {
     emoji: "🎥",
     role: "Criador de Conteúdo",
-    name: "Juliana",
-    description: "Faz lives diárias com chat monetizado, vende produtos para sua audiência e cresce no Urban Score.",
-    actions: ["Lives 3x por semana", "Vende produtos na live", "Comunidade exclusiva"],
-    earning: "R$ 1.600",
+    name: "Para criadores",
+    description: "Faça lives, venda produtos, construa comunidade.",
+    highlight: "Monetize cada aspecto do seu talento.",
+    actions: ["Lives com super chats e doações", "Produtos vendidos ao vivo", "Comunidade exclusiva"],
+    earning: "R$1.600",
     period: "por semana",
     color: "#FF5C2E",
   },
   {
     emoji: "🚀",
     role: "Empreendedor",
-    name: "André",
-    description: "Usa o Urban como vitrine digital. Vende produtos físicos e digitais, oferece consultorias e mentoria.",
-    actions: ["Loja no marketplace", "Agenda de mentorias", "Networking com criadores"],
-    earning: "R$ 8.400",
+    name: "Para empreendedores",
+    description: "Venda serviços, produtos, conhecimento.",
+    highlight: "Urban é sua plataforma de crescimento.",
+    actions: ["Loja no marketplace integrado", "Serviços e mentorias", "Networking com criadores"],
+    earning: "R$8.400",
     period: "em 2 meses",
     color: "#10B981",
   },
@@ -66,7 +70,7 @@ export default function UseCasesSection() {
 
         {/* Cards grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
-          {PERSONAS.map(({ emoji, role, name, description, actions, earning, period, color }) => (
+          {PERSONAS.map(({ emoji, role, name, description, highlight, actions, earning, period, color }) => (
             <div
               key={name}
               className="um-card"
@@ -91,12 +95,15 @@ export default function UseCasesSection() {
                 </div>
                 <div>
                   <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: color, marginBottom: "2px" }}>{role}</p>
-                  <p style={{ fontSize: "16px", fontWeight: 800, color: "#111111", letterSpacing: "-0.02em" }}>{name}</p>
+                  <p style={{ fontSize: "15px", fontWeight: 800, color: "#111111", letterSpacing: "-0.02em" }}>{name}</p>
                 </div>
               </div>
 
               {/* Description */}
-              <p style={{ fontSize: "13px", color: "#525252", lineHeight: 1.65 }}>{description}</p>
+              <p style={{ fontSize: "14px", color: "#525252", lineHeight: 1.65 }}>
+                {description}{" "}
+                <strong style={{ color: "#111111", fontWeight: 700 }}>{highlight}</strong>
+              </p>
 
               {/* Actions */}
               <ul style={{ display: "flex", flexDirection: "column", gap: "8px", listStyle: "none", padding: 0, margin: 0 }}>

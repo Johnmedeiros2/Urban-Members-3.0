@@ -3,21 +3,25 @@ const TRUST_ITEMS = [
     icon: "🔒",
     title: "Login seguro com Google",
     description: "Autenticação OAuth 2.0 via Google. Sem senhas fracas, sem vulnerabilidades de credencial.",
+    tag: "Seguro",
   },
   {
     icon: "💳",
     title: "Pagamentos protegidos",
-    description: "Processado via Mercado Pago com criptografia de ponta a ponta. PCI DSS compliant.",
+    description: "Processado com criptografia de ponta a ponta. Seus dados financeiros nunca ficam expostos.",
+    tag: "Pagamentos",
   },
   {
     icon: "🛡️",
-    title: "Conforme a LGPD",
-    description: "Seus dados são tratados de acordo com a Lei Geral de Proteção de Dados (Lei 13.709/2018).",
+    title: "Seus dados nunca são vendidos",
+    description: "Privacidade total. Conforme a Lei Geral de Proteção de Dados (LGPD — Lei 13.709/2018).",
+    tag: "Privado",
   },
   {
-    icon: "🔐",
-    title: "Dados privados",
-    description: "Nunca vendemos seus dados. Você controla o que é público e o que permanece privado.",
+    icon: "✅",
+    title: "Conforme LGPD e regulamentações",
+    description: "Operamos dentro de todas as normas brasileiras de proteção de dados e regulamentações digitais.",
+    tag: "LGPD",
   },
 ];
 
@@ -47,7 +51,7 @@ export default function TrustSection() {
 
         {/* Trust grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
-          {TRUST_ITEMS.map(({ icon, title, description }) => (
+          {TRUST_ITEMS.map(({ icon, title, description, tag }) => (
             <div
               key={title}
               style={{
@@ -58,23 +62,40 @@ export default function TrustSection() {
                 display: "flex",
                 flexDirection: "column",
                 gap: "12px",
-                transition: "border-color 200ms, background 200ms",
               }}
             >
-              <div
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "14px",
-                  background: "rgba(255,92,46,0.12)",
-                  border: "1px solid rgba(255,92,46,0.2)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "22px",
-                }}
-              >
-                {icon}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "14px",
+                    background: "rgba(255,92,46,0.12)",
+                    border: "1px solid rgba(255,92,46,0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "22px",
+                    flexShrink: 0,
+                  }}
+                >
+                  {icon}
+                </div>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "#FF5C2E",
+                    background: "rgba(255,92,46,0.1)",
+                    border: "1px solid rgba(255,92,46,0.2)",
+                    padding: "2px 8px",
+                    borderRadius: "999px",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {tag}
+                </span>
               </div>
               <div>
                 <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#FFFFFF", marginBottom: "6px" }}>{title}</h3>
@@ -97,16 +118,13 @@ export default function TrustSection() {
             flexWrap: "wrap",
           }}
         >
-          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Tecnologias</span>
+          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Tecnologias
+          </span>
           {["Supabase", "Mercado Pago", "LiveKit", "Google Auth", "Next.js"].map((tech) => (
             <span
               key={tech}
-              style={{
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "rgba(255,255,255,0.35)",
-                letterSpacing: "-0.01em",
-              }}
+              style={{ fontSize: "13px", fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "-0.01em" }}
             >
               {tech}
             </span>

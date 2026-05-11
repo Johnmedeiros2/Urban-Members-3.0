@@ -1,43 +1,55 @@
 const FEATURES = [
   {
     emoji: "🛍️",
-    title: "Marketplace",
-    description: "Venda produtos digitais, físicos e serviços com apenas 10% de comissão sobre vendas concluídas. Zero custo fixo.",
+    title: "Venda seus produtos com a melhor comissão",
+    description: "Monetize seu catálogo de produtos digitais, serviços ou itens físicos. Você recebe",
+    highlight: "90% do valor.",
+    descriptionEnd: "Nós ficamos com 10% apenas em vendas concluídas.",
     tag: "10% só no sucesso",
     color: "#FF5C2E",
   },
   {
     emoji: "📚",
-    title: "Cursos",
-    description: "Crie trilhas de aprendizado completas com módulos, aulas em vídeo, materiais e avaliações. Monetize seu conhecimento.",
+    title: "Crie e venda cursos online",
+    description: "Estruture seu conhecimento em trilhas de aprendizado. Receba em tempo real quando seus alunos se inscrevem.",
+    highlight: "Validado por nossa equipe pedagógica.",
+    descriptionEnd: "",
     tag: "Trilhas estruturadas",
     color: "#3B82F6",
   },
   {
     emoji: "🎬",
-    title: "Lives",
-    description: "Transmita ao vivo para sua audiência com chat interativo e monetização nativa. Conecte-se em tempo real.",
+    title: "Transmita ao vivo e monetize",
+    description: "Faça lives para sua comunidade e ganhe com",
+    highlight: "super chats, doações e produtos",
+    descriptionEnd: "vendidos durante a transmissão.",
     tag: "Monetização ao vivo",
     color: "#EC4899",
   },
   {
     emoji: "🎮",
-    title: "Urban Score",
-    description: "Sistema de gamificação com 5 tiers — Bronze, Silver, Gold, Platinum e Diamond. Suba de nível por ação real.",
-    tag: "5 tiers",
+    title: "Ganhe reputação e destaque",
+    description: "Acumule pontos (Urban Score) em 5 níveis (Starter → Legend). Criadores com scores altos ganham",
+    highlight: "visibilidade premium e oportunidades exclusivas.",
+    descriptionEnd: "",
+    tag: "5 níveis",
     color: "#F59E0B",
   },
   {
     emoji: "🤖",
-    title: "IA Adaptive Learning",
-    description: "Trilhas personalizadas com tutor de inteligência artificial que adapta o conteúdo ao seu ritmo de aprendizado.",
+    title: "Trilhas adaptativas com tutor IA",
+    description: "Aprenda no seu ritmo com sugestões personalizadas de IA. Cada aluno segue um",
+    highlight: "caminho único",
+    descriptionEnd: "validado por nossa equipe pedagógica.",
     tag: "Tutor IA",
     color: "#8B5CF6",
   },
   {
     emoji: "👥",
-    title: "Comunidade",
-    description: "Conecte-se com criadores e moradores da cidade. Bairros temáticos, feed global e networking real.",
+    title: "Conecte com outros criadores",
+    description: "Construa sua rede, colabore em projetos e tenha acesso a oportunidades exclusivas.",
+    highlight: "Sua comunidade é sua força.",
+    descriptionEnd: "",
     tag: "Cidade digital",
     color: "#10B981",
   },
@@ -79,7 +91,7 @@ export default function FeaturesGrid() {
             gap: "20px",
           }}
         >
-          {FEATURES.map(({ emoji, title, description, tag, color }) => (
+          {FEATURES.map(({ emoji, title, description, highlight, descriptionEnd, tag, color }) => (
             <div
               key={title}
               className="um-card um-clickable"
@@ -104,8 +116,8 @@ export default function FeaturesGrid() {
 
               {/* Content */}
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <h3 style={{ fontSize: "17px", fontWeight: 800, color: "#111111", letterSpacing: "-0.02em" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "10px", flexWrap: "wrap" }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#111111", letterSpacing: "-0.02em", lineHeight: 1.3 }}>
                     {title}
                   </h3>
                   <span
@@ -119,27 +131,30 @@ export default function FeaturesGrid() {
                       borderRadius: "999px",
                       letterSpacing: "0.04em",
                       whiteSpace: "nowrap",
+                      flexShrink: 0,
                     }}
                   >
                     {tag}
                   </span>
                 </div>
                 <p style={{ fontSize: "14px", color: "#525252", lineHeight: 1.65 }}>
-                  {description}
+                  {description}{" "}
+                  <strong style={{ color: "#111111", fontWeight: 700 }}>{highlight}</strong>
+                  {descriptionEnd && ` ${descriptionEnd}`}
                 </p>
               </div>
 
               {/* Visual placeholder */}
               <div
                 style={{
-                  height: "120px",
+                  height: "100px",
                   borderRadius: "14px",
                   background: `linear-gradient(135deg, ${color}08, ${color}16)`,
                   border: `1px solid ${color}14`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "40px",
+                  fontSize: "36px",
                   marginTop: "auto",
                 }}
               >
@@ -157,9 +172,7 @@ export default function FeaturesGrid() {
                   display: "flex",
                   alignItems: "center",
                   gap: "4px",
-                  transition: "gap 150ms",
                 }}
-                className="um-link"
               >
                 Saiba mais
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
