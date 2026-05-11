@@ -3,7 +3,7 @@ export default function FinalCTA() {
     <section
       style={{
         background: "linear-gradient(160deg, #FF5C2E 0%, #CC3D1A 100%)",
-        padding: "100px 24px",
+        padding: "clamp(64px, 10vw, 100px) 24px",
         position: "relative",
         overflow: "hidden",
       }}

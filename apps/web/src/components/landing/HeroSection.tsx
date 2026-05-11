@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function HeroSection() {
   return (
     <section
@@ -16,19 +18,9 @@ export default function HeroSection() {
       <div style={{ position: "absolute", top: "-80px", right: "-80px", width: "700px", height: "700px", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,92,46,0.12) 0%, transparent 65%)", pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: "-120px", left: "-80px", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,92,46,0.07) 0%, transparent 65%)", pointerEvents: "none" }} />
 
-      <div
-        style={{
-          maxWidth: "1200px",
-          width: "100%",
-          margin: "0 auto",
-          display: "flex",
-          alignItems: "center",
-          gap: "72px",
-          padding: "80px 0",
-        }}
-      >
+      <div className="hero-inner">
         {/* ── LEFT: Copy + CTAs ── */}
-        <div style={{ flex: "0 0 540px" }}>
+        <div className="hero-copy">
           {/* Badge */}
           <div
             style={{
@@ -51,7 +43,7 @@ export default function HeroSection() {
           {/* Headline */}
           <h1
             style={{
-              fontSize: "clamp(38px, 4.5vw, 62px)",
+              fontSize: "clamp(36px, 4.5vw, 62px)",
               fontWeight: 900,
               color: "#FFFFFF",
               lineHeight: 1.06,
@@ -67,7 +59,7 @@ export default function HeroSection() {
           {/* Subheader */}
           <p
             style={{
-              fontSize: "17px",
+              fontSize: "clamp(15px, 2vw, 17px)",
               color: "rgba(255,255,255,0.6)",
               lineHeight: 1.7,
               marginBottom: "42px",
@@ -79,7 +71,7 @@ export default function HeroSection() {
           </p>
 
           {/* CTAs */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "400px" }}>
+          <div className="hero-cta-group" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <a
               href="/cadastro"
               className="lp-cta"
@@ -123,14 +115,7 @@ export default function HeroSection() {
           </div>
 
           {/* Social proof mini */}
-          <div
-            style={{
-              marginTop: "32px",
-              display: "flex",
-              alignItems: "center",
-              gap: "14px",
-            }}
-          >
+          <div style={{ marginTop: "32px", display: "flex", alignItems: "center", gap: "14px" }}>
             <div style={{ display: "flex" }}>
               {["#FF5C2E", "#222", "#555", "#888"].map((color, i) => (
                 <div
@@ -176,12 +161,13 @@ export default function HeroSection() {
               boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,92,46,0.08)",
             }}
           >
-            <img
+            <Image
               src="/images/feature-marketplace.png"
               alt="Plataforma Urban Members — marketplace, cursos e lives em um só lugar"
               width={1200}
               height={800}
-              loading="eager"
+              priority
+              sizes="(max-width: 1024px) 0vw, 520px"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
           </div>

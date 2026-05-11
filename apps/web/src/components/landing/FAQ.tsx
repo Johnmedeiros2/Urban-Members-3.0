@@ -34,7 +34,7 @@ export default function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" aria-label="Perguntas frequentes" style={{ background: "#F7F7F8", padding: "100px 24px" }}>
+    <section id="faq" aria-label="Perguntas frequentes" style={{ background: "#F7F7F8", padding: "clamp(64px, 10vw, 100px) 24px" }}>
       <div style={{ maxWidth: "760px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "56px" }}>

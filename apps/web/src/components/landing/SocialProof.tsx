@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const STATS = [
   { value: "6", label: "criadores ativos", emoji: "👥" },
   { value: "3+", label: "produtos publicados", emoji: "🛍️" },
@@ -40,7 +42,7 @@ const TESTIMONIALS = [
 
 export default function SocialProof() {
   return (
-    <section aria-label="Depoimentos e resultados de criadores" style={{ background: "#FFFFFF", padding: "100px 24px" }}>
+    <section aria-label="Depoimentos e resultados de criadores" style={{ background: "#FFFFFF", padding: "clamp(64px, 10vw, 100px) 24px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "56px" }}>
@@ -104,15 +106,13 @@ export default function SocialProof() {
               {/* Footer */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "16px", borderTop: "1px solid #F5F5F5" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <img
+                  <Image
                     src={photo}
                     alt={`Foto de ${name}`}
                     width={44}
                     height={44}
                     loading="lazy"
                     style={{
-                      width: "44px",
-                      height: "44px",
                       borderRadius: "50%",
                       border: `2px solid ${color}30`,
                       objectFit: "cover",

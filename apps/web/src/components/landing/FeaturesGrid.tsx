@@ -67,9 +67,11 @@ const FEATURES = [
   },
 ];
 
+import Image from "next/image";
+
 export default function FeaturesGrid() {
   return (
-    <section id="features" aria-label="Funcionalidades da plataforma" style={{ background: "#F7F7F8", padding: "100px 24px" }}>
+    <section id="features" aria-label="Funcionalidades da plataforma" style={{ background: "#F7F7F8", padding: "clamp(64px, 10vw, 100px) 24px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "64px" }}>
@@ -96,13 +98,7 @@ export default function FeaturesGrid() {
         </div>
 
         {/* Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
-            gap: "20px",
-          }}
-        >
+        <div className="lp-features-grid">
           {FEATURES.map(({ emoji, title, description, highlight, descriptionEnd, tag, color, image, imageAlt }) => (
             <div
               key={title}
@@ -165,15 +161,16 @@ export default function FeaturesGrid() {
                   border: `1px solid ${color}14`,
                   background: `${color}08`,
                   height: "180px",
+                  position: "relative",
                 }}
               >
-                <img
+                <Image
                   src={image}
                   alt={imageAlt}
-                  width={600}
-                  height={320}
+                  fill
                   loading="lazy"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }}
+                  sizes="(max-width: 680px) calc(100vw - 48px), (max-width: 1200px) 50vw, 380px"
+                  style={{ objectFit: "cover", objectPosition: "top" }}
                 />
               </div>
 

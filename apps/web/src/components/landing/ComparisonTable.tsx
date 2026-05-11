@@ -104,7 +104,7 @@ function Check({ ok, isUrban, label }: { ok: Check; isUrban: boolean; label: str
 
 export default function ComparisonTable() {
   return (
-    <section style={{ background: "#F7F7F8", padding: "100px 24px" }}>
+    <section style={{ background: "#F7F7F8", padding: "clamp(64px, 10vw, 100px) 24px" }}>
       <div style={{ maxWidth: "960px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "56px" }}>
@@ -130,6 +130,7 @@ export default function ComparisonTable() {
         </div>
 
         {/* Table */}
+        <div className="lp-table-scroll">
         <div className="um-card" style={{ overflow: "hidden", padding: 0 }}>
           {/* Header row */}
           <div
@@ -246,6 +247,7 @@ export default function ComparisonTable() {
           </div>
         </div>
 
+        </div>
         {/* Legend */}
         <div style={{ display: "flex", gap: "20px", justifyContent: "center", marginTop: "16px", flexWrap: "wrap" }}>
           {[

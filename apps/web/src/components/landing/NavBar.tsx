@@ -65,7 +65,7 @@ export default function NavBar() {
             href="/login"
             className="lp-login-btn"
             style={{
-              height: "38px",
+              height: "44px",
               padding: "0 16px",
               border: "1.5px solid rgba(255,255,255,0.15)",
               borderRadius: "10px",
@@ -86,7 +86,7 @@ export default function NavBar() {
             href="/cadastro"
             className="lp-cta"
             style={{
-              height: "38px",
+              height: "44px",
               padding: "0 18px",
               background: "#FF5C2E",
               borderRadius: "10px",

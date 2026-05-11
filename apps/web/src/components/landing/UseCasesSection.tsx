@@ -47,7 +47,7 @@ const PERSONAS = [
 
 export default function UseCasesSection() {
   return (
-    <section aria-label="Casos de uso por perfil de criador" style={{ background: "#FFFFFF", padding: "100px 24px" }}>
+    <section aria-label="Casos de uso por perfil de criador" style={{ background: "#FFFFFF", padding: "clamp(64px, 10vw, 100px) 24px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "64px" }}>
