@@ -9,6 +9,7 @@ import MeusCupons from "@/components/ui/MeusCupons";
 import { createClient, supabaseConfigured } from "@/lib/supabase";
 import { meusProdutos, meusCursos, minhasVendasResumo, uploadFotoPerfil, minhasIndicacoes, type Indicacao } from "@/lib/queries";
 import { reset as resetAnalytics } from "@/lib/analytics";
+import MFASetup from "@/components/auth/MFASetup";
 
 interface ProdutoMeu {
   id: string; nome: string; preco: number; categoria: string; total_vendas: number;
@@ -621,8 +622,19 @@ export default function Perfil() {
           </div>
         )}
 
+        {/* Segurança */}
+        <div style={{ marginTop: "32px", background: "#FFFFFF", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.05)", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div>
+            <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Segurança</h3>
+            <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "4px", lineHeight: 1.5 }}>
+              Autenticação de dois fatores (2FA) adiciona uma camada extra de proteção à sua conta.
+            </p>
+          </div>
+          <MFASetup />
+        </div>
+
         {/* Conta */}
-        <div style={{ marginTop: "32px", background: "#FFFFFF", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.05)", padding: "20px 24px" }}>
+        <div style={{ marginTop: "16px", background: "#FFFFFF", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.05)", padding: "20px 24px" }}>
           <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>Conta</h3>
           <p style={{ fontSize: "12px", color: "#A3A3A3", marginTop: "4px", lineHeight: 1.5 }}>
             Você pode sair a qualquer momento. Todos seus dados ficam salvos pra quando voltar.

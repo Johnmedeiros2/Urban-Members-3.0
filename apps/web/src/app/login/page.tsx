@@ -22,6 +22,23 @@ export default function Login() {
   );
 }
 
+const MFA_INPUT: React.CSSProperties = {
+  width: "100%",
+  height: "52px",
+  borderRadius: "14px",
+  padding: "0 16px",
+  fontSize: "24px",
+  fontWeight: 700,
+  letterSpacing: "0.3em",
+  textAlign: "center",
+  border: "1.5px solid #E5E5E5",
+  outline: "none",
+  fontFamily: "Inter, monospace",
+  color: "#111111",
+  background: "#FFFFFF",
+  boxSizing: "border-box",
+};
+
 function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,6 +49,20 @@ function LoginInner() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
+  const [fase, setFase] = useState<"login" | "mfa">("login");
+  const [factorId, setFactorId] = useState("");
+  const [codigoMFA, setCodigoMFA] = useState("");
+
+  async function finalizarLogin(supabase: ReturnType<typeof createClient>) {
+    await supabase.auth.signOut({ scope: "others" });
+    sessionStorage.setItem("urban_sessao_unica", "1");
+    const ref = typeof window !== "undefined" ? localStorage.getItem("urban_ref") : null;
+    if (ref) {
+      try { await vincularIndicador(ref); localStorage.removeItem("urban_ref"); } catch {}
+    }
+    router.push("/feed");
+    router.refresh();
+  }
 
   async function handleLogin() {
     if (!email || !senha) return;
@@ -48,21 +79,39 @@ function LoginInner() {
       setLoading(false);
       return;
     }
-    // Expulsa sessões ativas em outros dispositivos
-    await supabase.auth.signOut({ scope: "others" });
-    sessionStorage.setItem("urban_sessao_unica", "1");
 
-    // Se o usuário veio por link de indicação, vincula agora
-    const ref = typeof window !== "undefined" ? localStorage.getItem("urban_ref") : null;
-    if (ref) {
-      try {
-        await vincularIndicador(ref);
-        localStorage.removeItem("urban_ref");
-      } catch {}
+    // Verifica se o usuário tem MFA ativo
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel) {
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const factor = factors?.totp.find((f) => f.status === "verified");
+      if (factor) {
+        setFactorId(factor.id);
+        setFase("mfa");
+        setLoading(false);
+        return;
+      }
     }
 
-    router.push("/feed");
-    router.refresh();
+    await finalizarLogin(supabase);
+  }
+
+  async function handleMFA() {
+    if (codigoMFA.length !== 6) return;
+    setLoading(true);
+    setErro("");
+    const supabase = createClient();
+    const { error } = await supabase.auth.mfa.challengeAndVerify({
+      factorId,
+      code: codigoMFA,
+    });
+    if (error) {
+      setErro("Código inválido. Abra o app e tente novamente.");
+      setCodigoMFA("");
+      setLoading(false);
+      return;
+    }
+    await finalizarLogin(supabase);
   }
 
   async function handleGoogle() {
@@ -100,6 +149,54 @@ function LoginInner() {
 
       {/* Painel direito */}
       <div style={{ width: "100%", maxWidth: "520px", padding: "48px", display: "flex", flexDirection: "column", justifyContent: "center", gap: "28px" }}>
+
+        {fase === "mfa" ? (
+          <>
+            <div>
+              <h1 style={{ fontSize: "28px", fontWeight: 800, color: "#111111", letterSpacing: "-0.03em" }}>Verificação em 2 etapas</h1>
+              <p style={{ fontSize: "14px", color: "#A3A3A3", marginTop: "6px" }}>
+                Abra o Google Authenticator ou Authy e digite o código de 6 dígitos.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="000000"
+                value={codigoMFA}
+                autoFocus
+                onChange={(e) => { setCodigoMFA(e.target.value.replace(/\D/g, "")); setErro(""); }}
+                onKeyDown={(e) => e.key === "Enter" && handleMFA()}
+                style={{ ...MFA_INPUT, borderColor: erro ? "#FECACA" : codigoMFA.length === 6 ? "#111111" : "#E5E5E5" }}
+              />
+
+              {erro && (
+                <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", padding: "10px 14px" }}>
+                  <p style={{ fontSize: "13px", color: "#DC2626" }}>{erro}</p>
+                </div>
+              )}
+
+              <button
+                onClick={handleMFA}
+                disabled={codigoMFA.length !== 6 || loading}
+                className="um-btn-accent"
+                style={{ width: "100%", height: "52px", fontSize: "15px" }}
+              >
+                {loading ? "Verificando..." : "Confirmar →"}
+              </button>
+
+              <button
+                onClick={() => { setFase("login"); setCodigoMFA(""); setErro(""); }}
+                style={{ background: "none", border: "none", color: "#A3A3A3", fontSize: "13px", cursor: "pointer", fontFamily: "Inter, sans-serif", textAlign: "center" }}
+              >
+                Voltar para o login
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
 
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: 800, color: "#111111", letterSpacing: "-0.03em" }}>Entrar na cidade</h1>
@@ -208,6 +305,8 @@ function LoginInner() {
           e a{" "}
           <a href="#" style={{ color: "#525252", textDecoration: "underline" }}>Política de Privacidade</a>.
         </p>
+          </>
+        )}
       </div>
     </div>
   );
