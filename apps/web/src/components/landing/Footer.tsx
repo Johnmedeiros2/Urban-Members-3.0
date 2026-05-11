@@ -95,7 +95,7 @@ export default function Footer() {
           {/* Link columns */}
           {Object.entries(LINKS).map(([category, links]) => (
             <div key={category}>
-              <h4
+              <p
                 style={{
                   fontSize: "11px",
                   fontWeight: 700,
@@ -106,7 +106,7 @@ export default function Footer() {
                 }}
               >
                 {category}
-              </h4>
+              </p>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
                 {links.map(({ label, href }) => (
                   <li key={label}>
