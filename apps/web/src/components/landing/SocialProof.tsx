@@ -10,6 +10,7 @@ const TESTIMONIALS = [
     name: "João Silva",
     role: "Designer",
     initials: "JS",
+    photo: "/images/testimonial-joao.jpg",
     color: "#EC4899",
     quote: "Vendi 12 templates em 2 meses. Recebi R$1.200 limpo. O processo de payment é automático. Muito bom!",
     earned: "R$ 1.200",
@@ -19,6 +20,7 @@ const TESTIMONIALS = [
     name: "Maria Santos",
     role: "Professora",
     initials: "MS",
+    photo: "/images/testimonial-maria.jpg",
     color: "#3B82F6",
     quote: "Criei um curso de português para estrangeiros. 15 alunos inscritos, R$450 em vendas já. Urban funciona!",
     earned: "R$ 450",
@@ -28,6 +30,7 @@ const TESTIMONIALS = [
     name: "Carlos Oliveira",
     role: "Criador de Conteúdo",
     initials: "CO",
+    photo: "/images/testimonial-carlos.jpg",
     color: "#FF5C2E",
     quote: "Fiz 3 lives esse mês. A monetização é simples. Já ganhei com super chats. Recomendo muito!",
     earned: "3 lives",
@@ -78,7 +81,7 @@ export default function SocialProof() {
 
         {/* Testimonials grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
-          {TESTIMONIALS.map(({ name, role, initials, color, quote, earned, period }) => (
+          {TESTIMONIALS.map(({ name, role, initials, photo, color, quote, earned, period }) => (
             <div
               key={name}
               className="um-card"
@@ -101,23 +104,22 @@ export default function SocialProof() {
               {/* Footer */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "16px", borderTop: "1px solid #F5F5F5" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div
+                  <img
+                    src={photo}
+                    alt={`Foto de ${name}`}
+                    width={44}
+                    height={44}
+                    loading="lazy"
                     style={{
                       width: "44px",
                       height: "44px",
                       borderRadius: "50%",
-                      background: `${color}18`,
                       border: `2px solid ${color}30`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "14px",
-                      fontWeight: 800,
-                      color: color,
+                      objectFit: "cover",
+                      display: "block",
+                      background: `${color}18`,
                     }}
-                  >
-                    {initials}
-                  </div>
+                  />
                   <div>
                     <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{name}</p>
                     <p style={{ fontSize: "12px", color: "#A3A3A3" }}>{role}</p>

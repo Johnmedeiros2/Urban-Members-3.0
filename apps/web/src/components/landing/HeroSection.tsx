@@ -164,75 +164,26 @@ export default function HeroSection() {
           </p>
         </div>
 
-        {/* ── RIGHT: Product mockup ── */}
+        {/* ── RIGHT: Product screenshot ── */}
         <div className="hidden lg:flex" style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <div
             style={{
               width: "100%",
-              maxWidth: "480px",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "28px",
-              padding: "24px",
-              backdropFilter: "blur(8px)",
+              maxWidth: "520px",
+              borderRadius: "24px",
+              overflow: "hidden",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,92,46,0.08)",
             }}
           >
-            {/* Mock top bar */}
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px", paddingBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#FF5C2E", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L16 7v9H2V7L9 2z" fill="white" opacity="0.9" /><rect x="6" y="10" width="6" height="6" rx="1" fill="#FF5C2E" /></svg>
-              </div>
-              <span style={{ fontSize: "14px", fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Urban Members</span>
-              <div style={{ marginLeft: "auto", display: "flex", gap: "6px" }}>
-                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#FF5C2E", opacity: 0.6 }} />
-                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
-              </div>
-            </div>
-
-            {/* Mock feature cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "16px" }}>
-              {[
-                { label: "Marketplace", icon: "🛍️", value: "R$ 1.840", color: "#FF5C2E", active: true },
-                { label: "Cursos", icon: "📚", value: "3 ativos", color: "rgba(255,255,255,0.5)", active: false },
-                { label: "Lives", icon: "🎬", value: "12 ao vivo", color: "rgba(255,255,255,0.5)", active: false },
-                { label: "Urban Score", icon: "🎮", value: "Nível Gold", color: "rgba(255,255,255,0.5)", active: false },
-              ].map(({ label, icon, value, active }) => (
-                <div
-                  key={label}
-                  style={{
-                    background: active ? "rgba(255,92,46,0.12)" : "rgba(255,255,255,0.03)",
-                    border: `1px solid ${active ? "rgba(255,92,46,0.28)" : "rgba(255,255,255,0.06)"}`,
-                    borderRadius: "16px",
-                    padding: "14px",
-                  }}
-                >
-                  <div style={{ fontSize: "20px", marginBottom: "8px" }}>{icon}</div>
-                  <div style={{ fontSize: "11px", color: active ? "#FF5C2E" : "rgba(255,255,255,0.4)", fontWeight: 600, marginBottom: "4px" }}>{label}</div>
-                  <div style={{ fontSize: "13px", fontWeight: 700, color: active ? "#FFFFFF" : "rgba(255,255,255,0.6)" }}>{value}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Mock earnings row */}
-            <div
-              style={{
-                background: "rgba(255,92,46,0.08)",
-                border: "1px solid rgba(255,92,46,0.2)",
-                borderRadius: "14px",
-                padding: "14px 16px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div>
-                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Saldo disponível</div>
-                <div style={{ fontSize: "22px", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em" }}>R$ 3.240,00</div>
-              </div>
-              <div style={{ height: "36px", padding: "0 16px", background: "#FF5C2E", borderRadius: "10px", display: "flex", alignItems: "center", fontSize: "12px", fontWeight: 700, color: "#fff" }}>
-                Sacar →
-              </div>
-            </div>
+            <img
+              src="/images/feature-marketplace.png"
+              alt="Plataforma Urban Members — marketplace, cursos e lives em um só lugar"
+              width={1200}
+              height={800}
+              loading="eager"
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
           </div>
         </div>
       </div>

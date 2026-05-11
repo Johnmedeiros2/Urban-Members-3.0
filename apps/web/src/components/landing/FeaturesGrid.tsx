@@ -7,6 +7,8 @@ const FEATURES = [
     descriptionEnd: "Nós ficamos com 10% apenas em vendas concluídas.",
     tag: "10% só no sucesso",
     color: "#FF5C2E",
+    image: "/images/feature-marketplace.png",
+    imageAlt: "Marketplace Urban Members — grid de produtos à venda",
   },
   {
     emoji: "📚",
@@ -16,6 +18,8 @@ const FEATURES = [
     descriptionEnd: "",
     tag: "Trilhas estruturadas",
     color: "#3B82F6",
+    image: "/images/feature-courses.png",
+    imageAlt: "Sala de Aula Urban Members — cursos online com certificado",
   },
   {
     emoji: "🎬",
@@ -25,6 +29,8 @@ const FEATURES = [
     descriptionEnd: "vendidos durante a transmissão.",
     tag: "Monetização ao vivo",
     color: "#EC4899",
+    image: "/images/feature-lives.png",
+    imageAlt: "Lives Urban Members — transmissões ao vivo com monetização",
   },
   {
     emoji: "🎮",
@@ -34,6 +40,8 @@ const FEATURES = [
     descriptionEnd: "",
     tag: "5 níveis",
     color: "#F59E0B",
+    image: "/images/feature-gamification.png",
+    imageAlt: "Urban Score — sistema de gamificação com 5 níveis de reputação",
   },
   {
     emoji: "🤖",
@@ -43,6 +51,8 @@ const FEATURES = [
     descriptionEnd: "validado por nossa equipe pedagógica.",
     tag: "Tutor IA",
     color: "#8B5CF6",
+    image: "/images/feature-ia.png",
+    imageAlt: "Urban Academy — trilhas adaptativas com tutor IA",
   },
   {
     emoji: "👥",
@@ -52,6 +62,8 @@ const FEATURES = [
     descriptionEnd: "",
     tag: "Cidade digital",
     color: "#10B981",
+    image: "/images/feature-community.png",
+    imageAlt: "Feed Social Urban Members — comunidade de criadores",
   },
 ];
 
@@ -91,7 +103,7 @@ export default function FeaturesGrid() {
             gap: "20px",
           }}
         >
-          {FEATURES.map(({ emoji, title, description, highlight, descriptionEnd, tag, color }) => (
+          {FEATURES.map(({ emoji, title, description, highlight, descriptionEnd, tag, color, image, imageAlt }) => (
             <div
               key={title}
               className="um-card um-clickable"
@@ -144,21 +156,25 @@ export default function FeaturesGrid() {
                 </p>
               </div>
 
-              {/* Visual placeholder */}
+              {/* Screenshot */}
               <div
                 style={{
-                  height: "100px",
-                  borderRadius: "14px",
-                  background: `linear-gradient(135deg, ${color}08, ${color}16)`,
-                  border: `1px solid ${color}14`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "36px",
                   marginTop: "auto",
+                  borderRadius: "14px",
+                  overflow: "hidden",
+                  border: `1px solid ${color}14`,
+                  background: `${color}08`,
+                  height: "180px",
                 }}
               >
-                {emoji}
+                <img
+                  src={image}
+                  alt={imageAlt}
+                  width={600}
+                  height={320}
+                  loading="lazy"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }}
+                />
               </div>
 
               {/* Link */}

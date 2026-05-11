@@ -227,25 +227,7 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaWebSite) }} />
 
       {/* Skip navigation para acessibilidade */}
-      <a
-        href="#main-content"
-        style={{
-          position: "absolute",
-          top: "-100px",
-          left: "24px",
-          padding: "12px 20px",
-          background: "#FF5C2E",
-          color: "#fff",
-          borderRadius: "8px",
-          fontWeight: 700,
-          fontSize: "14px",
-          zIndex: 9999,
-          textDecoration: "none",
-          transition: "top 150ms",
-        }}
-        onFocus={(e) => { (e.currentTarget as HTMLAnchorElement).style.top = "24px"; }}
-        onBlur={(e) => { (e.currentTarget as HTMLAnchorElement).style.top = "-100px"; }}
-      >
+      <a href="#main-content" className="skip-nav">
         Ir para o conteúdo principal
       </a>
 
