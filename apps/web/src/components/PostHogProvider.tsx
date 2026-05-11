@@ -6,20 +6,6 @@ import posthog from "posthog-js";
 import { PostHogProvider as PHProvider } from "posthog-js/react";
 import { createClient } from "@/lib/supabase";
 
-if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
-    person_profiles: "identified_only",
-    capture_pageview: false,
-    capture_pageleave: true,
-    autocapture: true,
-    session_recording: {
-      maskAllInputs: true,
-      maskTextSelector: "[data-private]",
-    },
-  });
-}
-
 function PageviewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -60,6 +46,24 @@ function AuthIdentifier() {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    if (typeof window === "undefined" || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
+    if (posthog.__loaded) return;
+
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+      person_profiles: "identified_only",
+      capture_pageview: false,
+      capture_pageleave: true,
+      autocapture: true,
+      disable_surveys: true,
+      session_recording: {
+        maskAllInputs: true,
+        maskTextSelector: "[data-private]",
+      },
+    });
+  }, []);
+
   return (
     <PHProvider client={posthog}>
       <Suspense fallback={null}>
