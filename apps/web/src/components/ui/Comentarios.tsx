@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { buscarComentarios, criarComentario, deletarComentario, ehModerador, removerComentarioPorModeracao, type Comentario } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
 import Avatar from "./Avatar";
@@ -30,6 +30,9 @@ export default function Comentarios({ postId, onContagem }: Props) {
   const [souFiscal, setSouFiscal] = useState(false);
   const [comentarioParaRemover, setComentarioParaRemover] = useState<string | null>(null);
 
+  const onContagemRef = useRef(onContagem);
+  useEffect(() => { onContagemRef.current = onContagem; });
+
   const carregar = useCallback(async () => {
     setCarregando(true);
     const [data, { data: { session } }, fiscal] = await Promise.all([
@@ -41,8 +44,8 @@ export default function Comentarios({ postId, onContagem }: Props) {
     setMeuId(session?.user?.id ?? null);
     setSouFiscal(fiscal);
     setCarregando(false);
-    onContagem?.(data.length);
-  }, [postId, onContagem]);
+    onContagemRef.current?.(data.length);
+  }, [postId]);
 
   useEffect(() => { carregar(); }, [carregar]);
 
