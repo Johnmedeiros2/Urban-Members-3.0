@@ -1,13 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import dynamic from "next/dynamic";
 import "./globals.css";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { SessionGuard } from "@/components/SessionGuard";
-
-// Diferidos: não são necessários para o render inicial
-const CookieBanner = dynamic(() => import("@/components/CookieBanner"), { ssr: false });
-const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), { ssr: false });
+import ClientBanners from "@/components/ClientBanners";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -95,8 +91,7 @@ export default function RootLayout({
         <PostHogProvider>
           <SessionGuard />
           {children}
-          <CookieBanner />
-          <GoogleAnalytics />
+          <ClientBanners />
         </PostHogProvider>
       </body>
     </html>
