@@ -66,7 +66,7 @@ export default function FinalCTA() {
               height: "60px",
               padding: "0 48px",
               background: "#FFFFFF",
-              color: "#FF5C2E",
+              color: "#C94400",
               borderRadius: "18px",
               display: "inline-flex",
               alignItems: "center",

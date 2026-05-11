@@ -118,13 +118,13 @@ export default function TrustSection() {
             flexWrap: "wrap",
           }}
         >
-          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Tecnologias
           </span>
           {["Supabase", "Mercado Pago", "LiveKit", "Google Auth", "Next.js"].map((tech) => (
             <span
               key={tech}
-              style={{ fontSize: "13px", fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "-0.01em" }}
+              style={{ fontSize: "13px", fontWeight: 600, color: "rgba(255,255,255,0.65)", letterSpacing: "-0.01em" }}
             >
               {tech}
             </span>

@@ -76,7 +76,7 @@ export default function HeroSection() {
               style={{
                 height: "56px",
                 background: "#FF5C2E",
-                color: "#FFFFFF",
+                color: "#111111",
                 borderRadius: "16px",
                 display: "flex",
                 alignItems: "center",

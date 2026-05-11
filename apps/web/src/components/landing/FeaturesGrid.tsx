@@ -75,7 +75,7 @@ export default function FeaturesGrid() {
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "64px" }}>
-          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FF5C2E", marginBottom: "12px" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#111111", marginBottom: "12px" }}>
             Tudo em um lugar
           </p>
           <h2

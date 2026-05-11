@@ -46,7 +46,7 @@ export default function SocialProof() {
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "56px" }}>
-          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FF5C2E", marginBottom: "12px" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#111111", marginBottom: "12px" }}>
             Resultados reais
           </p>
           <h2
@@ -76,7 +76,7 @@ export default function SocialProof() {
             <div key={label} className="um-card" style={{ padding: "24px", textAlign: "center" }}>
               <div style={{ fontSize: "28px", marginBottom: "8px" }}>{emoji}</div>
               <div style={{ fontSize: "32px", fontWeight: 900, color: "#111111", letterSpacing: "-0.04em", marginBottom: "6px" }}>{value}</div>
-              <div style={{ fontSize: "13px", color: "#A3A3A3", fontWeight: 500 }}>{label}</div>
+              <div style={{ fontSize: "13px", color: "#737373", fontWeight: 500 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -122,12 +122,12 @@ export default function SocialProof() {
                   />
                   <div>
                     <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>{name}</p>
-                    <p style={{ fontSize: "12px", color: "#A3A3A3" }}>{role}</p>
+                    <p style={{ fontSize: "12px", color: "#737373" }}>{role}</p>
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <p style={{ fontSize: "15px", fontWeight: 800, color: "#111111" }}>{earned}</p>
-                  <p style={{ fontSize: "11px", color: "#A3A3A3" }}>{period}</p>
+                  <p style={{ fontSize: "11px", color: "#737373" }}>{period}</p>
                 </div>
               </div>
             </div>

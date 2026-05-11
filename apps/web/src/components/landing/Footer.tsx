@@ -101,7 +101,7 @@ export default function Footer() {
                   fontWeight: 700,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.3)",
+                  color: "rgba(255,255,255,0.6)",
                   marginBottom: "16px",
                 }}
               >
@@ -138,7 +138,7 @@ export default function Footer() {
         >
           <p style={{ fontSize: "12px" }}>
             © 2026 Urban Members · Urbanicsa Tecnologia Ltda ·{" "}
-            <a href="mailto:contato@urbanicsa.com" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>
+            <a href="mailto:contato@urbanicsa.com" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none" }}>
               contato@urbanicsa.com
             </a>
           </p>

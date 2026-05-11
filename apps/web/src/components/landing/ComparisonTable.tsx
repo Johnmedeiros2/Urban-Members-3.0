@@ -104,11 +104,11 @@ function Check({ ok, isUrban, label }: { ok: Check; isUrban: boolean; label: str
 
 export default function ComparisonTable() {
   return (
-    <section style={{ background: "#F7F7F8", padding: "clamp(64px, 10vw, 100px) 24px" }}>
+    <section style={{ background: "#FFFFFF", padding: "clamp(64px, 10vw, 100px) 24px" }}>
       <div style={{ maxWidth: "960px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "56px" }}>
-          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FF5C2E", marginBottom: "12px" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#111111", marginBottom: "12px" }}>
             Por que Urban
           </p>
           <h2
@@ -157,9 +157,9 @@ export default function ComparisonTable() {
                     <span
                       style={{
                         display: "block",
-                        fontSize: "9px",
+                        fontSize: "10px",
                         background: "#FF5C2E",
-                        color: "#fff",
+                        color: "#111111",
                         padding: "1px 6px",
                         borderRadius: "999px",
                         marginTop: "4px",
@@ -192,7 +192,7 @@ export default function ComparisonTable() {
                 <span
                   style={{
                     fontSize: "13px",
-                    color: isLast ? "#FF5C2E" : "#262626",
+                    color: "#262626",
                     fontWeight: isLast ? 800 : 500,
                   }}
                 >
@@ -230,7 +230,7 @@ export default function ComparisonTable() {
                       height: "34px",
                       padding: "0 14px",
                       background: "#FF5C2E",
-                      color: "#fff",
+                      color: "#111111",
                       borderRadius: "10px",
                       fontSize: "12px",
                       fontWeight: 700,
@@ -240,7 +240,7 @@ export default function ComparisonTable() {
                     Criar conta
                   </a>
                 ) : (
-                  <span style={{ fontSize: "12px", color: "#A3A3A3" }}>—</span>
+                  <span style={{ fontSize: "12px", color: "#737373" }}>—</span>
                 )}
               </div>
             ))}
@@ -255,7 +255,7 @@ export default function ComparisonTable() {
             { symbol: "~", color: "#D97706", bg: "#FEF3C7", label: "Parcial / isolado" },
             { symbol: "—", color: "#D4D4D4", bg: "#F5F5F5", label: "Não disponível" },
           ].map(({ symbol, label }) => (
-            <span key={label} style={{ fontSize: "12px", color: "#A3A3A3", display: "flex", alignItems: "center", gap: "6px" }}>
+            <span key={label} style={{ fontSize: "12px", color: "#737373", display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ fontWeight: 700 }}>{symbol}</span> {label}
             </span>
           ))}

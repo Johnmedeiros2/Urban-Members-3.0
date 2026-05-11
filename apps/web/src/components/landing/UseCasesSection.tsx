@@ -51,7 +51,7 @@ export default function UseCasesSection() {
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "64px" }}>
-          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FF5C2E", marginBottom: "12px" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#111111", marginBottom: "12px" }}>
             Para quem é o Urban
           </p>
           <h2
@@ -94,7 +94,7 @@ export default function UseCasesSection() {
                   {emoji}
                 </div>
                 <div>
-                  <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: color, marginBottom: "2px" }}>{role}</p>
+                  <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#111111", marginBottom: "2px" }}>{role}</p>
                   <p style={{ fontSize: "15px", fontWeight: 800, color: "#111111", letterSpacing: "-0.02em" }}>{name}</p>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function UseCasesSection() {
                 }}
               >
                 <span style={{ fontSize: "22px", fontWeight: 900, color: "#111111", letterSpacing: "-0.03em" }}>{earning}</span>
-                <span style={{ fontSize: "12px", color: "#A3A3A3" }}>{period}</span>
+                <span style={{ fontSize: "12px", color: "#737373" }}>{period}</span>
               </div>
             </div>
           ))}

@@ -88,7 +88,7 @@ export default function CookieBanner() {
             borderRadius: "10px",
             border: "none",
             background: "#FF5C2E",
-            color: "#FFFFFF",
+            color: "#111111",
             fontSize: "13px",
             fontWeight: 700,
             cursor: "pointer",

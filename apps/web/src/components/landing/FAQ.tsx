@@ -34,11 +34,11 @@ export default function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" aria-label="Perguntas frequentes" style={{ background: "#F7F7F8", padding: "clamp(64px, 10vw, 100px) 24px" }}>
+    <section id="faq" aria-label="Perguntas frequentes" style={{ background: "#FFFFFF", padding: "clamp(64px, 10vw, 100px) 24px" }}>
       <div style={{ maxWidth: "760px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "56px" }}>
-          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FF5C2E", marginBottom: "12px" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#111111", marginBottom: "12px" }}>
             Dúvidas frequentes
           </p>
           <h2
@@ -89,7 +89,7 @@ export default function FAQ() {
                     style={{
                       fontSize: "15px",
                       fontWeight: 700,
-                      color: isOpen ? "#FF5C2E" : "#111111",
+                      color: "#111111",
                       lineHeight: 1.4,
                       transition: "color 200ms",
                     }}
@@ -132,7 +132,7 @@ export default function FAQ() {
                                 height: "24px",
                                 borderRadius: "50%",
                                 background: "#FF5C2E",
-                                color: "#fff",
+                                color: "#111111",
                                 fontSize: "12px",
                                 fontWeight: 800,
                                 display: "flex",
@@ -157,12 +157,12 @@ export default function FAQ() {
 
         {/* Footer CTA */}
         <div style={{ textAlign: "center", marginTop: "48px" }}>
-          <p style={{ fontSize: "14px", color: "#A3A3A3", marginBottom: "16px" }}>
+          <p style={{ fontSize: "14px", color: "#737373", marginBottom: "16px" }}>
             Ainda tem dúvidas? Fale com a gente.
           </p>
           <a
             href="mailto:contato@urbanicsa.com"
-            style={{ fontSize: "14px", fontWeight: 600, color: "#FF5C2E", textDecoration: "none" }}
+            style={{ fontSize: "14px", fontWeight: 600, color: "#C94400", textDecoration: "none" }}
             className="um-link"
           >
             contato@urbanicsa.com →
