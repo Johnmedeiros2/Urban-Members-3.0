@@ -15,6 +15,7 @@ import ConteudoRemovido from "@/components/ui/ConteudoRemovido";
 import ModalMotivoRemocao from "@/components/ui/ModalMotivoRemocao";
 import { buscarPosts, buscarPostsPersonalizado, criarPost, curtirPost, descurtirPost, minhasCurtidas, deletarPost, minhasEmpresas, ehModerador, removerPostPorModeracao, type PostReal, type Empresa } from "@/lib/queries";
 import { createClient } from "@/lib/supabase";
+import WelcomeModal from "@/components/WelcomeModal";
 
 const neighborhoods = [
   { label: "Início",       active: true,  href: "/feed",              icon: "home"     },
@@ -678,6 +679,8 @@ export default function Feed() {
         onConfirmar={confirmarRemocaoPost}
         onCancelar={() => setPostParaRemover(null)}
       />
+
+      <WelcomeModal />
     </div>
   );
 }
