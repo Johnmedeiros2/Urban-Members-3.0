@@ -5,17 +5,15 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
+import { registrarInteracao } from "../../lib/setores";
 
 type Bairro = {
   id: string;
-  label: string;
+  nome: string;
   descricao: string | null;
   moradores: number;
   cor: string;
 };
-
-// Paleta de cores para dar identidade visual a cada bairro
-const CORES = ["#FF5C2E", "#6C63FF", "#00C896", "#0084FF", "#FFB800", "#E84393", "#00B8D4"];
 
 export default function BairrosScreen() {
   const [bairros, setBairros] = useState<Bairro[]>([]);
@@ -25,34 +23,23 @@ export default function BairrosScreen() {
   const carregar = useCallback(async () => {
     setErro(null);
     try {
-      // 1) Bairros reais (mesma tabela do site)
+      // Bairros reais (mesma tabela do site) — já trazem nome, cor e contagem
       const { data: lista, error } = await supabase
         .from("bairros")
-        .select("id, label, descricao");
+        .select("id, nome, descricao, cor, total_membros");
       if (error) throw error;
 
-      const bairrosLista = lista ?? [];
-
-      // 2) Contagem real de moradores por bairro (tabela bairro_membros)
-      const contagem = new Map<string, number>();
-      if (bairrosLista.length) {
-        const { data: membros } = await supabase
-          .from("bairro_membros")
-          .select("bairro_id")
-          .in("bairro_id", bairrosLista.map((b) => b.id));
-        membros?.forEach((m) => {
-          contagem.set(m.bairro_id, (contagem.get(m.bairro_id) ?? 0) + 1);
-        });
-      }
-
       setBairros(
-        bairrosLista.map((b, i) => ({
-          id: b.id,
-          label: b.label,
-          descricao: b.descricao,
-          moradores: contagem.get(b.id) ?? 0,
-          cor: CORES[i % CORES.length],
-        }))
+        (lista ?? [])
+          .map((b) => ({
+            id: b.id,
+            nome: b.nome,
+            descricao: b.descricao,
+            moradores: b.total_membros ?? 0,
+            cor: b.cor || "#FF5C2E",
+          }))
+          // Ranking: bairro com mais moradores primeiro
+          .sort((a, b) => b.moradores - a.moradores)
       );
     } catch {
       setErro("Não foi possível carregar os bairros.");
@@ -67,8 +54,8 @@ export default function BairrosScreen() {
     <View style={styles.container}>
       <StatusBar style="dark" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bairros</Text>
-        <Text style={styles.headerSub}>Escolha onde morar na cidade</Text>
+        <Text style={styles.headerTitle}>Setores</Text>
+        <Text style={styles.headerSub}>Explore os temas da cidade</Text>
       </View>
 
       {carregando ? (
@@ -92,11 +79,21 @@ export default function BairrosScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={false} onRefresh={carregar} tintColor="#FF5C2E" />}
         >
-          {bairros.map((b) => (
-            <TouchableOpacity key={b.id} style={styles.card} activeOpacity={0.8}>
+          {bairros.map((b, i) => {
+            const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+            return (
+            <TouchableOpacity
+              key={b.id}
+              style={styles.card}
+              activeOpacity={0.8}
+              onPress={() => registrarInteracao(b.id, "visita")}
+            >
               <View style={[styles.colorBar, { backgroundColor: b.cor }]} />
+              <View style={styles.posicao}>
+                <Text style={styles.posicaoTexto}>{medalha ?? `${i + 1}º`}</Text>
+              </View>
               <View style={styles.cardContent}>
-                <Text style={styles.bairroNome}>{b.label}</Text>
+                <Text style={styles.bairroNome}>{b.nome}</Text>
                 {!!b.descricao && <Text style={styles.bairroDesc}>{b.descricao}</Text>}
                 <Text style={styles.moradores}>
                   👥 {b.moradores} {b.moradores === 1 ? "morador" : "moradores"}
@@ -104,7 +101,8 @@ export default function BairrosScreen() {
               </View>
               <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-          ))}
+            );
+          })}
           <View style={{ height: 32 }} />
         </ScrollView>
       )}
@@ -143,7 +141,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   colorBar: { width: 6, alignSelf: "stretch" },
-  cardContent: { flex: 1, padding: 16 },
+  posicao: { width: 44, alignItems: "center", justifyContent: "center" },
+  posicaoTexto: { fontSize: 18, fontWeight: "800", color: "#bbb" },
+  cardContent: { flex: 1, paddingVertical: 16, paddingRight: 16 },
   bairroNome: { fontSize: 16, fontWeight: "700", color: "#111" },
   bairroDesc: { fontSize: 13, color: "#888", marginTop: 2 },
   moradores: { fontSize: 12, color: "#aaa", marginTop: 6 },

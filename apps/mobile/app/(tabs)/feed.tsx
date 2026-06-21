@@ -4,9 +4,13 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect, useCallback } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Logo from "../../components/Logo";
+import NovoPostModal from "../../components/NovoPostModal";
+import BoasVindas from "../../components/BoasVindas";
 import { supabase } from "../../lib/supabase";
 import { tempoRelativo } from "../../lib/tempo";
+import { listarSetores, registrarInteracao, type Setor } from "../../lib/setores";
 
 type Post = {
   id: string;
@@ -16,29 +20,48 @@ type Post = {
   criado_em: string;
   autor_nome: string;
   autor_foto: string | null;
-  bairro: string;
+  setorId: string;
+  setorNome: string;
 };
 
 export default function FeedScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [setores, setSetores] = useState<Setor[]>([]);
+  const [setorAtivo, setSetorAtivo] = useState<string | null>(null); // null = Tudo
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [curtidos, setCurtidos] = useState<Set<string>>(new Set());
   const [meuId, setMeuId] = useState<string | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [boasVindas, setBoasVindas] = useState(false);
 
-  const carregar = useCallback(async () => {
+  useEffect(() => {
+    AsyncStorage.getItem("boas_vindas_visto").then((v) => {
+      if (!v) setBoasVindas(true);
+    });
+    listarSetores().then(setSetores);
+  }, []);
+
+  async function concluirBoasVindas() {
+    await AsyncStorage.setItem("boas_vindas_visto", "sim");
+    setBoasVindas(false);
+  }
+
+  const carregar = useCallback(async (setorId: string | null) => {
     setErro(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       setMeuId(user?.id ?? null);
 
-      // 1) Posts reais (mesma consulta do site: mais recentes primeiro)
-      const { data: postsData, error } = await supabase
+      // 1) Posts reais — filtrados por setor quando houver um selecionado
+      let query = supabase
         .from("posts")
         .select("id, conteudo, total_curtidas, total_comentarios, criado_em, autor_id, bairro_id")
         .is("apagado_em", null)
         .order("criado_em", { ascending: false })
         .limit(30);
+      if (setorId) query = query.eq("bairro_id", setorId);
+      const { data: postsData, error } = await query;
       if (error) throw error;
 
       const lista = postsData ?? [];
@@ -54,15 +77,15 @@ export default function FeedScreen() {
         perfis?.forEach((p) => perfisMap.set(p.id, { nome: p.nome, foto_url: p.foto_url }));
       }
 
-      // 3) Bairros (tabela bairros) — para mostrar o nome do bairro
-      const bairroIds = [...new Set(lista.map((p) => p.bairro_id).filter(Boolean))];
-      const bairrosMap = new Map<string, string>();
-      if (bairroIds.length) {
+      // 3) Nome dos setores (tabela bairros)
+      const setorIds = [...new Set(lista.map((p) => p.bairro_id).filter(Boolean))];
+      const setoresMap = new Map<string, string>();
+      if (setorIds.length) {
         const { data: bairros } = await supabase
           .from("bairros")
-          .select("id, label")
-          .in("id", bairroIds);
-        bairros?.forEach((b) => bairrosMap.set(b.id, b.label));
+          .select("id, nome")
+          .in("id", setorIds);
+        bairros?.forEach((b) => setoresMap.set(b.id, b.nome));
       }
 
       // 4) Quais desses posts eu já curti
@@ -84,7 +107,8 @@ export default function FeedScreen() {
           criado_em: p.criado_em,
           autor_nome: perfisMap.get(p.autor_id)?.nome ?? "Morador",
           autor_foto: perfisMap.get(p.autor_id)?.foto_url ?? null,
-          bairro: bairrosMap.get(p.bairro_id) ?? "Cidade",
+          setorId: p.bairro_id,
+          setorNome: setoresMap.get(p.bairro_id) ?? "Cidade",
         }))
       );
     } catch (e: any) {
@@ -94,10 +118,18 @@ export default function FeedScreen() {
     }
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => { carregar(null); }, [carregar]);
+
+  function trocarSetor(setorId: string | null) {
+    setSetorAtivo(setorId);
+    setCarregando(true);
+    carregar(setorId);
+    if (setorId) registrarInteracao(setorId, "visita"); // sinal de comportamento
+  }
 
   async function curtir(id: string) {
     if (!meuId) return;
+    const post = posts.find((p) => p.id === id);
     const jaCurtiu = curtidos.has(id);
 
     // Atualização otimista (muda na tela na hora)
@@ -114,16 +146,15 @@ export default function FeedScreen() {
       )
     );
 
-    // Grava no banco (mesma tabela do site)
     try {
       if (jaCurtiu) {
         await supabase.from("curtidas").delete().eq("post_id", id).eq("morador_id", meuId);
       } else {
         await supabase.from("curtidas").insert({ post_id: id, morador_id: meuId });
+        if (post) registrarInteracao(post.setorId, "curtida"); // sinal de comportamento
       }
     } catch {
-      // se falhar, recarrega para refletir o estado real
-      carregar();
+      carregar(setorAtivo);
     }
   }
 
@@ -135,10 +166,39 @@ export default function FeedScreen() {
           <Logo size={36} variant="dark" />
           <Text style={styles.headerTitle}>Urban Members</Text>
         </View>
-        <TouchableOpacity style={styles.newPostBtn}>
+        <TouchableOpacity style={styles.newPostBtn} onPress={() => setModalAberto(true)}>
           <Text style={styles.newPostText}>+ Post</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Filtros por setor */}
+      <View style={styles.filtroBar}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtroRow}>
+          <TouchableOpacity
+            style={[styles.filtroChip, setorAtivo === null && styles.filtroChipAtivo]}
+            onPress={() => trocarSetor(null)}
+          >
+            <Text style={[styles.filtroTexto, setorAtivo === null && styles.filtroTextoAtivo]}>Tudo</Text>
+          </TouchableOpacity>
+          {setores.map((s) => (
+            <TouchableOpacity
+              key={s.id}
+              style={[styles.filtroChip, setorAtivo === s.id && { backgroundColor: s.cor, borderColor: s.cor }]}
+              onPress={() => trocarSetor(s.id)}
+            >
+              <Text style={[styles.filtroTexto, setorAtivo === s.id && styles.filtroTextoAtivo]}>{s.nome}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      <NovoPostModal
+        visible={modalAberto}
+        onClose={() => setModalAberto(false)}
+        onPublicado={() => carregar(setorAtivo)}
+      />
+
+      <BoasVindas visible={boasVindas} onConcluir={concluirBoasVindas} />
 
       {carregando ? (
         <View style={styles.centro}>
@@ -148,21 +208,23 @@ export default function FeedScreen() {
       ) : erro ? (
         <View style={styles.centro}>
           <Text style={styles.centroTexto}>{erro}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => { setCarregando(true); carregar(); }}>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => { setCarregando(true); carregar(setorAtivo); }}>
             <Text style={styles.retryText}>Tentar de novo</Text>
           </TouchableOpacity>
         </View>
       ) : posts.length === 0 ? (
         <View style={styles.centro}>
           <Text style={styles.vazioEmoji}>🏙</Text>
-          <Text style={styles.centroTexto}>Ainda não há posts na cidade.{"\n"}Seja o primeiro a publicar!</Text>
+          <Text style={styles.centroTexto}>
+            {setorAtivo ? "Ainda não há posts neste setor.\nSeja o primeiro!" : "Ainda não há posts na cidade.\nSeja o primeiro a publicar!"}
+          </Text>
         </View>
       ) : (
         <ScrollView
           style={styles.scroll}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={false} onRefresh={carregar} tintColor="#FF5C2E" />
+            <RefreshControl refreshing={false} onRefresh={() => carregar(setorAtivo)} tintColor="#FF5C2E" />
           }
         >
           {posts.map((post) => {
@@ -179,7 +241,7 @@ export default function FeedScreen() {
                   )}
                   <View style={styles.cardMeta}>
                     <Text style={styles.autorName}>{post.autor_nome}</Text>
-                    <Text style={styles.bairroTag}>📍 {post.bairro} · {tempoRelativo(post.criado_em)}</Text>
+                    <Text style={styles.bairroTag}>📍 {post.setorNome} · {tempoRelativo(post.criado_em)}</Text>
                   </View>
                 </View>
 
@@ -218,13 +280,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
   },
   headerBrand: { flexDirection: "row", alignItems: "center", gap: 10 },
   headerTitle: { fontSize: 20, fontWeight: "800", color: "#111", letterSpacing: -0.5 },
   newPostBtn: { backgroundColor: "#FF5C2E", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   newPostText: { color: "#fff", fontSize: 13, fontWeight: "700" },
+  filtroBar: {
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    paddingBottom: 12,
+  },
+  filtroRow: { paddingHorizontal: 16, gap: 8 },
+  filtroChip: {
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  filtroChipAtivo: { backgroundColor: "#111", borderColor: "#111" },
+  filtroTexto: { color: "#666", fontSize: 13, fontWeight: "600" },
+  filtroTextoAtivo: { color: "#fff" },
   scroll: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   centro: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 12 },
   centroTexto: { color: "#888", fontSize: 15, textAlign: "center", lineHeight: 22 },

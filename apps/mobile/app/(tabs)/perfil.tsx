@@ -1,11 +1,14 @@
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert,
-  Image, ActivityIndicator,
+  Image, ActivityIndicator, Share,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import ViewShot, { captureRef } from "react-native-view-shot";
+import * as Sharing from "expo-sharing";
 import { supabase } from "../../lib/supabase";
+import Carteirinha from "../../components/Carteirinha";
 
 type Perfil = {
   nome: string;
@@ -14,14 +17,19 @@ type Perfil = {
   ocupacao: string | null;
   urban_score: number;
   foto_url: string | null;
+  criado_em: string | null;
 };
+
+const LIMITE_FUNDADOR = 1000;
 
 export default function PerfilScreen() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [posts, setPosts] = useState(0);
   const [conexoes, setConexoes] = useState(0);
   const [minhaLoja, setMinhaLoja] = useState<string | null>(null);
+  const [numeroMorador, setNumeroMorador] = useState<number | null>(null);
   const [carregando, setCarregando] = useState(true);
+  const carteirinhaRef = useRef<View>(null);
 
   const carregar = useCallback(async () => {
     try {
@@ -31,10 +39,19 @@ export default function PerfilScreen() {
       // Perfil real do morador logado (mesma tabela do site)
       const { data: p } = await supabase
         .from("perfis")
-        .select("nome, cidade, estado, ocupacao, urban_score, foto_url")
+        .select("nome, cidade, estado, ocupacao, urban_score, foto_url, criado_em")
         .eq("id", user.id)
         .single();
       if (p) setPerfil(p as Perfil);
+
+      // Número de morador = quantos se cadastraram até você (ordem de chegada na cidade)
+      if (p?.criado_em) {
+        const { count } = await supabase
+          .from("perfis")
+          .select("id", { count: "exact", head: true })
+          .lte("criado_em", p.criado_em);
+        setNumeroMorador(count ?? null);
+      }
 
       // Contagens reais
       const [{ count: totalPosts }, { count: totalConexoes }, { data: loja }] = await Promise.all([
@@ -55,6 +72,31 @@ export default function PerfilScreen() {
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);
+
+  async function compartilharCarteirinha() {
+    try {
+      const uri = await captureRef(carteirinhaRef, { format: "png", quality: 1 });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle: "Meu endereço na Urban Members" });
+      } else {
+        Alert.alert("Compartilhar", "Compartilhamento não disponível neste aparelho.");
+      }
+    } catch {
+      Alert.alert("Ops", "Não foi possível gerar a imagem da carteirinha.");
+    }
+  }
+
+  async function convidarVizinhos() {
+    try {
+      await Share.share({
+        message:
+          `🏙 Reservei meu endereço na Urban Members — uma cidade virtual de verdade.\n\n` +
+          `Venha ser meu vizinho e reserve o seu também: urbanicsa.com`,
+      });
+    } catch {
+      // usuário cancelou — sem ação
+    }
+  }
 
   async function sair() {
     Alert.alert("Sair da cidade", "Tem certeza que deseja sair?", [
@@ -77,6 +119,7 @@ export default function PerfilScreen() {
 
   const nome = perfil?.nome ?? "Morador";
   const localizacao = [perfil?.cidade, perfil?.estado].filter(Boolean).join(", ");
+  const fundador = numeroMorador !== null && numeroMorador <= LIMITE_FUNDADOR;
 
   if (carregando) {
     return (
@@ -123,6 +166,34 @@ export default function PerfilScreen() {
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Carteirinha de endereço — compartilhável */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Minha carteirinha de morador</Text>
+          {fundador && (
+            <Text style={styles.fundadorAviso}>
+              ⭐ Você é um dos primeiros {LIMITE_FUNDADOR} moradores — Fundador da cidade!
+            </Text>
+          )}
+          <ViewShot ref={carteirinhaRef} options={{ format: "png", quality: 1 }}>
+            <Carteirinha
+              nome={nome}
+              localizacao={localizacao}
+              numero={numeroMorador}
+              fundador={fundador}
+              score={perfil?.urban_score ?? 0}
+              foto={perfil?.foto_url ?? null}
+            />
+          </ViewShot>
+
+          <TouchableOpacity style={styles.btnPrimario} activeOpacity={0.85} onPress={compartilharCarteirinha}>
+            <Text style={styles.btnPrimarioTexto}>📤 Compartilhar minha carteirinha</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.btnSecundario} activeOpacity={0.85} onPress={convidarVizinhos}>
+            <Text style={styles.btnSecundarioTexto}>📨 Convidar vizinhos</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Minha cidade</Text>
           {[
@@ -180,6 +251,11 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   section: { marginTop: 20, marginHorizontal: 16 },
   sectionTitle: { fontSize: 12, fontWeight: "700", color: "#aaa", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8, marginLeft: 4 },
+  fundadorAviso: { fontSize: 13, color: "#FF5C2E", fontWeight: "600", marginBottom: 10, marginLeft: 4 },
+  btnPrimario: { backgroundColor: "#FF5C2E", paddingVertical: 16, borderRadius: 14, alignItems: "center", marginTop: 14 },
+  btnPrimarioTexto: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  btnSecundario: { backgroundColor: "#fff", paddingVertical: 16, borderRadius: 14, alignItems: "center", marginTop: 10, borderWidth: 1, borderColor: "#eee" },
+  btnSecundarioTexto: { color: "#111", fontSize: 15, fontWeight: "700" },
   menuItem: { backgroundColor: "#fff", borderRadius: 14, flexDirection: "row", alignItems: "center", padding: 14, marginBottom: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
   menuEmoji: { fontSize: 20, marginRight: 12 },
   menuInfo: { flex: 1 },

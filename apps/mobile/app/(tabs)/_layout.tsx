@@ -11,7 +11,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="feed" options={{ title: "Feed" }} />
-      <Tabs.Screen name="bairros" options={{ title: "Bairros" }} />
+      <Tabs.Screen name="bairros" options={{ title: "Setores" }} />
       <Tabs.Screen name="mercado" options={{ title: "Mercado" }} />
       <Tabs.Screen name="perfil" options={{ title: "Perfil" }} />
     </Tabs>
