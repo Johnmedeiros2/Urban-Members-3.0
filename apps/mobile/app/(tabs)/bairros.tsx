@@ -1,15 +1,68 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  ActivityIndicator, RefreshControl,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "../../lib/supabase";
 
-const BAIRROS = [
-  { id: "1", nome: "Centro", moradores: 142, descricao: "O coração da cidade", cor: "#FF5C2E" },
-  { id: "2", nome: "Vila Nova", moradores: 87, descricao: "Bairro criativo e cultural", cor: "#6C63FF" },
-  { id: "3", nome: "Zona Sul", moradores: 65, descricao: "Natureza e tranquilidade", cor: "#00C896" },
-  { id: "4", nome: "Tech Park", moradores: 53, descricao: "Inovação e tecnologia", cor: "#0084FF" },
-  { id: "5", nome: "Mercadão", moradores: 38, descricao: "Comércio e negócios", cor: "#FFB800" },
-];
+type Bairro = {
+  id: string;
+  label: string;
+  descricao: string | null;
+  moradores: number;
+  cor: string;
+};
+
+// Paleta de cores para dar identidade visual a cada bairro
+const CORES = ["#FF5C2E", "#6C63FF", "#00C896", "#0084FF", "#FFB800", "#E84393", "#00B8D4"];
 
 export default function BairrosScreen() {
+  const [bairros, setBairros] = useState<Bairro[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const carregar = useCallback(async () => {
+    setErro(null);
+    try {
+      // 1) Bairros reais (mesma tabela do site)
+      const { data: lista, error } = await supabase
+        .from("bairros")
+        .select("id, label, descricao");
+      if (error) throw error;
+
+      const bairrosLista = lista ?? [];
+
+      // 2) Contagem real de moradores por bairro (tabela bairro_membros)
+      const contagem = new Map<string, number>();
+      if (bairrosLista.length) {
+        const { data: membros } = await supabase
+          .from("bairro_membros")
+          .select("bairro_id")
+          .in("bairro_id", bairrosLista.map((b) => b.id));
+        membros?.forEach((m) => {
+          contagem.set(m.bairro_id, (contagem.get(m.bairro_id) ?? 0) + 1);
+        });
+      }
+
+      setBairros(
+        bairrosLista.map((b, i) => ({
+          id: b.id,
+          label: b.label,
+          descricao: b.descricao,
+          moradores: contagem.get(b.id) ?? 0,
+          cor: CORES[i % CORES.length],
+        }))
+      );
+    } catch {
+      setErro("Não foi possível carregar os bairros.");
+    } finally {
+      setCarregando(false);
+    }
+  }, []);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
@@ -18,20 +71,43 @@ export default function BairrosScreen() {
         <Text style={styles.headerSub}>Escolha onde morar na cidade</Text>
       </View>
 
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        {BAIRROS.map((b) => (
-          <TouchableOpacity key={b.id} style={styles.card} activeOpacity={0.8}>
-            <View style={[styles.colorBar, { backgroundColor: b.cor }]} />
-            <View style={styles.cardContent}>
-              <Text style={styles.bairroNome}>{b.nome}</Text>
-              <Text style={styles.bairroDesc}>{b.descricao}</Text>
-              <Text style={styles.moradores}>👥 {b.moradores} moradores</Text>
-            </View>
-            <Text style={styles.arrow}>›</Text>
+      {carregando ? (
+        <View style={styles.centro}>
+          <ActivityIndicator size="large" color="#FF5C2E" />
+        </View>
+      ) : erro ? (
+        <View style={styles.centro}>
+          <Text style={styles.centroTexto}>{erro}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => { setCarregando(true); carregar(); }}>
+            <Text style={styles.retryText}>Tentar de novo</Text>
           </TouchableOpacity>
-        ))}
-        <View style={{ height: 32 }} />
-      </ScrollView>
+        </View>
+      ) : bairros.length === 0 ? (
+        <View style={styles.centro}>
+          <Text style={styles.centroTexto}>Nenhum bairro cadastrado ainda.</Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={false} onRefresh={carregar} tintColor="#FF5C2E" />}
+        >
+          {bairros.map((b) => (
+            <TouchableOpacity key={b.id} style={styles.card} activeOpacity={0.8}>
+              <View style={[styles.colorBar, { backgroundColor: b.cor }]} />
+              <View style={styles.cardContent}>
+                <Text style={styles.bairroNome}>{b.label}</Text>
+                {!!b.descricao && <Text style={styles.bairroDesc}>{b.descricao}</Text>}
+                <Text style={styles.moradores}>
+                  👥 {b.moradores} {b.moradores === 1 ? "morador" : "moradores"}
+                </Text>
+              </View>
+              <Text style={styles.arrow}>›</Text>
+            </TouchableOpacity>
+          ))}
+          <View style={{ height: 32 }} />
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -49,6 +125,10 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 20, fontWeight: "800", color: "#111", letterSpacing: -0.5 },
   headerSub: { fontSize: 13, color: "#999", marginTop: 2 },
   scroll: { flex: 1, padding: 16 },
+  centro: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 12 },
+  centroTexto: { color: "#888", fontSize: 15, textAlign: "center" },
+  retryBtn: { backgroundColor: "#FF5C2E", paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
+  retryText: { color: "#fff", fontWeight: "700" },
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,

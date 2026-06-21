@@ -1,32 +1,130 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  Image, ActivityIndicator, RefreshControl,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Logo from "../../components/Logo";
+import { supabase } from "../../lib/supabase";
+import { tempoRelativo } from "../../lib/tempo";
 
-const POSTS_INICIAIS = [
-  { id: "1", autor: "Carlos Silva", bairro: "Centro", tempo: "2min atrás", texto: "Acabei de abrir minha loja no mercado da cidade. Passa lá! 🏪", curtidas: 12, comentarios: 3 },
-  { id: "2", autor: "Ana Ferreira", bairro: "Vila Nova", tempo: "15min atrás", texto: "Novo curso de design disponível no bairro criativo. Vagas limitadas 🎨", curtidas: 34, comentarios: 8 },
-  { id: "3", autor: "João Medeiros", bairro: "Zona Sul", tempo: "1h atrás", texto: "A cidade está crescendo rápido! Já somos mais de 500 moradores. Bem-vindos! 🏙️", curtidas: 89, comentarios: 21 },
-];
+type Post = {
+  id: string;
+  conteudo: string;
+  total_curtidas: number;
+  total_comentarios: number;
+  criado_em: string;
+  autor_nome: string;
+  autor_foto: string | null;
+  bairro: string;
+};
 
 export default function FeedScreen() {
-  const [posts, setPosts] = useState(POSTS_INICIAIS);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
   const [curtidos, setCurtidos] = useState<Set<string>>(new Set());
+  const [meuId, setMeuId] = useState<string | null>(null);
 
-  function curtir(id: string) {
+  const carregar = useCallback(async () => {
+    setErro(null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setMeuId(user?.id ?? null);
+
+      // 1) Posts reais (mesma consulta do site: mais recentes primeiro)
+      const { data: postsData, error } = await supabase
+        .from("posts")
+        .select("id, conteudo, total_curtidas, total_comentarios, criado_em, autor_id, bairro_id")
+        .is("apagado_em", null)
+        .order("criado_em", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+
+      const lista = postsData ?? [];
+
+      // 2) Autores (tabela perfis)
+      const autorIds = [...new Set(lista.map((p) => p.autor_id).filter(Boolean))];
+      const perfisMap = new Map<string, { nome: string; foto_url: string | null }>();
+      if (autorIds.length) {
+        const { data: perfis } = await supabase
+          .from("perfis")
+          .select("id, nome, foto_url")
+          .in("id", autorIds);
+        perfis?.forEach((p) => perfisMap.set(p.id, { nome: p.nome, foto_url: p.foto_url }));
+      }
+
+      // 3) Bairros (tabela bairros) — para mostrar o nome do bairro
+      const bairroIds = [...new Set(lista.map((p) => p.bairro_id).filter(Boolean))];
+      const bairrosMap = new Map<string, string>();
+      if (bairroIds.length) {
+        const { data: bairros } = await supabase
+          .from("bairros")
+          .select("id, label")
+          .in("id", bairroIds);
+        bairros?.forEach((b) => bairrosMap.set(b.id, b.label));
+      }
+
+      // 4) Quais desses posts eu já curti
+      if (user && lista.length) {
+        const { data: minhas } = await supabase
+          .from("curtidas")
+          .select("post_id")
+          .eq("morador_id", user.id)
+          .in("post_id", lista.map((p) => p.id));
+        setCurtidos(new Set((minhas ?? []).map((c) => c.post_id)));
+      }
+
+      setPosts(
+        lista.map((p) => ({
+          id: p.id,
+          conteudo: p.conteudo,
+          total_curtidas: p.total_curtidas ?? 0,
+          total_comentarios: p.total_comentarios ?? 0,
+          criado_em: p.criado_em,
+          autor_nome: perfisMap.get(p.autor_id)?.nome ?? "Morador",
+          autor_foto: perfisMap.get(p.autor_id)?.foto_url ?? null,
+          bairro: bairrosMap.get(p.bairro_id) ?? "Cidade",
+        }))
+      );
+    } catch (e: any) {
+      setErro("Não foi possível carregar o feed. Verifique sua conexão.");
+    } finally {
+      setCarregando(false);
+    }
+  }, []);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
+  async function curtir(id: string) {
+    if (!meuId) return;
+    const jaCurtiu = curtidos.has(id);
+
+    // Atualização otimista (muda na tela na hora)
     setCurtidos((prev) => {
       const novo = new Set(prev);
-      const jaCurtiu = novo.has(id);
       jaCurtiu ? novo.delete(id) : novo.add(id);
-      setPosts((p) =>
-        p.map((post) =>
-          post.id === id
-            ? { ...post, curtidas: post.curtidas + (jaCurtiu ? -1 : 1) }
-            : post
-        )
-      );
       return novo;
     });
+    setPosts((p) =>
+      p.map((post) =>
+        post.id === id
+          ? { ...post, total_curtidas: post.total_curtidas + (jaCurtiu ? -1 : 1) }
+          : post
+      )
+    );
+
+    // Grava no banco (mesma tabela do site)
+    try {
+      if (jaCurtiu) {
+        await supabase.from("curtidas").delete().eq("post_id", id).eq("morador_id", meuId);
+      } else {
+        await supabase.from("curtidas").insert({ post_id: id, morador_id: meuId });
+      }
+    } catch {
+      // se falhar, recarrega para refletir o estado real
+      carregar();
+    }
   }
 
   return (
@@ -42,41 +140,70 @@ export default function FeedScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        {posts.map((post) => {
-          const curtiu = curtidos.has(post.id);
-          return (
-            <View key={post.id} style={styles.card}>
-              <View style={styles.cardHeader}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{post.autor[0]}</Text>
+      {carregando ? (
+        <View style={styles.centro}>
+          <ActivityIndicator size="large" color="#FF5C2E" />
+          <Text style={styles.centroTexto}>Carregando a cidade...</Text>
+        </View>
+      ) : erro ? (
+        <View style={styles.centro}>
+          <Text style={styles.centroTexto}>{erro}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => { setCarregando(true); carregar(); }}>
+            <Text style={styles.retryText}>Tentar de novo</Text>
+          </TouchableOpacity>
+        </View>
+      ) : posts.length === 0 ? (
+        <View style={styles.centro}>
+          <Text style={styles.vazioEmoji}>🏙</Text>
+          <Text style={styles.centroTexto}>Ainda não há posts na cidade.{"\n"}Seja o primeiro a publicar!</Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={false} onRefresh={carregar} tintColor="#FF5C2E" />
+          }
+        >
+          {posts.map((post) => {
+            const curtiu = curtidos.has(post.id);
+            return (
+              <View key={post.id} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  {post.autor_foto ? (
+                    <Image source={{ uri: post.autor_foto }} style={styles.avatarImg} />
+                  ) : (
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>{post.autor_nome[0]?.toUpperCase()}</Text>
+                    </View>
+                  )}
+                  <View style={styles.cardMeta}>
+                    <Text style={styles.autorName}>{post.autor_nome}</Text>
+                    <Text style={styles.bairroTag}>📍 {post.bairro} · {tempoRelativo(post.criado_em)}</Text>
+                  </View>
                 </View>
-                <View style={styles.cardMeta}>
-                  <Text style={styles.autorName}>{post.autor}</Text>
-                  <Text style={styles.bairroTag}>📍 {post.bairro} · {post.tempo}</Text>
+
+                <Text style={styles.postText}>{post.conteudo}</Text>
+
+                <View style={styles.actions}>
+                  <TouchableOpacity style={styles.actionBtn} onPress={() => curtir(post.id)}>
+                    <Text style={[styles.actionText, curtiu && styles.curtido]}>
+                      {curtiu ? "❤️" : "🤍"} {post.total_curtidas}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.actionBtn}>
+                    <Text style={styles.actionText}>💬 {post.total_comentarios}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.actionBtn}>
+                    <Text style={styles.actionText}>↗️ Compartilhar</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-
-              <Text style={styles.postText}>{post.texto}</Text>
-
-              <View style={styles.actions}>
-                <TouchableOpacity style={styles.actionBtn} onPress={() => curtir(post.id)}>
-                  <Text style={[styles.actionText, curtiu && styles.curtido]}>
-                    {curtiu ? "❤️" : "🤍"} {post.curtidas}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}>
-                  <Text style={styles.actionText}>💬 {post.comentarios}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}>
-                  <Text style={styles.actionText}>↗️ Compartilhar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })}
-        <View style={{ height: 32 }} />
-      </ScrollView>
+            );
+          })}
+          <View style={{ height: 32 }} />
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -99,6 +226,11 @@ const styles = StyleSheet.create({
   newPostBtn: { backgroundColor: "#FF5C2E", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   newPostText: { color: "#fff", fontSize: 13, fontWeight: "700" },
   scroll: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  centro: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 12 },
+  centroTexto: { color: "#888", fontSize: 15, textAlign: "center", lineHeight: 22 },
+  vazioEmoji: { fontSize: 48 },
+  retryBtn: { backgroundColor: "#FF5C2E", paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 8 },
+  retryText: { color: "#fff", fontWeight: "700" },
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -112,6 +244,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FF5C2E", alignItems: "center", justifyContent: "center", marginRight: 10 },
+  avatarImg: { width: 40, height: 40, borderRadius: 20, marginRight: 10, backgroundColor: "#eee" },
   avatarText: { color: "#fff", fontWeight: "700", fontSize: 16 },
   cardMeta: { flex: 1 },
   autorName: { fontSize: 14, fontWeight: "700", color: "#111" },

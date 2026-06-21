@@ -1,15 +1,81 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  ActivityIndicator, RefreshControl,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "../../lib/supabase";
 
-const PRODUTOS = [
-  { id: "1", nome: "Pack de Design", vendedor: "Ana Ferreira", preco: "R$ 49,90", categoria: "Digital", emoji: "🎨" },
-  { id: "2", nome: "Mentoria 1h", vendedor: "Carlos Silva", preco: "R$ 120,00", categoria: "Serviço", emoji: "🎯" },
-  { id: "3", nome: "Camiseta Urban", vendedor: "Loja Central", preco: "R$ 89,90", categoria: "Produto", emoji: "👕" },
-  { id: "4", nome: "Curso de Negócios", vendedor: "João Medeiros", preco: "R$ 197,00", categoria: "Curso", emoji: "📚" },
-  { id: "5", nome: "Logo Profissional", vendedor: "Studio Vila", preco: "R$ 350,00", categoria: "Serviço", emoji: "✏️" },
-];
+type Produto = {
+  id: string;
+  nome: string;
+  preco: number;
+  categoria: string | null;
+  vendedor: string;
+};
+
+const EMOJI_CATEGORIA: Record<string, string> = {
+  Digital: "🎨",
+  Serviço: "🎯",
+  Servico: "🎯",
+  Produto: "🛍",
+  Curso: "📚",
+  Comida: "🍔",
+  Moda: "👕",
+};
+
+function formatarPreco(valor: number): string {
+  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 export default function MercadoScreen() {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const carregar = useCallback(async () => {
+    setErro(null);
+    try {
+      // Produtos reais à venda (mesma consulta do site)
+      const { data: lista, error } = await supabase
+        .from("produtos")
+        .select("id, nome, preco, categoria, loja:lojas(nome, dono_id)")
+        .eq("disponivel", true)
+        .order("criado_em", { ascending: false })
+        .limit(40);
+      if (error) throw error;
+
+      const produtosLista = (lista ?? []) as any[];
+
+      // Nome do dono da loja (tabela perfis), como no site
+      const donoIds = [...new Set(produtosLista.map((p) => p.loja?.dono_id).filter(Boolean))];
+      const donoMap = new Map<string, string>();
+      if (donoIds.length) {
+        const { data: perfis } = await supabase
+          .from("perfis")
+          .select("id, nome")
+          .in("id", donoIds);
+        perfis?.forEach((p) => donoMap.set(p.id, p.nome));
+      }
+
+      setProdutos(
+        produtosLista.map((p) => ({
+          id: p.id,
+          nome: p.nome,
+          preco: Number(p.preco) || 0,
+          categoria: p.categoria,
+          vendedor: p.loja?.nome ?? donoMap.get(p.loja?.dono_id) ?? "Morador",
+        }))
+      );
+    } catch {
+      setErro("Não foi possível carregar o mercado.");
+    } finally {
+      setCarregando(false);
+    }
+  }, []);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
@@ -20,22 +86,44 @@ export default function MercadoScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.grid}>
-          {PRODUTOS.map((p) => (
-            <TouchableOpacity key={p.id} style={styles.card} activeOpacity={0.8}>
-              <View style={styles.emojiBox}>
-                <Text style={styles.emoji}>{p.emoji}</Text>
-              </View>
-              <Text style={styles.categoria}>{p.categoria}</Text>
-              <Text style={styles.nome}>{p.nome}</Text>
-              <Text style={styles.vendedor}>{p.vendedor}</Text>
-              <Text style={styles.preco}>{p.preco}</Text>
-            </TouchableOpacity>
-          ))}
+      {carregando ? (
+        <View style={styles.centro}>
+          <ActivityIndicator size="large" color="#FF5C2E" />
         </View>
-        <View style={{ height: 32 }} />
-      </ScrollView>
+      ) : erro ? (
+        <View style={styles.centro}>
+          <Text style={styles.centroTexto}>{erro}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => { setCarregando(true); carregar(); }}>
+            <Text style={styles.retryText}>Tentar de novo</Text>
+          </TouchableOpacity>
+        </View>
+      ) : produtos.length === 0 ? (
+        <View style={styles.centro}>
+          <Text style={styles.vazioEmoji}>🛒</Text>
+          <Text style={styles.centroTexto}>Nenhum produto à venda ainda.{"\n"}Abra sua loja na cidade!</Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={false} onRefresh={carregar} tintColor="#FF5C2E" />}
+        >
+          <View style={styles.grid}>
+            {produtos.map((p) => (
+              <TouchableOpacity key={p.id} style={styles.card} activeOpacity={0.8}>
+                <View style={styles.emojiBox}>
+                  <Text style={styles.emoji}>{(p.categoria && EMOJI_CATEGORIA[p.categoria]) || "🛍"}</Text>
+                </View>
+                {!!p.categoria && <Text style={styles.categoria}>{p.categoria}</Text>}
+                <Text style={styles.nome} numberOfLines={2}>{p.nome}</Text>
+                <Text style={styles.vendedor} numberOfLines={1}>{p.vendedor}</Text>
+                <Text style={styles.preco}>{formatarPreco(p.preco)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={{ height: 32 }} />
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -54,20 +142,15 @@ const styles = StyleSheet.create({
     borderBottomColor: "#F0F0F0",
   },
   headerTitle: { fontSize: 20, fontWeight: "800", color: "#111", letterSpacing: -0.5 },
-  vendaBtn: {
-    backgroundColor: "#FF5C2E",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
+  vendaBtn: { backgroundColor: "#FF5C2E", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   vendaBtnText: { color: "#fff", fontSize: 13, fontWeight: "700" },
   scroll: { flex: 1 },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    padding: 12,
-    gap: 12,
-  },
+  centro: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 12 },
+  centroTexto: { color: "#888", fontSize: 15, textAlign: "center", lineHeight: 22 },
+  vazioEmoji: { fontSize: 48 },
+  retryBtn: { backgroundColor: "#FF5C2E", paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
+  retryText: { color: "#fff", fontWeight: "700" },
+  grid: { flexDirection: "row", flexWrap: "wrap", padding: 12, gap: 12 },
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
