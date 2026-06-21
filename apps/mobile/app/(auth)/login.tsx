@@ -5,6 +5,7 @@ import {
 import { router } from "expo-router";
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
+import Logo from "../../components/Logo";
 
 export default function LoginScreen() {
   const [modo, setModo] = useState<"login" | "cadastro">("login");
@@ -62,7 +63,7 @@ export default function LoginScreen() {
 
         <View style={styles.top}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoIcon}>🏙</Text>
+            <Logo size={52} variant="accent" />
           </View>
           <Text style={styles.logoText}>Urban Members</Text>
         </View>
@@ -142,16 +143,7 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   top: { marginBottom: 40 },
-  logoBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: "#FF5C2E",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  logoIcon: { fontSize: 26 },
+  logoBox: { marginBottom: 12 },
   logoText: { color: "#fff", fontSize: 18, fontWeight: "700" },
   middle: { flex: 1 },
   headline: {

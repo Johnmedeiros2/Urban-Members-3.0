@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
+import Logo from "../../components/Logo";
 
 const POSTS_INICIAIS = [
   { id: "1", autor: "Carlos Silva", bairro: "Centro", tempo: "2min atrás", texto: "Acabei de abrir minha loja no mercado da cidade. Passa lá! 🏪", curtidas: 12, comentarios: 3 },
@@ -32,7 +33,10 @@ export default function FeedScreen() {
     <View style={styles.container}>
       <StatusBar style="dark" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Urban Members</Text>
+        <View style={styles.headerBrand}>
+          <Logo size={36} variant="dark" />
+          <Text style={styles.headerTitle}>Urban Members</Text>
+        </View>
         <TouchableOpacity style={styles.newPostBtn}>
           <Text style={styles.newPostText}>+ Post</Text>
         </TouchableOpacity>
@@ -90,6 +94,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
   },
+  headerBrand: { flexDirection: "row", alignItems: "center", gap: 10 },
   headerTitle: { fontSize: 20, fontWeight: "800", color: "#111", letterSpacing: -0.5 },
   newPostBtn: { backgroundColor: "#FF5C2E", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   newPostText: { color: "#fff", fontSize: 13, fontWeight: "700" },
