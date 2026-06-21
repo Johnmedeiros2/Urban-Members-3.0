@@ -9,6 +9,7 @@ import ViewShot, { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import { supabase } from "../../lib/supabase";
 import Carteirinha from "../../components/Carteirinha";
+import MeusSetores from "../../components/MeusSetores";
 
 type Perfil = {
   nome: string;
@@ -192,6 +193,11 @@ export default function PerfilScreen() {
           <TouchableOpacity style={styles.btnSecundario} activeOpacity={0.85} onPress={convidarVizinhos}>
             <Text style={styles.btnSecundarioTexto}>📨 Convidar vizinhos</Text>
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Meus setores favoritos</Text>
+          <MeusSetores />
         </View>
 
         <View style={styles.section}>

@@ -4,6 +4,7 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect, useCallback } from "react";
+import { router } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { registrarInteracao } from "../../lib/setores";
 
@@ -86,7 +87,10 @@ export default function BairrosScreen() {
               key={b.id}
               style={styles.card}
               activeOpacity={0.8}
-              onPress={() => registrarInteracao(b.id, "visita")}
+              onPress={() => {
+                registrarInteracao(b.id, "visita");
+                router.push({ pathname: "/(tabs)/feed", params: { setor: b.id } });
+              }}
             >
               <View style={[styles.colorBar, { backgroundColor: b.cor }]} />
               <View style={styles.posicao}>

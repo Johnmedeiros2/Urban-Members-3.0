@@ -4,6 +4,7 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect, useCallback } from "react";
+import { useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Logo from "../../components/Logo";
 import NovoPostModal from "../../components/NovoPostModal";
@@ -119,6 +120,16 @@ export default function FeedScreen() {
   }, []);
 
   useEffect(() => { carregar(null); }, [carregar]);
+
+  // Quando o usuário chega vindo da aba Setores (com um setor escolhido)
+  const params = useLocalSearchParams<{ setor?: string }>();
+  useEffect(() => {
+    if (params.setor) {
+      setSetorAtivo(params.setor);
+      setCarregando(true);
+      carregar(params.setor);
+    }
+  }, [params.setor]);
 
   function trocarSetor(setorId: string | null) {
     setSetorAtivo(setorId);

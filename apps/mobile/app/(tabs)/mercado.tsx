@@ -5,6 +5,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
+import NovoProdutoModal from "../../components/NovoProdutoModal";
 
 type Produto = {
   id: string;
@@ -32,6 +33,7 @@ export default function MercadoScreen() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
 
   const carregar = useCallback(async () => {
     setErro(null);
@@ -81,10 +83,16 @@ export default function MercadoScreen() {
       <StatusBar style="dark" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mercado</Text>
-        <TouchableOpacity style={styles.vendaBtn}>
+        <TouchableOpacity style={styles.vendaBtn} onPress={() => setModalAberto(true)}>
           <Text style={styles.vendaBtnText}>+ Vender</Text>
         </TouchableOpacity>
       </View>
+
+      <NovoProdutoModal
+        visible={modalAberto}
+        onClose={() => setModalAberto(false)}
+        onPublicado={() => { setCarregando(true); carregar(); }}
+      />
 
       {carregando ? (
         <View style={styles.centro}>
